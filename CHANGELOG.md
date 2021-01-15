@@ -10,6 +10,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Support for arbitrary calendar headers via options (e.g., METHOD for RSVP buttons). ([#56](https://github.com/lpil/icalendar/pull/56) by @nickgartmann)
 - Gmail compatibility: ORGANIZER field now uses semi-colon separator as required. ([#70](https://github.com/lpil/icalendar/pull/70) by @maedhr)
 - Added RECURRENCE-ID support for identifying specific instances of recurring events (RFC 5545 Section 3.8.4.4).
+- Add support for the `DTSTAMP` field.
+  If not provided, it is initialized to the current UTC DateTime when serializing.
 
 ## v1.1.2 - 2022-01-16
 
