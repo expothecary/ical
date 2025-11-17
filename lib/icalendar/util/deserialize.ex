@@ -113,6 +113,14 @@ defmodule ICalendar.Util.Deserialize do
   end
 
   def parse_attr(
+        %Property{key: "RECURRENCE-ID", value: recurrence_id, params: params},
+        acc
+      ) do
+    {:ok, timestamp} = to_date(recurrence_id, params)
+    %{acc | recurrence_id: timestamp}
+  end
+
+  def parse_attr(
         %Property{key: "SUMMARY", value: summary},
         acc
       ) do

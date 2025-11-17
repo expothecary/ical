@@ -117,5 +117,48 @@ defmodule ICalendar.DeserializeTest do
       [event] = ICalendar.from_ics(ics)
       assert event.url == "http://google.com"
     end
+
+    test "Event with RECURRENCE-ID in UTC" do
+      ics = """
+      BEGIN:VEVENT
+      UID:event-123
+      DTSTART:20200917T143000Z
+      RECURRENCE-ID:20200917T143000Z
+      SUMMARY:Modified instance
+      END:VEVENT
+      """
+
+      [event] = ICalendar.from_ics(ics)
+      assert event.recurrence_id == ~U[2020-09-17 14:30:00Z]
+    end
+
+    test "Event with RECURRENCE-ID with TZID" do
+      ics = """
+      BEGIN:VEVENT
+      UID:event-123
+      DTSTART;TZID=America/Toronto:20200917T143000
+      RECURRENCE-ID;TZID=America/Toronto:20200917T143000
+      SUMMARY:Modified instance
+      END:VEVENT
+      """
+
+      [event] = ICalendar.from_ics(ics)
+      expected = Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
+      assert event.recurrence_id == expected
+    end
+
+    test "Event with RECURRENCE-ID as DATE" do
+      ics = """
+      BEGIN:VEVENT
+      UID:event-123
+      DTSTART;VALUE=DATE:20200917
+      RECURRENCE-ID;VALUE=DATE:20200917
+      SUMMARY:Modified instance
+      END:VEVENT
+      """
+
+      [event] = ICalendar.from_ics(ics)
+      assert event.recurrence_id == ~U[2020-09-17 00:00:00Z]
+    end
   end
 end

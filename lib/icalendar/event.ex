@@ -8,6 +8,7 @@ defmodule ICalendar.Event do
             dtend: nil,
             rrule: nil,
             exdates: [],
+            recurrence_id: nil,
             description: nil,
             location: nil,
             url: nil,
@@ -54,6 +55,10 @@ defimpl ICalendar.Serialize, for: ICalendar.Event do
         exdates
         |> Enum.map(&KV.build("EXDATE", &1))
     end
+  end
+
+  defp to_kv({:recurrence_id, value}) do
+    KV.build("RECURRENCE-ID", value)
   end
 
   defp to_kv({key, value}) do

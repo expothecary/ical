@@ -192,6 +192,38 @@ defmodule ICalendarTest do
     assert ics =~ "EXDATE;TZID=America/Toronto:20200917T143000"
   end
 
+  test "ICalender.to_ics/1 with RECURRENCE-ID in UTC" do
+    events = [
+      %ICalendar.Event{
+        recurrence_id: ~U[2020-09-17 14:30:00Z],
+        summary: "Modified instance"
+      }
+    ]
+
+    ics =
+      %ICalendar{events: events}
+      |> ICalendar.to_ics()
+
+    assert ics =~ "RECURRENCE-ID:20200917T143000Z"
+  end
+
+  test "ICalender.to_ics/1 with RECURRENCE-ID with timezone" do
+    recurrence_id = Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
+
+    events = [
+      %ICalendar.Event{
+        recurrence_id: recurrence_id,
+        summary: "Modified instance"
+      }
+    ]
+
+    ics =
+      %ICalendar{events: events}
+      |> ICalendar.to_ics()
+
+    assert ics =~ "RECURRENCE-ID;TZID=America/Toronto:20200917T143000"
+  end
+
   test "ICalender.to_ics/1 -> ICalendar.from_ics/1 and back again" do
     events = [
       %ICalendar.Event{
