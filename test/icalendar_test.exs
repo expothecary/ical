@@ -139,7 +139,7 @@ defmodule ICalendarTest do
            """
   end
 
-  test "Icalender.to_ics/1 with rrule and exdates" do
+  test "ICalender.to_ics/1 with rrule" do
     events = [
       %ICalendar.Event{
         rrule: %{
@@ -148,7 +148,35 @@ defmodule ICalendarTest do
           bysetpos: [-1],
           interval: -2,
           until: ~U[2020-12-04 04:59:59Z]
-        },
+        }
+      }
+    ]
+
+    ics =
+      %ICalendar{events: events}
+      |> ICalendar.to_ics()
+
+    # Extract RRULE line for comparison (parameter order doesn't matter per RFC 5545)
+    [rrule_line] = Regex.run(~r/RRULE:(.+)/, ics, capture: :all_but_first)
+    rrule_params =
+      rrule_line
+      |> String.split(";")
+      |> MapSet.new()
+
+    expected_params = MapSet.new([
+      "FREQ=WEEKLY",
+      "BYDAY=TH,WE",
+      "BYSETPOS=-1",
+      "INTERVAL=-2",
+      "UNTIL=20201204T045959"
+    ])
+
+    assert rrule_params == expected_params
+  end
+
+  test "ICalender.to_ics/1 with exdates" do
+    events = [
+      %ICalendar.Event{
         exdates: [
           Timex.Timezone.convert(~U[2020-09-16 18:30:00Z], "America/Toronto"),
           Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
@@ -160,18 +188,8 @@ defmodule ICalendarTest do
       %ICalendar{events: events}
       |> ICalendar.to_ics()
 
-    assert ics == """
-           BEGIN:VCALENDAR
-           CALSCALE:GREGORIAN
-           VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
-           BEGIN:VEVENT
-           EXDATE;TZID=America/Toronto:20200916T143000
-           EXDATE;TZID=America/Toronto:20200917T143000
-           RRULE:FREQ=WEEKLY;BYDAY=TH,WE;BYSETPOS=-1;INTERVAL=-2;UNTIL=20201204T045959
-           END:VEVENT
-           END:VCALENDAR
-           """
+    assert ics =~ "EXDATE;TZID=America/Toronto:20200916T143000"
+    assert ics =~ "EXDATE;TZID=America/Toronto:20200917T143000"
   end
 
   test "ICalender.to_ics/1 -> ICalendar.from_ics/1 and back again" do
