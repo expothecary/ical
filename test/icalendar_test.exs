@@ -116,7 +116,7 @@ defmodule ICalendarTest do
         dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
         description: "Let's go see Star Wars, and have fun.",
         location: "123 Fun Street, Toronto ON, Canada",
-        url: "http://example.com"
+        url: "http://example.com/tr3GE5"
       }
     ]
 
@@ -133,7 +133,7 @@ defmodule ICalendarTest do
            DTSTART:20151224T083000Z
            LOCATION:123 Fun Street\\, Toronto ON\\, Canada
            SUMMARY:Film with Amy and Adam
-           URL:http://example.com
+           URL:http://example.com/tr3GE5
            END:VEVENT
            END:VCALENDAR
            """
