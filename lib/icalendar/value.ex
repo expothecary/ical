@@ -24,6 +24,7 @@ defimpl Value, for: Tuple do
   This macro is used to establish whether a tuple is in the Erlang Timestamp
   format (`{{year, month, day}, {hour, minute, second}}`).
   """
+  # credo:disable-for-next-line
   defmacro is_datetime_tuple(x) do
     quote do
       # Year
