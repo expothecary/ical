@@ -46,8 +46,7 @@ defimpl ICalendar.Serialize, for: ICalendar do
     headers =
       options
       |> Keyword.get(:headers, [])
-      |> Enum.map(fn {k, v} -> "\n#{k}:#{v}" end)
-      |> Enum.join("\n")
+      |> Enum.map_join("\n", fn {k, v} -> "\n#{k}:#{v}" end)
 
     """
     BEGIN:VCALENDAR
