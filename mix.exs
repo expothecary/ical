@@ -40,11 +40,7 @@ defmodule ICalendar.Mixfile do
 
   defp docs do
     [
-      extras: [
-        "CHANGELOG.md",
-        "LICENSE.md": [title: "License"],
-        "README.md": [title: "Overview"]
-      ],
+      extras: ["CHANGELOG.md", "README.md"],
       main: "readme",
       source_url: @source_url,
       source_ref: "v#{@version}",
