@@ -1,7 +1,7 @@
 defmodule ICalendar.Util.DeserializeTest do
   use ExUnit.Case
-  alias ICalendar.Util.Deserialize
   alias ICalendar.Event
+  alias ICalendar.Util.Deserialize
   doctest ICalendar.Util.Deserialize
 
   test "Convert iCal String to event Struct" do
