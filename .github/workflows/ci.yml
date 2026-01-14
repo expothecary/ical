@@ -1,0 +1,94 @@
+# Created with GitHubActions version 0.3.9
+name: CI
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+on:
+  - pull_request
+  - push
+jobs:
+  linux:
+    name: Test on Ubuntu (Elixir ${{ matrix.elixir }}, OTP ${{ matrix.otp }})
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - elixir: '1.19.1'
+            otp: '28.1'
+            coverage: true
+          - elixir: '1.19.1'
+            otp: '27.3'
+          - elixir: '1.19.1'
+            otp: '26.2'
+          - elixir: '1.18.4'
+            otp: '28.1'
+            lint: true
+          - elixir: '1.17.3'
+            otp: '25.3'
+          - elixir: '1.16.3'
+            otp: '24.3'
+          - elixir: '1.15.8'
+            otp: '24.3'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Elixir
+        id: setup-beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+      - name: Restore deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: "deps\
+            -${{ runner.os }}\
+            -${{ matrix.elixir }}\
+            -${{ matrix.otp }}\
+            -${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}\
+            -${{ steps.setup-beam.outputs.setup-beam-version }}"
+      - name: Restore _build
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: "_build\
+            -${{ runner.os }}\
+            -${{ matrix.elixir }}\
+            -${{ matrix.otp }}\
+            -${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}\
+            -${{ steps.setup-beam.outputs.setup-beam-version }}"
+      - name: Restore test/support/plts
+        if: ${{ matrix.lint }}
+        uses: actions/cache@v4
+        with:
+          path: test/support/plts
+          key: "test/support/plts\
+            -${{ runner.os }}\
+            -${{ matrix.elixir }}\
+            -${{ matrix.otp }}\
+            -${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}\
+            -${{ steps.setup-beam.outputs.setup-beam-version }}"
+      - name: Get dependencies
+        run: mix deps.get
+      - name: Compile dependencies
+        run: MIX_ENV=test mix deps.compile
+      - name: Compile project
+        run: MIX_ENV=test mix compile --warnings-as-errors
+      - name: Check unused dependencies
+        if: ${{ matrix.lint }}
+        run: mix deps.unlock --check-unused
+      - name: Check code format
+        if: ${{ matrix.lint }}
+        run: mix format --check-formatted
+      - name: Lint code
+        if: ${{ matrix.lint }}
+        run: mix credo --strict
+      - name: Run tests
+        if: ${{ !matrix.coverage }}
+        run: mix test
+      - name: Run tests with coverage
+        if: ${{ matrix.coverage }}
+        run: mix coveralls.github
+      - name: Static code analysis
+        if: ${{ matrix.lint }}
+        run: mix dialyzer --format github --force-check
