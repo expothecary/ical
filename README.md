@@ -8,12 +8,6 @@
 
 A small library for reading and writing ICalendar files.
 
-# This library is in maintenance mode
-
-Bug fixes may be accepted but no new features will be added. If you wish to add
-new features I recommend creating and publishing a fork. If an active fork is
-created I will direct users from this project to the new one.
-
 ## Installation
 
 The package can be installed by adding `:icalendar` to your list of dependencies
@@ -73,10 +67,3 @@ File.write!("calendar.ics", ics)
 
 - https://en.wikipedia.org/wiki/ICalendar
 - http://www.kanzaki.com/docs/ical/dateTime.html
-
-## Copyright and License
-
-Copyright (c) 2015 Louis Pilfold
-
-This library is released under the MIT License. See the [LICENSE.md](./LICENSE.md) file
-for further details.
