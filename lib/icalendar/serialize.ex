@@ -6,7 +6,7 @@ defprotocol ICalendar.Serialize do
 
     * `vendor` a string containing the vendor's name. Will produce
       `PRODID:-//ICalendar//My Name//EN`.
-    * `headers` a keyword list containing the headers to 
+    * `headers` a keyword list containing the headers to
       be placed in the  calendar header: `[{"Method", "Request"}]`
   """
   def to_ics(data, options \\ [])
