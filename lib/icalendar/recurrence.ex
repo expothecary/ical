@@ -1,3 +1,5 @@
+# Likely to be replaced, so ignore the many credo issues in this file for now
+# credo:disable-for-this-file
 defmodule ICalendar.Recurrence do
   @moduledoc """
   Adds support for recurring events.
