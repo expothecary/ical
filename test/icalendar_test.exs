@@ -167,18 +167,20 @@ defmodule ICalendarTest do
 
     # Extract RRULE line for comparison (parameter order doesn't matter per RFC 5545)
     [rrule_line] = Regex.run(~r/RRULE:(.+)/, ics, capture: :all_but_first)
+
     rrule_params =
       rrule_line
       |> String.split(";")
       |> MapSet.new()
 
-    expected_params = MapSet.new([
-      "FREQ=WEEKLY",
-      "BYDAY=TH,WE",
-      "BYSETPOS=-1",
-      "INTERVAL=-2",
-      "UNTIL=20201204T045959"
-    ])
+    expected_params =
+      MapSet.new([
+        "FREQ=WEEKLY",
+        "BYDAY=TH,WE",
+        "BYSETPOS=-1",
+        "INTERVAL=-2",
+        "UNTIL=20201204T045959"
+      ])
 
     assert rrule_params == expected_params
   end
