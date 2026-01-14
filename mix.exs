@@ -18,10 +18,6 @@ defmodule ICalendar.Mixfile do
     ]
   end
 
-  def application do
-    [applications: [:timex]]
-  end
-
   defp deps do
     [
       {:timex, "~> 3.4"},
