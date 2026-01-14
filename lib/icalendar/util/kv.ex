@@ -103,7 +103,7 @@ defmodule ICalendar.Util.KV do
   end
 
   def build("ATTENDEES", attendees) do
-    Enum.map(attendees, fn attendee ->
+    Enum.map_join(attendees, "", fn attendee ->
       params =
         for {key, val} <- attendee, key != :original_value, into: "" do
           ";#{key}=#{val}"
@@ -111,7 +111,6 @@ defmodule ICalendar.Util.KV do
 
       "ATTENDEE#{params}:#{attendee.original_value}\n"
     end)
-    |> Enum.join("")
   end
 
   def build("ORGANIZER", value) do
