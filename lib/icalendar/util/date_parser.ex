@@ -63,7 +63,7 @@ defmodule ICalendar.Util.DateParser do
 
   @type valid_timezone :: String.t() | :utc | :local
 
-  @spec parse(String.t(), valid_timezone | nil) :: %DateTime{}
+  @spec parse(String.t(), valid_timezone | nil) :: DateTime.t()
   def parse(data, tzid \\ nil)
 
   # Date Format: "19690620T201804Z", Timezone: *
