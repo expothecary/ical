@@ -29,7 +29,7 @@ defmodule ICalendar.Mixfile do
   defp package do
     [
       description: "An ICalendar file generator",
-      maintainers: ["Louis Pilfold"],
+      maintainers: ["Max Salminen", "Aaron Seigo"],
       licenses: ["MIT"],
       links: %{
         "Changelog" => "https://hexdocs.pm/icalendar/changelog.html",
