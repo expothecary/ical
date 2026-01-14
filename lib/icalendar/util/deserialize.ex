@@ -5,6 +5,7 @@ defmodule ICalendar.Util.Deserialize do
 
   alias ICalendar.Event
   alias ICalendar.Property
+  alias ICalendar.Util
 
   def build_event(lines) when is_list(lines) do
     lines
@@ -323,54 +324,61 @@ defmodule ICalendar.Util.Deserialize do
     rrule
     |> String.split(";")
     |> Enum.reduce(%{}, fn rule, hash ->
-      [key, value] = rule |> String.split("=")
+      [key, value] = String.split(rule, "=")
 
-      case key |> String.downcase() |> String.to_existing_atom() do
-        :freq ->
-          hash |> Map.put(:freq, value)
-
-        :until ->
-          hash |> Map.put(:until, ICalendar.Util.DateParser.parse(value))
-
-        :count ->
-          hash |> Map.put(:count, String.to_integer(value))
-
-        :interval ->
-          hash |> Map.put(:interval, String.to_integer(value))
-
-        :bysecond ->
-          hash |> Map.put(:bysecond, String.split(value, ","))
-
-        :byminute ->
-          hash |> Map.put(:byminute, String.split(value, ","))
-
-        :byhour ->
-          hash |> Map.put(:byhour, String.split(value, ","))
-
-        :byday ->
-          hash |> Map.put(:byday, String.split(value, ","))
-
-        :bymonthday ->
-          hash |> Map.put(:bymonthday, String.split(value, ","))
-
-        :byyearday ->
-          hash |> Map.put(:byyearday, String.split(value, ","))
-
-        :byweekno ->
-          hash |> Map.put(:byweekno, String.split(value, ","))
-
-        :bymonth ->
-          hash |> Map.put(:bymonth, String.split(value, ","))
-
-        :bysetpos ->
-          hash |> Map.put(:bysetpos, Enum.map(String.split(value, ","), &String.to_integer(&1)))
-
-        :wkst ->
-          hash |> Map.put(:wkst, value)
-
-        _ ->
-          hash
-      end
+      key
+      |> String.downcase()
+      |> add_rrule_entry(value, hash)
     end)
   end
+
+  defp add_rrule_entry("freq", value, hash), do: Map.put(hash, :freq, value)
+
+  defp add_rrule_entry("until", value, hash) do
+    Map.put(hash, :until, Util.DateParser.parse(value))
+  end
+
+  defp add_rrule_entry("count", value, hash), do: Map.put(hash, :count, String.to_integer(value))
+
+  defp add_rrule_entry("interval", value, hash) do
+    Map.put(hash, :interval, String.to_integer(value))
+  end
+
+  defp add_rrule_entry("bysecond", value, hash) do
+    Map.put(hash, :bysecond, String.split(value, ","))
+  end
+
+  defp add_rrule_entry("byminute", value, hash) do
+    Map.put(hash, :byminute, String.split(value, ","))
+  end
+
+  defp add_rrule_entry("byhour", value, hash) do
+    Map.put(hash, :byhour, String.split(value, ","))
+  end
+
+  defp add_rrule_entry("byday", value, hash), do: Map.put(hash, :byday, String.split(value, ","))
+
+  defp add_rrule_entry("bymonthday", value, hash) do
+    Map.put(hash, :bymonthday, String.split(value, ","))
+  end
+
+  defp add_rrule_entry("byyearday", value, hash) do
+    Map.put(hash, :byyearday, String.split(value, ","))
+  end
+
+  defp add_rrule_entry("byweekno", value, hash) do
+    Map.put(hash, :byweekno, String.split(value, ","))
+  end
+
+  defp add_rrule_entry("bymonth", value, hash) do
+    Map.put(hash, :bymonth, String.split(value, ","))
+  end
+
+  defp add_rrule_entry("bysetpos", value, hash) do
+    Map.put(hash, :bysetpos, Enum.map(String.split(value, ","), &String.to_integer(&1)))
+  end
+
+  defp add_rrule_entry("wkst", value, hash), do: Map.put(hash, :wkst, value)
+
+  defp add_rrule_entry(_unknown_key, _value, hash), do: hash
 end
