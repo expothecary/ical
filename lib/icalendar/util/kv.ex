@@ -100,11 +100,11 @@ defmodule ICalendar.Util.KV do
     "ORGANIZER;#{Value.to_ics(value)}\n"
   end
 
-  def build(key, date = %DateTime{time_zone: "Etc/UTC"}) do
+  def build(key, %DateTime{time_zone: "Etc/UTC"} = date) do
     "#{key}:#{Value.to_ics(date)}Z\n"
   end
 
-  def build(key, date = %DateTime{}) do
+  def build(key, %DateTime{} = date) do
     "#{key};TZID=#{date.time_zone}:#{Value.to_ics(date)}\n"
   end
 
