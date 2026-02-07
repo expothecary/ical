@@ -12,6 +12,25 @@ defmodule ICalendar.Deserialize.Event do
 
   defp next(<<>> = data, event), do: {data, event}
 
+  defp next(<<"ATTACH", data::binary>>, event) do
+    {data, params} = Common.params(data)
+    {data, value} = Common.rest_of_line(data)
+
+    attachment =
+      case params do
+        %{"ENCODING" => "BASE64", "VALUE" => "BINARY"} ->
+          %ICalendar.Attachment{mimetype: Map.get(params, "FMTTYPE"), base64: value}
+
+        params ->
+          %ICalendar.Attachment{mimetype: Map.get(params, "FMTTYPE"), uri: value}
+      end
+
+    next(
+      data,
+      %{event | attachments: event.attachments ++ [attachment]}
+    )
+  end
+
   defp next(<<"ATTENDEE", data::binary>>, event) do
     {data, params} = Common.params(data)
     {data, value} = Common.rest_of_line(data)
@@ -22,22 +41,36 @@ defmodule ICalendar.Deserialize.Event do
     )
   end
 
-  defp next(<<"COMMENT", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.multi_line(data)
-    next(data, %{event | comment: value})
-  end
-
   defp next(<<"CATEGORIES", data::binary>>, event) do
     data = Common.skip_params(data)
     {data, value} = Common.comma_separated_list(data)
-    next(data, %{event | categories: value})
+    next(data, %{event | categories: event.categories ++ value})
   end
 
   defp next(<<"CLASS", data::binary>>, event) do
     data = Common.skip_params(data)
     {data, value} = Common.rest_of_line(data)
     next(data, %{event | class: value})
+  end
+
+  defp next(<<"COMMENT", data::binary>>, event) do
+    data = Common.skip_params(data)
+    {data, value} = Common.multi_line(data)
+    # TODO: apparently COMMENT is allowed to appear multiple times
+    # supporting that would be nice for completeness
+    next(data, %{event | comment: value})
+  end
+
+  defp next(<<"CONTACT", data::binary>>, event) do
+    data = Common.skip_params(data)
+    {data, value} = Common.multi_line(data)
+    next(data, %{event | contacts: event.contacts ++ [value]})
+  end
+
+  defp next(<<"CREATED", data::binary>>, event) do
+    {data, params} = Common.params(data)
+    {data, value} = Common.multi_line(data)
+    next(data, %{event | created: Common.to_date(value, params)})
   end
 
   defp next(<<"DESCRIPTION", data::binary>>, event) do
@@ -64,13 +97,21 @@ defmodule ICalendar.Deserialize.Event do
     next(data, %{event | dtstamp: Common.to_date(value, params)})
   end
 
+  defp next(<<"DURATION", data::binary>>, event) do
+    {data, _params} = Common.params(data)
+    {data, value} = Common.rest_of_line(data)
+    # TODO: a duration parser, and a duration struct
+    # see https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.6
+    next(data, %{event | duration: value})
+  end
+
   defp next(<<"EXDATE", data::binary>>, event) do
     {data, params} = Common.params(data)
     {data, value} = Common.rest_of_line(data)
 
     case Common.to_date(value, params) do
       nil -> next(data, event)
-      date -> next(data, %{event | exdates: [date | event.exdates]})
+      date -> next(data, %{event | exdates: event.exdates ++ [date]})
     end
   end
 
@@ -99,11 +140,45 @@ defmodule ICalendar.Deserialize.Event do
     next(data, %{event | organizer: value})
   end
 
+  defp next(<<"PRIORITY", data::binary>>, event) do
+    data = Common.skip_params(data)
+    {data, value} = Common.rest_of_line(data)
+
+    case Integer.parse(value) do
+      {priority, ""} -> next(data, %{event | priority: priority})
+      _ -> next(data, event)
+    end
+  end
+
   defp next(<<"RECURRENCE-ID", data::binary>>, event) do
     {data, params} = Common.params(data)
     {data, value} = Common.rest_of_line(data)
-    # TODO parse recurrence rules
     next(data, %{event | recurrence_id: Common.to_date(value, params)})
+  end
+
+  defp next(<<"RELATED-TO", data::binary>>, event) do
+    data = Common.skip_params(data)
+    {data, value} = Common.rest_of_line(data)
+    next(data, %{event | related_to: event.related_to ++ [value]})
+  end
+
+  defp next(<<"RESOURCES", data::binary>>, event) do
+    data = Common.skip_params(data)
+    {data, value} = Common.rest_of_line(data)
+    next(data, %{event | resources: event.resources ++ [value]})
+  end
+
+  defp next(<<"RDATE", data::binary>>, event) do
+    {data, params} = Common.params(data)
+    {data, value} = Common.rest_of_line(data)
+
+    case Common.to_date(value, params) do
+      nil ->
+        next(data, event)
+
+      date ->
+        next(data, %{event | rdates: event.rdates ++ [date]})
+    end
   end
 
   # TODO: RDATE -> https://datatracker.ietf.org/doc/html/rfc5545#section-3.8.5.2
@@ -125,17 +200,28 @@ defmodule ICalendar.Deserialize.Event do
     next(data, %{event | sequence: value})
   end
 
+  defp next(<<"STATUS", data::binary>>, event) do
+    data = Common.skip_params(data)
+    {data, value} = Common.multi_line(data)
+    status = to_status(value)
+    next(data, %{event | status: status})
+  end
+
   defp next(<<"SUMMARY", data::binary>>, event) do
     data = Common.skip_params(data)
     {data, value} = Common.multi_line(data)
     next(data, %{event | summary: value})
   end
 
-  defp next(<<"STATUS", data::binary>>, event) do
+  defp next(<<"TRANSP", data::binary>>, event) do
     data = Common.skip_params(data)
-    {data, value} = Common.multi_line(data)
-    status = to_status(value)
-    next(data, %{event | status: status})
+    {data, value} = Common.rest_of_line(data)
+
+    case value do
+      "OPAQUE" -> next(data, %{event | transparency: :opaque})
+      "TRANSPARENT" -> next(data, %{event | transparency: :transparent})
+      _ -> next(data, event)
+    end
   end
 
   defp next(<<"UID", data::binary>>, event) do

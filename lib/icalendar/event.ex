@@ -4,6 +4,7 @@ defmodule ICalendar.Event do
   """
 
   defstruct summary: nil,
+            created: nil,
             dtstart: nil,
             dtend: nil,
             rrule: nil,
@@ -16,17 +17,26 @@ defmodule ICalendar.Event do
             uid: nil,
             prodid: nil,
             status: nil,
-            categories: nil,
+            categories: [],
             class: nil,
             comment: nil,
             geo: nil,
             modified: nil,
             organizer: nil,
             sequence: nil,
-            attendees: []
+            attendees: [],
+            priority: nil,
+            transparency: nil,
+            duration: nil,
+            attachments: [],
+            contacts: [],
+            related_to: [],
+            resources: [],
+            rdates: []
 
   @type t :: %__MODULE__{
           summary: String.t() | nil,
+          created: DateTime.t() | nil,
           dtstart: DateTime.t() | nil,
           dtend: DateTime.t() | nil,
           rrule: String.t() | nil,
@@ -39,14 +49,22 @@ defmodule ICalendar.Event do
           uid: String.t() | nil,
           prodid: String.t() | nil,
           status: String.t() | nil,
-          categories: String.t() | nil,
+          categories: [String.t()],
           class: String.t() | nil,
           comment: String.t() | nil,
           geo: {float, float} | nil,
           modified: String.t() | nil,
           organizer: String.t() | nil,
           sequence: String.t() | nil,
-          attendees: [String.t()]
+          attendees: [String.t()],
+          priority: integer | nil,
+          transparency: :opaque | :transparent | nil,
+          duration: String.t() | nil,
+          attachments: [ICalendar.Attachment.t()],
+          contacts: [String.t()],
+          related_to: [String.t()],
+          resources: [String.t()],
+          rdates: [DateTime.t()]
         }
 end
 
