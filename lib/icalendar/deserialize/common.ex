@@ -12,14 +12,53 @@ defmodule ICalendar.Deserialize.Common do
   @moduledoc false
   import __MODULE__.Macros
 
-  def multi_line(data), do: multi_line(data, <<>>)
+  def comma_separated_list(data), do: comma_separated_list(data, "", [])
+  defp comma_separated_list(<<>> = data, "", acc), do: {data, acc}
+  defp comma_separated_list(<<>> = data, value, acc), do: {data, List.insert_at(acc, -1, value)}
+
+  defp comma_separated_list(<<?\r, ?\n, data::binary>>, value, acc) do
+    if value == "", do: {data, acc}, else: {data, List.insert_at(acc, -1, value)}
+  end
+
+  defp comma_separated_list(<<?\n, data::binary>>, value, acc) do
+    if value == "", do: {data, acc}, else: {data, List.insert_at(acc, -1, value)}
+  end
+
+  defp comma_separated_list(<<"\\n", data::binary>>, value, acc) do
+    comma_separated_list(data, append(value, ?\n), acc)
+  end
+
+  defp comma_separated_list(<<?\\, c::utf8, data::binary>>, value, acc) do
+    comma_separated_list(data, append(value, c), acc)
+  end
+
+  defp comma_separated_list(<<?,, data::binary>>, "", acc) do
+    comma_separated_list(data, "", acc)
+  end
+
+  defp comma_separated_list(<<?,, data::binary>>, value, acc) do
+    comma_separated_list(data, "", List.insert_at(acc, -1, value))
+  end
+
+  defp comma_separated_list(<<c::utf8, data::binary>>, value, acc) do
+    comma_separated_list(data, append(value, c), acc)
+  end
+
+  def multi_line(data), do: multi_line(data, nil)
 
   defp multi_line(data, acc) do
     {data, line} = rest_of_line(data)
-    val = acc <> " " <> line
+
+    val =
+      if acc == nil do
+        line
+      else
+        acc <> " " <> line
+      end
 
     case data do
       <<?\t, data::binary>> -> multi_line(data, val)
+      <<"  ", data::binary>> -> multi_line(data, val)
       data -> {data, val}
     end
   end
@@ -27,21 +66,43 @@ defmodule ICalendar.Deserialize.Common do
   def rest_of_line(data), do: rest_of_line(data, <<>>)
   defp rest_of_line(<<>> = data, acc), do: {data, acc}
 
+  defp rest_of_line(<<"\\n", data::binary>>, acc) do
+    rest_of_line(data, append(acc, ?\n))
+  end
+
   defp rest_of_line(<<?\\, c::utf8, data::binary>>, acc) do
     rest_of_line(data, append(acc, c))
   end
 
+  defp rest_of_line(<<?\r, ?\n, data::binary>>, acc), do: {data, acc}
   defp rest_of_line(<<?\n, data::binary>>, acc), do: {data, acc}
 
   defp rest_of_line(<<c::utf8, data::binary>>, acc) do
     rest_of_line(data, append(acc, c))
   end
 
+  def skip_params(<<>> = data), do: data
+  def skip_params(<<?\n, data::binary>>), do: data
+  def skip_params(<<?:, data::binary>>), do: data
+
+  def skip_params(<<?\\, _::utf8, data::binary>>) do
+    skip_params(data)
+  end
+
+  def skip_params(<<_::utf8, data::binary>>) do
+    skip_params(data)
+  end
+
   def params(<<?;, data::binary>>), do: params(data, <<>>, %{})
   def params(data), do: params(data, <<>>, %{})
 
   defp params(<<>> = data, _val, params), do: {data, params}
+  defp params(<<?r, ?\n, data::binary>>, _val, params), do: {data, params}
   defp params(<<?\n, data::binary>>, _val, params), do: {data, params}
+
+  defp params(<<"\\n", data::binary>>, val, params) do
+    params(data, append(val, ?\n), params)
+  end
 
   defp params(<<?\\, c::utf8, data::binary>>, val, params) do
     params(data, append(val, c), params)
@@ -53,7 +114,12 @@ defmodule ICalendar.Deserialize.Common do
 
   defp param_value(<<?:, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
   defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
+  defp param_value(<<?\r, ?\n, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
   defp param_value(<<?\n, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+
+  defp param_value(<<"\\n", data::binary>>, key, val, params) do
+    param_value(data, key, append(val, ?\n), params)
+  end
 
   defp param_value(<<?\\, c::utf8, data::binary>>, key, val, params) do
     param_value(data, key, append(val, c), params)
@@ -67,9 +133,20 @@ defmodule ICalendar.Deserialize.Common do
     param_value(data, key, append(val, c), params)
   end
 
-  def consume_line(<<>> = data), do: data
-  def consume_line(<<?\n, data::binary>>), do: data
-  def consume_line(<<_::utf8, data::binary>>), do: consume_line(data)
+  def skip_line(<<>> = data), do: data
+  def skip_line(<<?\r, ?\n, data::binary>>), do: data
+  def skip_line(<<?\n, data::binary>>), do: data
+  def skip_line(<<_::utf8, data::binary>>), do: skip_line(data)
+
+  def parse_geo(data) do
+    with [lat, lon] <- String.split(data, ";", parts: 2),
+         {lat_f, ""} when lat_f >= -90 and lat_f <= 90 <- Float.parse(lat),
+         {lon_f, ""} when lon_f >= -180 and lon_f <= 180 <- Float.parse(lon) do
+      {lat_f, lon_f}
+    else
+      _ -> nil
+    end
+  end
 
   @doc """
   This function is designed to parse iCal datetime strings into erlang dates.

@@ -17,6 +17,7 @@ defmodule ICalendar.RecurrenceTest do
       END:VCALENDAR
       """
       |> ICalendar.from_ics()
+      |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
           ICalendar.Recurrence.get_recurrences(event)
@@ -62,6 +63,7 @@ defmodule ICalendar.RecurrenceTest do
       END:VCALENDAR
       """
       |> ICalendar.from_ics()
+      |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
           ICalendar.Recurrence.get_recurrences(event)
@@ -95,6 +97,7 @@ defmodule ICalendar.RecurrenceTest do
       END:VCALENDAR
       """
       |> ICalendar.from_ics()
+      |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
           ICalendar.Recurrence.get_recurrences(event)
@@ -138,6 +141,7 @@ defmodule ICalendar.RecurrenceTest do
       END:VCALENDAR
       """
       |> ICalendar.from_ics()
+      |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
           ICalendar.Recurrence.get_recurrences(event)
@@ -180,6 +184,7 @@ defmodule ICalendar.RecurrenceTest do
       END:VCALENDAR
       """
       |> ICalendar.from_ics()
+      |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
           ICalendar.Recurrence.get_recurrences(event)

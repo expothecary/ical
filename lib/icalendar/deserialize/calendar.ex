@@ -31,4 +31,8 @@ defmodule ICalendar.Deserialize.Calendar do
   def next(<<"END:VCALENDAR", _data::binary>>, calendar) do
     calendar
   end
+
+  def next(data, calendar) do
+    next(Common.skip_line(data), calendar)
+  end
 end

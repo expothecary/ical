@@ -21,7 +21,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
 
       assert event == %Event{
                dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
@@ -30,10 +30,10 @@ defmodule ICalendar.DeserializeTest do
                summary: "Going fishing",
                description: "Escape from the world. Stare at some water.",
                location: "123 Fun Street, Toronto ON, Canada",
-               status: "tentative",
+               status: :tentative,
                categories: ["Fishing", "Nature"],
                comment: "Don't forget to take something to eat !",
-               class: "private",
+               class: "PRIVATE",
                geo: {43.6978819, -79.3810277}
              }
     end
@@ -56,7 +56,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
 
       assert event == %Event{
                dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
@@ -66,10 +66,10 @@ defmodule ICalendar.DeserializeTest do
                description:
                  "Escape from the world. Stare at some water. Maybe you'll even catch some fish!",
                location: "123 Fun Street, Toronto ON, Canada",
-               status: "tentative",
+               status: :tentative,
                categories: ["Fishing", "Nature"],
                comment: "Don't forget to take something to eat !",
-               class: "private",
+               class: "PRIVATE",
                geo: {43.6978819, -79.3810277}
              }
     end
@@ -82,7 +82,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
       assert event.dtstart.time_zone == "America/Chicago"
       assert event.dtend.time_zone == "America/Chicago"
     end
@@ -95,7 +95,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
       assert event.description == "CR+LF line endings"
     end
 
@@ -116,7 +116,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
       assert event.url == "http://google.com"
     end
 
@@ -130,7 +130,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
       assert event.recurrence_id == ~U[2020-09-17 14:30:00Z]
     end
 
@@ -144,7 +144,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
       expected = Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
       assert event.recurrence_id == expected
     end
@@ -159,7 +159,7 @@ defmodule ICalendar.DeserializeTest do
       END:VEVENT
       """
 
-      [event] = ICalendar.from_ics(ics)
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
       assert event.recurrence_id == ~U[2020-09-17 00:00:00Z]
     end
   end
