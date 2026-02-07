@@ -44,7 +44,7 @@ defmodule ICalendar.Mixfile do
 
   defp package do
     [
-      description: "An ICalendar file generator",
+      description: "ICalendar data consumer and generator",
       maintainers: ["Max Salminen", "Aaron Seigo"],
       licenses: ["MIT"],
       links: %{
