@@ -3,7 +3,10 @@ defmodule ICalendar do
   Generating ICalendars.
   """
 
-  defstruct events: []
+  defstruct product_id: "", ical_version: "2.0", events: []
+
+  @type t :: %__MODULE__{}
+
   defdelegate to_ics(events, options \\ []), to: ICalendar.Serialize
   defdelegate from_ics(events), to: ICalendar.Deserialize
 
