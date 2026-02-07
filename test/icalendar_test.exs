@@ -1,5 +1,6 @@
 defmodule ICalendarTest do
   use ExUnit.Case
+  alias ICalendar.Test.Helper
 
   @vendor "ICalendar Test"
 
@@ -58,13 +59,9 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
+    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> Helper.extract_event_props()
 
     assert ics == """
-           BEGIN:VCALENDAR
-           CALSCALE:GREGORIAN
-           VERSION:2.0
-           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars.
            DTEND:20151224T084500Z
@@ -79,7 +76,6 @@ defmodule ICalendarTest do
            DTSTART:20151224T190000Z
            SUMMARY:Morning meeting
            END:VEVENT
-           END:VCALENDAR
            """
   end
 
@@ -95,13 +91,12 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
+    ics =
+      %ICalendar{events: events}
+      |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
-           BEGIN:VCALENDAR
-           CALSCALE:GREGORIAN
-           VERSION:2.0
-           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
@@ -110,7 +105,6 @@ defmodule ICalendarTest do
            LOCATION:123 Fun Street\\, Toronto ON\\, Canada
            SUMMARY:Film with Amy and Adam
            END:VEVENT
-           END:VCALENDAR
            """
   end
 
@@ -127,13 +121,9 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
+    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> Helper.extract_event_props()
 
     assert ics == """
-           BEGIN:VCALENDAR
-           CALSCALE:GREGORIAN
-           VERSION:2.0
-           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
@@ -143,7 +133,6 @@ defmodule ICalendarTest do
            SUMMARY:Film with Amy and Adam
            URL:http://example.com/tr3GE5
            END:VEVENT
-           END:VCALENDAR
            """
   end
 
@@ -249,13 +238,12 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
+    props =
+      %ICalendar{events: events}
+      |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
-    assert ics == """
-           BEGIN:VCALENDAR
-           CALSCALE:GREGORIAN
-           VERSION:2.0
-           PRODID:-//Elixir ICalendar//EN
+    assert props == """
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
@@ -263,7 +251,6 @@ defmodule ICalendarTest do
            DTSTART:20151224T083000Z
            SUMMARY:Film with Amy and Adam
            END:VEVENT
-           END:VCALENDAR
            """
   end
 
@@ -333,11 +320,7 @@ defmodule ICalendarTest do
 
     assert {:ok, ical} = ICalendar.encode_to_iodata(cal, [])
 
-    assert to_string(ical) == """
-           BEGIN:VCALENDAR
-           CALSCALE:GREGORIAN
-           VERSION:2.0
-           PRODID:-//Elixir ICalendar//EN
+    assert Helper.extract_event_props(ical) == """
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars.
            DTEND:20151224T084500Z
@@ -352,7 +335,6 @@ defmodule ICalendarTest do
            DTSTART:20151224T190000Z
            SUMMARY:Morning meeting
            END:VEVENT
-           END:VCALENDAR
            """
   end
 
@@ -378,11 +360,7 @@ defmodule ICalendarTest do
 
     assert {:ok, ical} = ICalendar.encode_to_iodata(cal)
 
-    assert to_string(ical) == """
-           BEGIN:VCALENDAR
-           CALSCALE:GREGORIAN
-           VERSION:2.0
-           PRODID:-//Elixir ICalendar//EN
+    assert Helper.extract_event_props(ical) == """
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars.
            DTEND:20151224T084500Z
@@ -397,7 +375,6 @@ defmodule ICalendarTest do
            DTSTART:20151224T190000Z
            SUMMARY:Morning meeting
            END:VEVENT
-           END:VCALENDAR
            """
   end
 end

@@ -56,48 +56,43 @@ defimpl ICalendar.Serialize, for: ICalendar.Event do
   def to_ics(event) do
     contents = to_kvs(event)
 
-    """
-    BEGIN:VEVENT
-    #{contents}END:VEVENT
-    """
+    [
+      "BEGIN:VEVENT\n",
+      contents,
+      "END:VEVENT\n"
+    ]
   end
 
   defp to_kvs(event) do
     event
     |> Map.from_struct()
-    |> Enum.map(&to_kv/1)
-    |> List.flatten()
-    |> Enum.sort()
-    |> Enum.join()
+    |> Enum.reduce([], &to_kv/2)
   end
 
-  defp to_kv({:exdates, value}) when is_list(value) do
-    case value do
-      [] ->
-        ""
+  defp to_kv({_key, ""}, acc), do: acc
+  defp to_kv({key, nil}, acc) when key != :dtstamp, do: acc
+  defp to_kv({_key, []}, acc), do: acc
 
-      exdates ->
-        exdates
-        |> Enum.map(&KV.build("EXDATE", &1))
+  defp to_kv({:exdates, value}, acc) when is_list(value) do
+    [Enum.map(value, &KV.build("EXDATE", &1)) | acc]
+  end
+
+  defp to_kv({:recurrence_id, value}, acc) do
+    [KV.build("RECURRENCE-ID", value) | acc]
+  end
+
+  defp to_kv({:status, value}, acc) when is_list(value) do
+    case value do
+      :tentative -> ["STATUS:TENTATIVE" | acc]
+      :confirmed -> ["STATUS:CONFIRMED" | acc]
+      :cancelled -> ["STATUS:CANCELLED" | acc]
+      value when is_binary(value) -> ["STATUS:#{value}" | acc]
+      _ -> acc
     end
   end
 
-  defp to_kv({:recurrence_id, value}) do
-    KV.build("RECURRENCE-ID", value)
-  end
-
-  defp to_kv({:status, value}) when is_list(value) do
-    case value do
-      :tentative -> "STATUS:TENTATIVE"
-      :confirmed -> "STATUS:CONFIRMED"
-      :cancelled -> "STATUS:CANCELLED"
-      value when is_binary(value) -> "STATUS:#{value}"
-      _ -> ""
-    end
-  end
-
-  defp to_kv({key, value}) do
+  defp to_kv({key, value}, acc) do
     name = key |> to_string |> String.upcase()
-    KV.build(name, value)
+    [KV.build(name, value) | acc]
   end
 end

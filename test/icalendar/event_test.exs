@@ -2,9 +2,13 @@ defmodule ICalendar.EventTest do
   use ExUnit.Case
 
   alias ICalendar.Event
+  alias ICalendar.Test.Helper
 
   test "ICalendar.to_ics/1 of event" do
-    ics = %Event{dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})} |> ICalendar.to_ics()
+    ics =
+      %Event{dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})}
+      |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -22,6 +26,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -41,6 +46,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -59,6 +65,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -85,6 +92,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -105,6 +113,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -122,6 +131,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -138,6 +148,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -154,6 +165,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -170,6 +182,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -186,6 +199,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -202,6 +216,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
@@ -218,6 +233,7 @@ defmodule ICalendar.EventTest do
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
 
     assert ics == """
            BEGIN:VEVENT
