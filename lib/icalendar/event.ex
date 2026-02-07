@@ -24,6 +24,30 @@ defmodule ICalendar.Event do
             organizer: nil,
             sequence: nil,
             attendees: []
+
+  @type t :: %__MODULE__{
+          summary: String.t() | nil,
+          dtstart: DateTime.t() | nil,
+          dtend: DateTime.t() | nil,
+          rrule: String.t() | nil,
+          exdates: [DateTime.t()],
+          recurrence_id: String.t() | nil,
+          dtstamp: DateTime.t() | nil,
+          description: String.t() | nil,
+          location: String.t() | nil,
+          url: String.t() | nil,
+          uid: String.t() | nil,
+          prodid: String.t() | nil,
+          status: String.t() | nil,
+          categories: String.t() | nil,
+          class: String.t() | nil,
+          comment: String.t() | nil,
+          geo: {float, float} | nil,
+          modified: String.t() | nil,
+          organizer: String.t() | nil,
+          sequence: String.t() | nil,
+          attendees: [String.t()]
+        }
 end
 
 defimpl ICalendar.Serialize, for: ICalendar.Event do
@@ -60,6 +84,16 @@ defimpl ICalendar.Serialize, for: ICalendar.Event do
 
   defp to_kv({:recurrence_id, value}) do
     KV.build("RECURRENCE-ID", value)
+  end
+
+  defp to_kv({:status, value}) when is_list(value) do
+    case value do
+      :tentative -> "STATUS:TENTATIVE"
+      :confirmed -> "STATUS:CONFIRMED"
+      :cancelled -> "STATUS:CANCELLED"
+      value when is_binary(value) -> "STATUS:#{value}"
+      _ -> ""
+    end
   end
 
   defp to_kv({key, value}) do
