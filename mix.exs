@@ -23,7 +23,7 @@ defmodule ICalendar.Mixfile do
   defp deps do
     [
       {:timex, "~> 3.4"},
-      {:mix_test_watch, ">= 0.0.0", only: :dev, runtime: false},
+      {:mix_test_watch, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14", only: :test, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
@@ -36,7 +36,8 @@ defmodule ICalendar.Mixfile do
       preferred_envs: [
         coveralls: :test,
         "coveralls.detail": :test,
-        "coveralls.github": :test
+        "coveralls.github": :test,
+        "test.watch": :test
       ]
     ]
   end
