@@ -3,12 +3,26 @@ defmodule ICalendar do
   Generating ICalendars.
   """
 
-  defstruct product_id: "", ical_version: "2.0", events: []
+  defstruct product_id: "-//Elixir ICalendar//EN",
+            scale: "GREGORIAN",
+            method: nil,
+            version: "2.0",
+            events: []
 
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+          product_id: String.t() | nil,
+          method: String.t() | nil,
+          version: String.t(),
+          scale: String.t(),
+          events: [ICalendar.Event.t()]
+        }
 
-  defdelegate to_ics(events, options \\ []), to: ICalendar.Serialize
+  defdelegate to_ics(events), to: ICalendar.Serialize
   defdelegate from_ics(events), to: ICalendar.Deserialize
+
+  def set_vendor(%ICalendar{} = calendar, vendor) when is_binary(vendor) do
+    %{calendar | product_id: "-//Elixir ICalendar//#{vendor}//EN"}
+  end
 
   @doc """
   To create a Phoenix/Plug controller and view that output ics format:
@@ -42,21 +56,35 @@ defmodule ICalendar do
 end
 
 defimpl ICalendar.Serialize, for: ICalendar do
-  def to_ics(calendar, options \\ []) do
-    events = Enum.map(calendar.events, &ICalendar.Serialize.to_ics/1)
-    vendor = Keyword.get(options, :vendor, "Elixir ICalendar")
+  def to_ics(calendar) do
+    []
+    |> start_calendar(calendar)
+    |> scale(calendar)
+    |> version(calendar)
+    |> product_id(calendar)
+    |> method(calendar)
+    |> events(calendar)
+    |> end_calendar(calendar)
+  end
 
-    headers =
-      options
-      |> Keyword.get(:headers, [])
-      |> Enum.map_join("\n", fn {k, v} -> "\n#{k}:#{v}" end)
+  defp start_calendar(acc, _calendar), do: acc ++ ["BEGIN:VCALENDAR\n"]
+  defp end_calendar(acc, _calendar), do: acc ++ ["END:VCALENDAR\n"]
 
-    """
-    BEGIN:VCALENDAR
-    CALSCALE:GREGORIAN
-    VERSION:2.0
-    PRODID:-//Elixir ICalendar//#{vendor}//EN#{headers}
-    #{events}END:VCALENDAR
-    """
+  defp scale(acc, %{scale: nil}), do: acc
+  defp scale(acc, calendar), do: acc ++ ["CALSCALE:", calendar.scale, "\n"]
+
+  defp method(acc, %{method: nil}), do: acc
+  defp method(acc, calendar), do: acc ++ ["METHOD:", calendar.method, "\n"]
+
+  defp version(acc, %{version: nil}), do: acc
+  defp version(acc, calendar), do: acc ++ ["VERSION:", calendar.version, "\n"]
+
+  defp product_id(acc, %{product_id: nil}), do: acc
+  defp product_id(acc, calendar), do: acc ++ ["PRODID:", calendar.product_id, "\n"]
+
+  defp events(acc, %{events: []}), do: acc
+
+  defp events(acc, calendar) do
+    acc ++ Enum.map(calendar.events, &ICalendar.Serialize.to_ics/1)
   end
 end

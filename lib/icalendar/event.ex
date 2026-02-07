@@ -53,7 +53,7 @@ end
 defimpl ICalendar.Serialize, for: ICalendar.Event do
   alias ICalendar.Util.KV
 
-  def to_ics(event, _options \\ []) do
+  def to_ics(event) do
     contents = to_kvs(event)
 
     """

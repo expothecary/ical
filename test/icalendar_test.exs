@@ -4,19 +4,19 @@ defmodule ICalendarTest do
   @vendor "ICalendar Test"
 
   test "ICalendar.to_ics/1 of empty calendar" do
-    ics = %ICalendar{} |> ICalendar.to_ics()
+    ics = %ICalendar{} |> ICalendar.to_ics() |> to_string()
 
     assert ics == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            END:VCALENDAR
            """
   end
 
   test "ICalendar.to_ics/1 of empty calendar with custom vendor" do
-    ics = %ICalendar{} |> ICalendar.to_ics(vendor: @vendor)
+    ics = %ICalendar{} |> ICalendar.set_vendor(@vendor) |> ICalendar.to_ics() |> to_string()
 
     assert ics == """
            BEGIN:VCALENDAR
@@ -27,14 +27,14 @@ defmodule ICalendarTest do
            """
   end
 
-  test "ICalendar.to_ics/1 of empty calendar with custom headers" do
-    ics = %ICalendar{} |> ICalendar.to_ics(headers: [{"METHOD", "REQUEST"}])
+  test "ICalendar.to_ics/1 of empty calendar with method" do
+    ics = %ICalendar{method: "REQUEST"} |> ICalendar.to_ics() |> to_string()
 
     assert ics == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            METHOD:REQUEST
            END:VCALENDAR
            """
@@ -58,13 +58,13 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics()
+    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
 
     assert ics == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars.
            DTEND:20151224T084500Z
@@ -95,13 +95,13 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics()
+    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
 
     assert ics == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
@@ -127,13 +127,13 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics()
+    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
 
     assert ics == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
@@ -164,6 +164,7 @@ defmodule ICalendarTest do
     ics =
       %ICalendar{events: events}
       |> ICalendar.to_ics()
+      |> to_string()
 
     # Extract RRULE line for comparison (parameter order doesn't matter per RFC 5545)
     [rrule_line] = Regex.run(~r/RRULE:(.+)/, ics, capture: :all_but_first)
@@ -198,6 +199,7 @@ defmodule ICalendarTest do
     ics =
       %ICalendar{events: events}
       |> ICalendar.to_ics()
+      |> to_string()
 
     assert ics =~ "EXDATE;TZID=America/Toronto:20200916T143000"
     assert ics =~ "EXDATE;TZID=America/Toronto:20200917T143000"
@@ -214,6 +216,7 @@ defmodule ICalendarTest do
     ics =
       %ICalendar{events: events}
       |> ICalendar.to_ics()
+      |> to_string()
 
     assert ics =~ "RECURRENCE-ID:20200917T143000Z"
   end
@@ -231,6 +234,7 @@ defmodule ICalendarTest do
     ics =
       %ICalendar{events: events}
       |> ICalendar.to_ics()
+      |> to_string()
 
     assert ics =~ "RECURRENCE-ID;TZID=America/Toronto:20200917T143000"
   end
@@ -245,13 +249,13 @@ defmodule ICalendarTest do
       }
     ]
 
-    ics = %ICalendar{events: events} |> ICalendar.to_ics()
+    ics = %ICalendar{events: events} |> ICalendar.to_ics() |> to_string()
 
     assert ics == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
@@ -278,7 +282,8 @@ defmodule ICalendarTest do
 
     %{events: [new_event]} =
       %ICalendar{events: events}
-      |> ICalendar.to_ics(vendor: @vendor)
+      |> ICalendar.to_ics()
+      |> to_string()
       |> ICalendar.from_ics()
 
     assert events |> List.first() == new_event
@@ -299,7 +304,8 @@ defmodule ICalendarTest do
 
     %ICalendar{events: [new_event]} =
       %ICalendar{events: events}
-      |> ICalendar.to_ics(vendor: @vendor)
+      |> ICalendar.to_ics()
+      |> to_string()
       |> ICalendar.from_ics()
 
     assert events |> List.first() == new_event
@@ -327,11 +333,11 @@ defmodule ICalendarTest do
 
     assert {:ok, ical} = ICalendar.encode_to_iodata(cal, [])
 
-    assert ical == """
+    assert to_string(ical) == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars.
            DTEND:20151224T084500Z
@@ -372,11 +378,11 @@ defmodule ICalendarTest do
 
     assert {:ok, ical} = ICalendar.encode_to_iodata(cal)
 
-    assert ical == """
+    assert to_string(ical) == """
            BEGIN:VCALENDAR
            CALSCALE:GREGORIAN
            VERSION:2.0
-           PRODID:-//Elixir ICalendar//Elixir ICalendar//EN
+           PRODID:-//Elixir ICalendar//EN
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars.
            DTEND:20151224T084500Z
