@@ -1,11 +1,16 @@
 defprotocol ICalendar.Value do
   @fallback_to_any true
+  # FIXME: replace the protocol with a simple set of functions that pattern-match
   def to_ics(data)
 end
 
 alias ICalendar.Value
 
 defimpl Value, for: BitString do
+  # FIXME:
+  # * reserved characters will fail, such as commas in comma-separated lists.
+  # * the current newline handling is also quite ugly and slow (it goes through EVERY string twice!)
+  # For requirements, see: https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.11
   def to_ics(x) do
     x
     |> String.replace(~S"\n", ~S"\\n")
