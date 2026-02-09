@@ -164,8 +164,8 @@ defmodule ICalendar.Deserialize.Event do
 
   defp next(<<"RESOURCES", data::binary>>, event) do
     data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
-    next(data, %{event | resources: event.resources ++ [value]})
+    {data, value} = Common.comma_separated_list(data)
+    next(data, %{event | resources: value})
   end
 
   defp next(<<"RDATE", data::binary>>, event) do
