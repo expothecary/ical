@@ -23,7 +23,17 @@ defmodule ICalendar.ValueTest do
     assert result == {{2016, 13, 4}, {0, 42, 23}}
   end
 
-  test "value of a very different tupe" do
+  test "value of an integer" do
+    result = Value.to_ics(42)
+    assert result == "42"
+  end
+
+  test "value of a float" do
+    result = Value.to_ics(3.14159)
+    assert result == "3.14159"
+  end
+
+  test "value of a very different type" do
     result = Value.to_ics({:ok, "Hi there"})
     assert result == {:ok, "Hi there"}
   end
@@ -41,5 +51,10 @@ defmodule ICalendar.ValueTest do
   test "value of a string with newline like chars" do
     result = Value.to_ics(~S"Hi\nthere")
     assert result == ~S"Hi\\nthere"
+  end
+
+  test "value of a string with comma, backslash, and semicolon chars" do
+    result = Value.to_ics(~S"Comma is , backslash \ with ; semicolon")
+    assert result == ~S"Comma is \, backslash \\ with \; semicolon"
   end
 end
