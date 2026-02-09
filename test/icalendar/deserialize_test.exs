@@ -83,5 +83,41 @@ defmodule ICalendar.DeserializeTest do
       %ICalendar{events: [event]} = ICalendar.from_ics(ics)
       assert event.recurrence_id == ~U[2020-09-17 00:00:00Z]
     end
+
+    test "Event with attachments" do
+      ics = Helper.test_data("attachments")
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
+      assert Enum.count(event.attachments) == 5
+
+      [a1, a2, a3, a4, a5] = event.attachments
+
+      # a CID attachment
+      assert a1.data_type == :cid
+      assert a1.data == "jsmith.part3.960817T083000.xyzMail@example.com"
+
+      # a URL with a mimetype
+      assert a2.data_type == :uri
+      assert a2.data == "ftp://example.com/pub/reports/r-960812.ps"
+      assert a2.mimetype == "application/postscript"
+
+      # an inline 8bit attachment, no mimetype
+      assert a3.data_type == :base8
+      assert a3.mimetype == nil
+      assert a3.data == "Some plain text"
+
+      # an inline base64-encoded attachment with no padding
+      assert a4.data_type == :base64
+      assert a4.mimetype == "text/plain"
+
+      assert ICalendar.Attachment.decoded_data(a4) ==
+               {:ok, "The quick brown fox jumps over the lazy dog."}
+
+      # an inline base64-encoded attachment with padding
+      assert a5.data_type == :base64
+      assert {:ok, long_text} = ICalendar.Attachment.decoded_data(a5)
+      assert String.starts_with?(long_text, "Lorem ipsum dolor sit amet,")
+      assert String.length(long_text) == 446
+      assert a5.mimetype == "text/plain"
+    end
   end
 end
