@@ -1,6 +1,6 @@
 defprotocol ICalendar.Value do
   @fallback_to_any true
-  # FIXME: replace the protocol with a simple set of functions that pattern-match
+  # TODO: replace the protocol with a simple set of functions that pattern-match
   def to_ics(data)
 end
 

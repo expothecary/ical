@@ -41,7 +41,7 @@ defmodule ICalendar.Deserialize.Event do
   defp next(<<"ATTENDEE", data::binary>>, event) do
     {data, params} = Common.params(data)
     {data, value} = Common.rest_of_line(data)
-    # FIXME parse out the attendee parameters into an ICalendar.Attendee struct
+    # TODO: parse out the attendee parameters into an ICalendar.Attendee struct
     next(
       data,
       %{event | attendees: event.attendees ++ [Map.put(params, :original_value, value)]}
@@ -190,7 +190,7 @@ defmodule ICalendar.Deserialize.Event do
     data = Common.skip_params(data)
     {data, values} = Common.params(data)
 
-    # FIXME: this should really be a Recurrence struct
+    # TODO: this should really be a Recurrence struct
     rrule = Enum.reduce(values, %{}, &to_rrule/2)
 
     next(data, %{event | rrule: rrule})
