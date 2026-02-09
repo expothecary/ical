@@ -64,7 +64,7 @@ defmodule ICalendar.Event do
           comments: [String.t()],
           contacts: [String.t()],
           related_to: [String.t()],
-          resources: [String.t()],
+          resources: [String.t()]
         }
 end
 
