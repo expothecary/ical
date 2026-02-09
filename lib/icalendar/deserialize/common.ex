@@ -44,22 +44,28 @@ defmodule ICalendar.Deserialize.Common do
     comma_separated_list(data, append(value, c), acc)
   end
 
-  def multi_line(data), do: multi_line(data, nil)
+  def multi_line(data, separator \\ " "), do: multi_line(data, separator, " ", [])
 
-  defp multi_line(data, acc) do
+  defp multi_line(data, separator, trim_char, acc) do
     {data, line} = rest_of_line(data)
 
-    val =
-      if acc == nil do
-        line
-      else
-        acc <> " " <> line
-      end
+    acc = [String.trim_leading(line, trim_char) | acc]
 
+    # peek ahead to see if there is more multi-line data
     case data do
-      <<?\t, data::binary>> -> multi_line(data, val)
-      <<"  ", data::binary>> -> multi_line(data, val)
-      data -> {data, val}
+      <<?\t, data::binary>> ->
+        multi_line(data, separator, "\t", acc)
+
+      <<" ", data::binary>> ->
+        multi_line(data, separator, " ", acc)
+
+      data ->
+        value =
+          acc
+          |> Enum.reverse()
+          |> Enum.join(separator)
+
+        {data, value}
     end
   end
 
@@ -114,7 +120,10 @@ defmodule ICalendar.Deserialize.Common do
 
   defp param_value(<<?:, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
   defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
-  defp param_value(<<?\r, ?\n, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+
+  defp param_value(<<?\r, ?\n, data::binary>>, key, val, params),
+    do: {data, Map.put(params, key, val)}
+
   defp param_value(<<?\n, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
 
   defp param_value(<<"\\n", data::binary>>, key, val, params) do
