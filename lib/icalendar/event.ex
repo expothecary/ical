@@ -231,25 +231,17 @@ defimpl ICalendar.Serialize, for: ICalendar.Event do
     params =
       if attachment.mimetype != nil do
         [";FMTTYPE=", attachment.mimetype]
-      else
-        []
       end
 
-    params =
-      if attachment.base64 != nil do
-        [";ENCODING=BASE64;VALUE=BINARY" | params]
-      else
-        params
+    {encoding_params, value} =
+      case attachment.data_type do
+        :uri -> {nil, attachment.data}
+        :cid -> {nil, ["CID:", attachment.data]}
+        :base64 -> {";ENCODING=BASE64;VALUE=BINARY", attachment.data}
+        :base8 -> {";ENCODING=8BIT;VALUE=BINARY", attachment.data}
       end
 
-    value =
-      cond do
-        attachment.uri != nil -> attachment.uri
-        attachment.base64 != nil -> attachment.base64
-        true -> nil
-      end
-
-    ["ATTACH", params, ":", value]
+    ["ATTACH", params, encoding_params, ":", value]
   end
 
   defp to_comma_list_kv(key, values) do

@@ -14,16 +14,23 @@ defmodule ICalendar.Deserialize.Event do
 
   defp next(<<"ATTACH", data::binary>>, event) do
     {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
+    {data, value} = Common.multi_line(data, "")
 
     attachment =
       case params do
         %{"ENCODING" => "BASE64", "VALUE" => "BINARY"} ->
-          %ICalendar.Attachment{mimetype: Map.get(params, "FMTTYPE"), base64: value}
+          %ICalendar.Attachment{data_type: :base64, data: value}
 
-        params ->
-          %ICalendar.Attachment{mimetype: Map.get(params, "FMTTYPE"), uri: value}
+        %{"ENCODING" => "8BIT", "VALUE" => "BINARY"} ->
+          %ICalendar.Attachment{data_type: :base8, data: value}
+
+        _params ->
+          case value do
+            <<"CID:", cid::binary>> -> %ICalendar.Attachment{data_type: :cid, data: cid}
+            value -> %ICalendar.Attachment{data_type: :uri, data: value}
+          end
       end
+      |> Map.put(:mimetype, Map.get(params, "FMTTYPE"))
 
     next(
       data,
