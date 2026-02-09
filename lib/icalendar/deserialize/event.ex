@@ -181,15 +181,12 @@ defmodule ICalendar.Deserialize.Event do
     end
   end
 
-  # TODO: RDATE -> https://datatracker.ietf.org/doc/html/rfc5545#section-3.8.5.2
-
   defp next(<<"RRULE", data::binary>>, event) do
     data = Common.skip_params(data)
     {data, values} = Common.params(data)
 
-    # FIXME: this should really be a Recurrence struct, and it this parsing should be
-    rrule =
-      Enum.reduce(values, %{}, &to_rrule/2)
+    # FIXME: this should really be a Recurrence struct
+    rrule = Enum.reduce(values, %{}, &to_rrule/2)
 
     next(data, %{event | rrule: rrule})
   end
