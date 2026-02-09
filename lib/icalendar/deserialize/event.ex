@@ -56,9 +56,7 @@ defmodule ICalendar.Deserialize.Event do
   defp next(<<"COMMENT", data::binary>>, event) do
     data = Common.skip_params(data)
     {data, value} = Common.multi_line(data)
-    # TODO: apparently COMMENT is allowed to appear multiple times
-    # supporting that would be nice for completeness
-    next(data, %{event | comment: value})
+    next(data, %{event | comments: [value | event.comments]})
   end
 
   defp next(<<"CONTACT", data::binary>>, event) do

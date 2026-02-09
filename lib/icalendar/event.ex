@@ -3,68 +3,68 @@ defmodule ICalendar.Event do
   Calendars have events.
   """
 
-  defstruct summary: nil,
+  defstruct uid: nil,
             created: nil,
             dtstart: nil,
             dtend: nil,
             dtstamp: nil,
-            rrule: nil,
-            exdates: [],
+            modified: nil,
             recurrence_id: nil,
+            exdates: [],
+            rdates: [],
+            rrule: nil,
+            class: nil,
             description: nil,
+            duration: nil,
             location: nil,
-            url: nil,
-            uid: nil,
             prodid: nil,
             status: nil,
-            categories: [],
-            class: nil,
-            comment: nil,
-            geo: nil,
-            modified: nil,
             organizer: nil,
             sequence: nil,
-            attendees: [],
+            summary: nil,
+            url: nil,
+            geo: nil,
             priority: nil,
             transparency: nil,
-            duration: nil,
+            attendees: [],
             attachments: [],
+            categories: [],
+            comments: [],
             contacts: [],
             related_to: [],
-            resources: [],
-            rdates: []
+            resources: []
 
   @type t :: %__MODULE__{
-          summary: String.t() | nil,
+          uid: String.t() | nil,
           created: DateTime.t() | nil,
           dtstart: DateTime.t() | nil,
           dtend: DateTime.t() | nil,
           dtstamp: DateTime.t() | nil,
-          rrule: String.t() | nil,
+          modified: Date.t() | nil,
+          recurrence_id: Date.t() | nil,
           exdates: [DateTime.t()],
-          recurrence_id: String.t() | nil,
-          description: String.t() | nil,
-          location: String.t() | nil,
-          url: String.t() | nil,
-          uid: String.t() | nil,
-          prodid: String.t() | nil,
-          status: String.t() | nil,
-          categories: [String.t()],
+          rdates: [DateTime.t()],
+          rrule: map() | nil,
           class: String.t() | nil,
-          comment: String.t() | nil,
-          geo: {float, float} | nil,
-          modified: String.t() | nil,
+          description: String.t() | nil,
+          duration: String.t() | nil,
+          location: String.t() | nil,
           organizer: String.t() | nil,
+          prodid: String.t() | nil,
           sequence: String.t() | nil,
-          attendees: [String.t()],
+          status: String.t() | nil,
+          summary: String.t() | nil,
+          url: String.t() | nil,
+          geo: {float, float} | nil,
           priority: integer | nil,
           transparency: :opaque | :transparent | nil,
-          duration: String.t() | nil,
           attachments: [ICalendar.Attachment.t()],
+          attendees: [String.t()],
+          categories: [String.t()],
+          comments: [String.t()],
           contacts: [String.t()],
           related_to: [String.t()],
           resources: [String.t()],
-          rdates: [DateTime.t()]
         }
 end
 
@@ -107,6 +107,10 @@ defimpl ICalendar.Serialize, for: ICalendar.Event do
 
   defp to_kv({:categories, value}, acc) do
     [to_comma_list_kv("CATEGORIES", value) | acc]
+  end
+
+  defp to_kv({:comments, value}, acc) do
+    [Enum.map(value, &to_text_kv("COMMENT", &1)) | acc]
   end
 
   defp to_kv({:contacts, value}, acc) do

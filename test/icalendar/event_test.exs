@@ -22,7 +22,7 @@ defmodule ICalendar.EventTest do
       %Event{
         summary: "Going fishing",
         description: "Escape from the world. Stare at some water.",
-        comment: "Don't forget to take something to eat !",
+        comments: ["Don't forget to take something to eat !"],
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
       |> ICalendar.to_ics()

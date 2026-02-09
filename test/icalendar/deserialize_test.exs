@@ -32,7 +32,7 @@ defmodule ICalendar.DeserializeTest do
                location: "123 Fun Street, Toronto ON, Canada",
                status: :tentative,
                categories: ["Fishing", "Nature"],
-               comment: "Don't forget to take something to eat !",
+               comments: ["Don't forget to take something to eat !"],
                class: "PRIVATE",
                geo: {43.6978819, -79.3810277}
              }
@@ -68,7 +68,7 @@ defmodule ICalendar.DeserializeTest do
                location: "123 Fun Street, Toronto ON, Canada",
                status: :tentative,
                categories: ["Fishing", "Nature"],
-               comment: "Don't forget to take something to eat !",
+               comments: ["Don't forget to take something to eat !"],
                class: "PRIVATE",
                geo: {43.6978819, -79.3810277}
              }
