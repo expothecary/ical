@@ -255,19 +255,17 @@ defmodule ICalendar.Deserialize.Event do
 
   # TODO: move to another module?
   defp to_rrule({str_key, raw_value}, acc) do
-    try do
-      key =
-        str_key
-        |> String.downcase()
-        |> String.to_existing_atom()
+    key =
+      str_key
+      |> String.downcase()
+      |> String.to_existing_atom()
 
-      value = rrule_value(key, raw_value)
+    value = rrule_value(key, raw_value)
 
-      Map.put(acc, key, value)
-    rescue
-      # due to atom not existing or a value parsing incorrectly
-      _ -> acc
-    end
+    Map.put(acc, key, value)
+  rescue
+    # due to atom not existing or a value parsing incorrectly
+    _ -> acc
   end
 
   defp rrule_value(key, value)
