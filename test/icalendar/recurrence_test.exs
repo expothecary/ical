@@ -1,21 +1,11 @@
 defmodule ICalendar.RecurrenceTest do
   use ExUnit.Case
 
+  alias ICalendar.Test.Helper
+
   test "daily reccuring event with until" do
     events =
-      """
-      BEGIN:VCALENDAR
-      CALSCALE:GREGORIAN
-      VERSION:2.0
-      BEGIN:VEVENT
-      RRULE:FREQ=DAILY;UNTIL=20151231T083000Z
-      DESCRIPTION:Let's go see Star Wars.
-      DTEND:20151224T084500Z
-      DTSTART:20151224T083000Z
-      SUMMARY:Film with Amy and Adam
-      END:VEVENT
-      END:VCALENDAR
-      """
+      Helper.test_data("recurrance_daily_until")
       |> ICalendar.from_ics()
       |> Map.get(:events)
       |> Enum.map(fn event ->
@@ -49,19 +39,7 @@ defmodule ICalendar.RecurrenceTest do
 
   test "daily reccuring event with count" do
     events =
-      """
-      BEGIN:VCALENDAR
-      CALSCALE:GREGORIAN
-      VERSION:2.0
-      BEGIN:VEVENT
-      RRULE:FREQ=DAILY;COUNT=3
-      DESCRIPTION:Let's go see Star Wars.
-      DTEND:20151224T084500Z
-      DTSTART:20151224T083000Z
-      SUMMARY:Film with Amy and Adam
-      END:VEVENT
-      END:VCALENDAR
-      """
+      Helper.test_data("recurrance_with_count")
       |> ICalendar.from_ics()
       |> Map.get(:events)
       |> Enum.map(fn event ->
@@ -83,19 +61,7 @@ defmodule ICalendar.RecurrenceTest do
 
   test "monthly reccuring event with until" do
     events =
-      """
-      BEGIN:VCALENDAR
-      CALSCALE:GREGORIAN
-      VERSION:2.0
-      BEGIN:VEVENT
-      RRULE:FREQ=MONTHLY;UNTIL=20160624T083000Z
-      DESCRIPTION:Let's go see Star Wars.
-      DTEND:20151224T084500Z
-      DTSTART:20151224T083000Z
-      SUMMARY:Film with Amy and Adam
-      END:VEVENT
-      END:VCALENDAR
-      """
+      Helper.test_data("recurrance_with_until_monthly")
       |> ICalendar.from_ics()
       |> Map.get(:events)
       |> Enum.map(fn event ->
@@ -127,19 +93,7 @@ defmodule ICalendar.RecurrenceTest do
 
   test "weekly reccuring event with until" do
     events =
-      """
-      BEGIN:VCALENDAR
-      CALSCALE:GREGORIAN
-      VERSION:2.0
-      BEGIN:VEVENT
-      RRULE:FREQ=WEEKLY;UNTIL=20160201T083000Z
-      DESCRIPTION:Let's go see Star Wars.
-      DTEND:20151224T084500Z
-      DTSTART:20151224T083000Z
-      SUMMARY:Film with Amy and Adam
-      END:VEVENT
-      END:VCALENDAR
-      """
+      Helper.test_data("recurrance_with_until_weekly")
       |> ICalendar.from_ics()
       |> Map.get(:events)
       |> Enum.map(fn event ->
@@ -169,20 +123,7 @@ defmodule ICalendar.RecurrenceTest do
 
   test "exdates not included in reccuring event with until and byday, ignoring invalid byday value" do
     events =
-      """
-      BEGIN:VCALENDAR
-      CALSCALE:GREGORIAN
-      VERSION:2.0
-      BEGIN:VEVENT
-      DTSTART:20200903T143000Z
-      DTEND:20200903T153000Z
-      RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20201028T045959Z;INTERVAL=2;BYDAY=TH,WE,AD
-      EXDATE:20200917T143000Z
-      EXDATE:20200916T143000Z
-      SUMMARY:work!
-      END:VEVENT
-      END:VCALENDAR
-      """
+      Helper.test_data("recurrence_until_byday")
       |> ICalendar.from_ics()
       |> Map.get(:events)
       |> Enum.map(fn event ->
