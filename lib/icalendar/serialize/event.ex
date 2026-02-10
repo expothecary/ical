@@ -1,4 +1,6 @@
 defmodule ICalendar.Serialize.Event do
+  @moduledoc false
+
   alias ICalendar.Serialize
 
   def to_ics(event) do
@@ -26,17 +28,12 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp to_kv({:attendees, attendees}, acc) do
-    entries =
-      Enum.map(attendees, fn attendee ->
-        params = Map.delete(attendee, :original_value)
-        to_parameterized_text_kv("ATTENDEE", params, attendee.original_value)
-      end)
-
+    entries = Enum.map(attendees, &ICalendar.Serialize.Attendee.to_ics/1)
     [entries | acc]
   end
 
   defp to_kv({:categories, value}, acc) do
-    [to_comma_list_kv("CATEGORIES", value) | acc]
+    [Serialize.to_comma_list_kv("CATEGORIES", value) | acc]
   end
 
   defp to_kv({:comments, value}, acc) do
@@ -74,7 +71,7 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp to_kv({:resources, value}, acc) do
-    [to_comma_list_kv("RESOURCES", value) | acc]
+    [Serialize.to_comma_list_kv("RESOURCES", value) | acc]
   end
 
   defp to_kv({:rdates, value}, acc) when is_list(value) do
@@ -118,31 +115,23 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp to_kv({key, value}, acc) when is_number(value) do
-    name = atom_to_value(key)
+    name = Serialize.atom_to_value(key)
     [[name, ":", to_string(value), "\n"] | acc]
   end
 
   defp to_kv({key, value}, acc) when is_atom(value) do
-    name = atom_to_value(key)
-    value = atom_to_value(value)
+    name = Serialize.atom_to_value(key)
+    value = Serialize.atom_to_value(value)
     [[name, ":", to_string(value), "\n"] | acc]
   end
 
   defp to_kv({key, value}, acc) do
-    name = atom_to_value(key)
+    name = Serialize.atom_to_value(key)
     [to_text_kv(name, value) | acc]
   end
 
   defp to_text_kv(key, value) do
     [key, ":", Serialize.to_ics(value), "\n"]
-  end
-
-  defp to_parameterized_text_kv(key, params, value) do
-    for {param, param_value} <- params do
-      [";", param, "=", Serialize.to_ics(param_value)]
-    end
-
-    [key, params, ":", Serialize.to_ics(value), "\n"]
   end
 
   def to_date_kv(key, %Date{} = date) do
@@ -174,12 +163,8 @@ defmodule ICalendar.Serialize.Event do
     ["ATTACH", params, encoding_params, ":", value]
   end
 
-  defp to_comma_list_kv(key, values) do
-    [key, ":", to_comma_list(values), "\n"]
-  end
-
   defp to_rrule_entry({key, _} = rrule) do
-    [";", atom_to_value(key), "=", rrule_value(rrule)]
+    [";", Serialize.atom_to_value(key), "=", rrule_value(rrule)]
   end
 
   defp rrule_value({:until, value}), do: Serialize.to_ics(value)
@@ -191,14 +176,4 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp rrule_value({_key, value}), do: Serialize.to_ics(value)
-
-  defp to_comma_list(values) do
-    values
-    |> Enum.map(&Serialize.to_ics/1)
-    |> Enum.intersperse(",")
-  end
-
-  defp atom_to_value(atom) do
-    atom |> to_string |> String.upcase()
-  end
 end

@@ -119,5 +119,30 @@ defmodule ICalendar.DeserializeTest do
       assert String.length(long_text) == 446
       assert a5.mimetype == "text/plain"
     end
+
+    test "Event with attendees" do
+      ics = Helper.test_data("attendees")
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
+      assert Enum.count(event.attendees) == 3
+
+      [a1, a2, a3] = event.attendees
+
+      assert a1.name == "mailto:janedoe@example.com"
+      assert a1.membership == ["mailto:projectA@example.com", "mailto:projectB@example.com"]
+      assert a1.delegated_to == ["mailto:jdoe@example.com", "mailto:jqpublic@example.com"]
+      assert a1.rsvp == false
+      assert a1.role == "CHAIR"
+
+      assert a2.delegated_from == ["mailto:jsmith@example.com"]
+      assert a2.rsvp == true
+      assert is_nil(a2.role)
+
+      assert a3.type == "GROUP"
+      assert a3.status == "ACCEPTED"
+      assert a3.sent_by == "mailto:sray@example.com"
+      assert a3.cname == "John Smith"
+      assert a3.dir == "ldap://example.com:6666/o=ABC%20Industries,c=US???(cn=Jim%20Dolittle)"
+      assert a3.language == "de-ch"
+    end
   end
 end

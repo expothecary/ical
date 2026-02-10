@@ -44,12 +44,11 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"ATTENDEE", data::binary>>, event) do
-    {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
-    # TODO: parse out the attendee parameters into an ICalendar.Attendee struct
+    {data, attendee} = ICalendar.Deserialize.Attendee.from_ics(data)
+
     next(
       data,
-      %{event | attendees: event.attendees ++ [Map.put(params, :original_value, value)]}
+      %{event | attendees: event.attendees ++ [attendee]}
     )
   end
 

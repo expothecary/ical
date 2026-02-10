@@ -35,6 +35,7 @@ defmodule ICalendar.Serialize do
   end
 
   # This function converts Erlang timestamp tuples into DateTimes.
+  # credo:disable-for-next-line
   def to_ics({{year, month, day}, {hour, minute, second}} = timestamp)
       when is_integer(year) and
              is_integer(month) and month <= 12 and month >= 1 and
@@ -48,4 +49,40 @@ defmodule ICalendar.Serialize do
   end
 
   def to_ics(x), do: x
+
+  def escaped_quotes(x) do
+    String.replace(x, ~S|"|, ~S|\"|)
+  end
+
+  # creates an entry of the form "KEY;paramslist:value"
+  def to_parameterized_text_kv(key, params, value) do
+    for {param, param_value} <- params do
+      [";", param, "=", to_ics(param_value)]
+    end
+
+    [key, params, ":", to_ics(value), "\n"]
+  end
+
+  # create a key/value pair with a comma-separated list
+  def to_comma_list_kv(key, values) do
+    [key, ":", to_comma_list(values), "\n"]
+  end
+
+  # creates a conformant comma-separated list
+  def to_comma_list(values) do
+    values
+    |> Enum.map(&to_ics/1)
+    |> Enum.intersperse(",")
+  end
+
+  def atom_to_value(atom) do
+    atom |> to_string |> String.upcase()
+  end
+
+  # creates a conformant comma-separated list
+  def to_quoted_comma_list(values) do
+    values
+    |> Enum.map(&[?", escaped_quotes(&1), ?"])
+    |> Enum.intersperse(",")
+  end
 end

@@ -115,9 +115,16 @@ defmodule ICalendar.Deserialize do
   end
 
   defp params(<<?:, data::binary>>, _val, params), do: {data, params}
+
+  defp params(<<?=, ?", data::binary>>, val, params) do
+    param_value_quoted(data, val, <<>>, params)
+  end
+
   defp params(<<?=, data::binary>>, val, params), do: param_value(data, val, <<>>, params)
   defp params(<<c::utf8, data::binary>>, val, params), do: params(data, append(val, c), params)
 
+  # a param value goes to the end of the data, the line, or until an unescaped `:` character.
+  # an unescaped `;` also stops the value, but signals that another parameter is next
   defp param_value(<<?:, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
   defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
 
@@ -134,12 +141,75 @@ defmodule ICalendar.Deserialize do
     param_value(data, key, append(val, c), params)
   end
 
+  # another param detect, so recurse to params again
   defp param_value(<<?;, data::binary>>, key, val, params) do
     params(data, <<>>, Map.put(params, key, val))
   end
 
   defp param_value(<<c::utf8, data::binary>>, key, val, params) do
     param_value(data, key, append(val, c), params)
+  end
+
+  # a quoted param value is the same as a param value, with the added complication
+  # that it is quoted, so it does not really end until a matching unquoted `"`.
+  # if a `;` is encountered, there is another parameter that follows
+  defp param_value_quoted(<<>> = data, key, val, params) do
+    {data, add_quote_value_to_params(params, key, val)}
+  end
+
+  defp param_value_quoted(<<?\r, ?\n, data::binary>>, key, val, params) do
+    {data, add_quote_value_to_params(params, key, val)}
+  end
+
+  defp param_value_quoted(<<?\n, data::binary>>, key, val, params) do
+    {data, add_quote_value_to_params(params, key, val)}
+  end
+
+  defp param_value_quoted(<<"\\n", data::binary>>, key, val, params) do
+    param_value_quoted(data, key, append(val, ?\n), params)
+  end
+
+  defp param_value_quoted(<<?\\, c::utf8, data::binary>>, key, val, params) do
+    param_value_quoted(data, key, append(val, c), params)
+  end
+
+  # this is not only a quoted parameter, but a LIST of quoted parameters
+  # at this point, call into `param_value_quoted_list` to start building a list
+  defp param_value_quoted(<<?", ?,, ?", data::binary>>, key, val, params) do
+    param_value_quoted_list(data, key, val, params)
+  end
+
+  # done!
+  defp param_value_quoted(<<?", ?:, data::binary>>, key, val, params) do
+    {data, add_quote_value_to_params(params, key, val)}
+  end
+
+  # another param detect, so recurse to params again
+  defp param_value_quoted(<<?", ?;, data::binary>>, key, val, params) do
+    params(data, <<>>, add_quote_value_to_params(params, key, val))
+  end
+
+  defp param_value_quoted(<<c::utf8, data::binary>>, key, val, params) do
+    param_value_quoted(data, key, append(val, c), params)
+  end
+
+  # since it may be a quoted *list*, check to see if there is a list started
+  # and if so add the value to the key
+  defp add_quote_value_to_params(params, key, val) do
+    case Map.get(params, key) do
+      acc when is_list(acc) ->
+        Map.put(params, key, acc ++ [val])
+
+      _current ->
+        Map.put(params, key, val)
+    end
+  end
+
+  defp param_value_quoted_list(data, key, val, params) do
+    # this function enters with an entry in acc
+    current_val = Map.get(params, key, [])
+    params = Map.put(params, key, current_val ++ [val])
+    param_value_quoted(data, key, <<>>, params)
   end
 
   def skip_line(<<>> = data), do: data

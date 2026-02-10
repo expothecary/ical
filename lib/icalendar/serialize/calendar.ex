@@ -1,4 +1,6 @@
 defmodule ICalendar.Serialize.Calendar do
+  @moduledoc false
+
   def to_ics(%ICalendar{} = calendar) do
     []
     |> start_calendar(calendar)

@@ -11,7 +11,7 @@ defmodule ICalendar.Test.Fixtures do
           created: nil,
           dtstart: nil,
           dtend: nil,
-          dtstamp: nil,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
           modified: nil,
           recurrence_id: nil,
           exdates: [],
