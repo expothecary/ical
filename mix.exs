@@ -10,6 +10,7 @@ defmodule ICalendar.Mixfile do
       name: "ICalendar",
       version: @version,
       elixir: "~> 1.15",
+      elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -19,6 +20,9 @@ defmodule ICalendar.Mixfile do
       test_coverage: [tool: ExCoveralls]
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
     [
