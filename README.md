@@ -1,12 +1,11 @@
 # ICalendar
 
-[![Test](https://github.com/lpil/icalendar/actions/workflows/test.yml/badge.svg)](https://github.com/lpil/icalendar/actions/workflows/test.yml)
 [![Module Version](https://img.shields.io/hexpm/v/icalendar.svg)](https://hex.pm/packages/icalendar)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/icalendar/)
 [![Total Download](https://img.shields.io/hexpm/dt/icalendar.svg)](https://hex.pm/packages/icalendar)
-[![License](https://img.shields.io/hexpm/l/icalendar.svg)](https://github.com/lpil/icalendar/blob/master/LICENSE.md)
+[![License](https://img.shields.io/hexpm/l/icalendar.svg)](https://github.com/expothecary/icalendar/blob/master/LICENSE.md)
 
-A small library for reading and writing ICalendar files.
+A small library for reading and writing ICalendar data.
 
 ## Installation
 
@@ -16,7 +15,7 @@ in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:icalendar, "~> 1.1.0"}
+    {:icalendar, "~> 2.0.0"}
   ]
 end
 ```
