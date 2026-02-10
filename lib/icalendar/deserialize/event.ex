@@ -3,6 +3,11 @@ defmodule ICalendar.Deserialize.Event do
 
   alias ICalendar.Deserialize.Common
 
+  def from_ics(data) do
+    {_data, event} = next(data, %ICalendar.Event{})
+    event
+  end
+
   @spec one(data :: binary, ICalendar.t()) :: ICalendar.t()
   def one(data, calendar) do
     {data, event} = next(data, %ICalendar.Event{})

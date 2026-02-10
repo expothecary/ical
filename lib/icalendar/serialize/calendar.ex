@@ -1,5 +1,5 @@
-defimpl ICalendar.Serialize, for: ICalendar do
-  def to_ics(calendar) do
+defmodule ICalendar.Serialize.Calendar do
+  def to_ics(%ICalendar{} = calendar) do
     []
     |> start_calendar(calendar)
     |> scale(calendar)
@@ -8,6 +8,10 @@ defimpl ICalendar.Serialize, for: ICalendar do
     |> method(calendar)
     |> events(calendar)
     |> end_calendar(calendar)
+  end
+
+  def to_ics(%ICalendar.Event{} = event) do
+    ICalendar.Serialize.Event.to_ics(event)
   end
 
   defp start_calendar(acc, _calendar), do: acc ++ ["BEGIN:VCALENDAR\n"]
@@ -28,6 +32,6 @@ defimpl ICalendar.Serialize, for: ICalendar do
   defp events(acc, %{events: []}), do: acc
 
   defp events(acc, calendar) do
-    acc ++ Enum.map(calendar.events, &ICalendar.Serialize.to_ics/1)
+    acc ++ Enum.map(calendar.events, &ICalendar.Serialize.Event.to_ics/1)
   end
 end

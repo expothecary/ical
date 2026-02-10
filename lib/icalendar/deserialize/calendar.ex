@@ -3,7 +3,17 @@ defmodule ICalendar.Deserialize.Calendar do
 
   alias ICalendar.Deserialize.Common
 
-  def one(data) when is_binary(data) do
+  def from_file(path) do
+    # TODO: a streaming parser would be nice!
+    with {:ok, data} <- File.read(path),
+         %ICalendar{} = calendar <- from_ics(data) do
+      calendar
+    else
+      error -> error
+    end
+  end
+
+  def from_ics(data) when is_binary(data) do
     next(data, %ICalendar{})
   end
 

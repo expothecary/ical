@@ -1,6 +1,7 @@
 defmodule ICalendar do
   @moduledoc """
-  Generating ICalendars.
+  ICalendar struct that suppports data serialization and deserialization,
+  as well as integration with Plug and Phoenix.
   """
 
   defstruct product_id: "-//Elixir ICalendar//EN",
@@ -17,8 +18,9 @@ defmodule ICalendar do
           events: [ICalendar.Event.t()]
         }
 
-  defdelegate to_ics(events), to: ICalendar.Serialize
-  defdelegate from_ics(events), to: ICalendar.Deserialize
+  defdelegate to_ics(calendar), to: ICalendar.Serialize.Calendar
+  defdelegate from_ics(data), to: ICalendar.Deserialize.Calendar
+  defdelegate from_file(path), to: ICalendar.Deserialize.Calendar
 
   def set_vendor(%ICalendar{} = calendar, vendor) when is_binary(vendor) do
     %{calendar | product_id: "-//Elixir ICalendar//#{vendor}//EN"}
@@ -37,7 +39,8 @@ defmodule ICalendar do
       calendar = %ICalendar{ events: events }
       render(conn, "index.ics", calendar: calendar)
 
-  The important part here is `.ics`. This triggers the `format_encoder`.
+  The important part here is `.ics`. This triggers the `format_encoder`
+  as configured.
 
   In your view can put:
 

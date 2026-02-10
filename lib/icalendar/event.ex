@@ -66,4 +66,7 @@ defmodule ICalendar.Event do
           related_to: [String.t()],
           resources: [String.t()]
         }
+
+  defdelegate to_ics(calendar), to: ICalendar.Serialize.Event
+  defdelegate from_ics(data), to: ICalendar.Deserialize.Event
 end

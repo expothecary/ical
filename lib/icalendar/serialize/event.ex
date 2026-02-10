@@ -1,4 +1,4 @@
-defimpl ICalendar.Serialize, for: ICalendar.Event do
+defmodule ICalendar.Serialize.Event do
   alias ICalendar.Value
 
   def to_ics(event) do
