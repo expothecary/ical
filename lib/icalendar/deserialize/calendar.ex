@@ -1,7 +1,7 @@
 defmodule ICalendar.Deserialize.Calendar do
   @moduledoc false
 
-  alias ICalendar.Deserialize.Common
+  alias ICalendar.Deserialize
 
   def from_file(path) do
     # TODO: a streaming parser would be nice!
@@ -29,22 +29,22 @@ defmodule ICalendar.Deserialize.Calendar do
   end
 
   def next(<<"PRODID\n", data::binary>>, calendar) do
-    {data, value} = Common.rest_of_line(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | product_id: value})
   end
 
   def next(<<"METHOD\n", data::binary>>, calendar) do
-    {data, value} = Common.rest_of_line(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | method: value})
   end
 
   def next(<<"CALSCALE\n", data::binary>>, calendar) do
-    {data, value} = Common.rest_of_line(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | scale: value})
   end
 
   def next(<<"VERSION\n", data::binary>>, calendar) do
-    {data, value} = Common.rest_of_line(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | version: value})
   end
 
@@ -53,6 +53,6 @@ defmodule ICalendar.Deserialize.Calendar do
   end
 
   def next(data, calendar) do
-    next(Common.skip_line(data), calendar)
+    next(Deserialize.skip_line(data), calendar)
   end
 end

@@ -1,7 +1,7 @@
 defmodule ICalendar.Deserialize.Event do
   @moduledoc false
 
-  alias ICalendar.Deserialize.Common
+  alias ICalendar.Deserialize
 
   def from_ics(data) do
     {_data, event} = next(data, %ICalendar.Event{})
@@ -18,8 +18,8 @@ defmodule ICalendar.Deserialize.Event do
   defp next(<<>> = data, event), do: {data, event}
 
   defp next(<<"ATTACH", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.multi_line(data, "")
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.multi_line(data, "")
 
     attachment =
       case params do
@@ -44,8 +44,8 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"ATTENDEE", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     # TODO: parse out the attendee parameters into an ICalendar.Attendee struct
     next(
       data,
@@ -54,105 +54,105 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"CATEGORIES", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.comma_separated_list(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.comma_separated_list(data)
     next(data, %{event | categories: event.categories ++ value})
   end
 
   defp next(<<"CLASS", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{event | class: value})
   end
 
   defp next(<<"COMMENT", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.multi_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.multi_line(data)
     next(data, %{event | comments: [value | event.comments]})
   end
 
   defp next(<<"CONTACT", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.multi_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.multi_line(data)
     next(data, %{event | contacts: event.contacts ++ [value]})
   end
 
   defp next(<<"CREATED", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.multi_line(data)
-    next(data, %{event | created: Common.to_date(value, params)})
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.multi_line(data)
+    next(data, %{event | created: Deserialize.to_date(value, params)})
   end
 
   defp next(<<"DESCRIPTION", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.multi_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.multi_line(data)
     next(data, %{event | description: value})
   end
 
   defp next(<<"DTSTART", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
-    next(data, %{event | dtstart: Common.to_date(value, params)})
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+    next(data, %{event | dtstart: Deserialize.to_date(value, params)})
   end
 
   defp next(<<"DTEND", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
-    next(data, %{event | dtend: Common.to_date(value, params)})
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+    next(data, %{event | dtend: Deserialize.to_date(value, params)})
   end
 
   defp next(<<"DTSTAMP", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
-    next(data, %{event | dtstamp: Common.to_date(value, params)})
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+    next(data, %{event | dtstamp: Deserialize.to_date(value, params)})
   end
 
   defp next(<<"DURATION", data::binary>>, event) do
-    {data, _params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
+    {data, _params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     # TODO: a duration parser, and a duration struct
     # see https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.6
     next(data, %{event | duration: value})
   end
 
   defp next(<<"EXDATE", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
 
-    case Common.to_date(value, params) do
+    case Deserialize.to_date(value, params) do
       nil -> next(data, event)
       date -> next(data, %{event | exdates: event.exdates ++ [date]})
     end
   end
 
   defp next(<<"GEO", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
-    geo = Common.parse_geo(value)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+    geo = Deserialize.parse_geo(value)
     next(data, %{event | geo: geo})
   end
 
   defp next(<<"LAST-MODIFIED", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
-    next(data, %{event | modified: Common.to_date(value, params)})
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+    next(data, %{event | modified: Deserialize.to_date(value, params)})
   end
 
   defp next(<<"LOCATION", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{event | location: value})
   end
 
   defp next(<<"ORGANIZER", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{event | organizer: value})
   end
 
   defp next(<<"PRIORITY", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
 
     case Integer.parse(value) do
       {priority, ""} -> next(data, %{event | priority: priority})
@@ -161,28 +161,28 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"RECURRENCE-ID", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
-    next(data, %{event | recurrence_id: Common.to_date(value, params)})
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+    next(data, %{event | recurrence_id: Deserialize.to_date(value, params)})
   end
 
   defp next(<<"RELATED-TO", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{event | related_to: event.related_to ++ [value]})
   end
 
   defp next(<<"RESOURCES", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.comma_separated_list(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.comma_separated_list(data)
     next(data, %{event | resources: value})
   end
 
   defp next(<<"RDATE", data::binary>>, event) do
-    {data, params} = Common.params(data)
-    {data, value} = Common.rest_of_line(data)
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
 
-    case Common.to_date(value, params) do
+    case Deserialize.to_date(value, params) do
       nil ->
         next(data, event)
 
@@ -192,8 +192,8 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"RRULE", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, values} = Common.params(data)
+    data = Deserialize.skip_params(data)
+    {data, values} = Deserialize.params(data)
 
     # TODO: this should really be a Recurrence struct
     rrule = Enum.reduce(values, %{}, &to_rrule/2)
@@ -202,27 +202,27 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"SEQUENCE", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{event | sequence: value})
   end
 
   defp next(<<"STATUS", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.multi_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.multi_line(data)
     status = to_status(value)
     next(data, %{event | status: status})
   end
 
   defp next(<<"SUMMARY", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.multi_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.multi_line(data)
     next(data, %{event | summary: value})
   end
 
   defp next(<<"TRANSP", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
 
     case value do
       "OPAQUE" -> next(data, %{event | transparency: :opaque})
@@ -232,14 +232,14 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"UID", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{event | uid: value})
   end
 
   defp next(<<"URL", data::binary>>, event) do
-    data = Common.skip_params(data)
-    {data, value} = Common.rest_of_line(data)
+    data = Deserialize.skip_params(data)
+    {data, value} = Deserialize.rest_of_line(data)
     next(data, %{event | url: value})
   end
 
@@ -249,7 +249,7 @@ defmodule ICalendar.Deserialize.Event do
 
   defp next(data, event) do
     data
-    |> Common.skip_line()
+    |> Deserialize.skip_line()
     |> next(event)
   end
 

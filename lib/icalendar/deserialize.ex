@@ -1,4 +1,4 @@
-defmodule ICalendar.Deserialize.Common.Macros do
+defmodule ICalendar.Deserialize.Macros do
   @moduledoc false
 
   defmacro append(a, b) do
@@ -8,7 +8,7 @@ defmodule ICalendar.Deserialize.Common.Macros do
   end
 end
 
-defmodule ICalendar.Deserialize.Common do
+defmodule ICalendar.Deserialize do
   @moduledoc false
   import __MODULE__.Macros
 

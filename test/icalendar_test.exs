@@ -247,7 +247,7 @@ defmodule ICalendarTest do
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
-           DTSTAMP:#{ICalendar.Value.to_ics(DateTime.utc_now())}Z
+           DTSTAMP:#{ICalendar.Serialize.to_ics(DateTime.utc_now())}Z
            DTSTART:20151224T083000Z
            SUMMARY:Film with Amy and Adam
            END:VEVENT

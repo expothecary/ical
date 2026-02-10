@@ -1,5 +1,5 @@
 defmodule ICalendar.Serialize.Event do
-  alias ICalendar.Value
+  alias ICalendar.Serialize
 
   def to_ics(event) do
     contents = to_kvs(event)
@@ -134,27 +134,27 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp to_text_kv(key, value) do
-    [key, ":", Value.to_ics(value), "\n"]
+    [key, ":", Serialize.to_ics(value), "\n"]
   end
 
   defp to_parameterized_text_kv(key, params, value) do
     for {param, param_value} <- params do
-      [";", param, "=", Value.to_ics(param_value)]
+      [";", param, "=", Serialize.to_ics(param_value)]
     end
 
-    [key, params, ":", Value.to_ics(value), "\n"]
+    [key, params, ":", Serialize.to_ics(value), "\n"]
   end
 
   def to_date_kv(key, %Date{} = date) do
-    [key, ":", Value.to_ics(date), "\n"]
+    [key, ":", Serialize.to_ics(date), "\n"]
   end
 
   def to_date_kv(key, %DateTime{time_zone: "Etc/UTC"} = date) do
-    [key, ":", Value.to_ics(date), "Z\n"]
+    [key, ":", Serialize.to_ics(date), "Z\n"]
   end
 
   def to_date_kv(key, %DateTime{} = date) do
-    [key, ";TZID=", date.time_zone, ":", Value.to_ics(date), "\n"]
+    [key, ";TZID=", date.time_zone, ":", Serialize.to_ics(date), "\n"]
   end
 
   defp to_attachment_kv(%ICalendar.Attachment{} = attachment) do
@@ -182,19 +182,19 @@ defmodule ICalendar.Serialize.Event do
     [";", atom_to_value(key), "=", rrule_value(rrule)]
   end
 
-  defp rrule_value({:until, value}), do: Value.to_ics(value)
+  defp rrule_value({:until, value}), do: Serialize.to_ics(value)
 
   defp rrule_value({_key, values}) when is_list(values) do
     values
-    |> Enum.map(&Value.to_ics/1)
+    |> Enum.map(&Serialize.to_ics/1)
     |> Enum.intersperse(",")
   end
 
-  defp rrule_value({_key, value}), do: Value.to_ics(value)
+  defp rrule_value({_key, value}), do: Serialize.to_ics(value)
 
   defp to_comma_list(values) do
     values
-    |> Enum.map(&Value.to_ics/1)
+    |> Enum.map(&Serialize.to_ics/1)
     |> Enum.intersperse(",")
   end
 
