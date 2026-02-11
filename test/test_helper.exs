@@ -1,6 +1,6 @@
 defmodule ICalendar.Test.Helper do
   def test_data(name) do
-    Path.join([File.cwd!(), "/test/data"], name <> ".ical")
+    Path.join([File.cwd!(), "/test/data"], name <> ".ics")
     |> File.read!()
   end
 
