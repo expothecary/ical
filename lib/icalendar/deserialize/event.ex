@@ -71,6 +71,8 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp next(<<"CONTACT", data::binary>>, event) do
+    # TODO: it would be nice to have a Contact struct that works similar to Attendee
+    # since CONTACT does support params, such as ALTREP
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.multi_line(data)
     next(data, %{event | contacts: event.contacts ++ [value]})
