@@ -67,15 +67,17 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp to_kv({:geo, {lat, lon}}, acc) do
-    [["GEO:", to_string(lat), ";", to_string(lon), "\n"] | acc]
+    [["GEO:", to_string(lat), ?;, to_string(lon), ?\n] | acc]
   end
 
   defp to_kv({:resources, value}, acc) do
     [Serialize.to_comma_list_kv("RESOURCES", value) | acc]
   end
 
-  defp to_kv({:rdates, value}, acc) when is_list(value) do
-    [Enum.map(value, &to_date_kv("RDATE", &1)) | acc]
+  defp to_kv({:rdates, values}, acc) when is_list(values) do
+    # TODO: put this on the same line if they are identical types? e.g. all dates
+    # with the same tz together, etc.
+    [Enum.map(values, &to_date_kv("RDATE", &1)) | acc]
   end
 
   defp to_kv({:related_to, value}, acc) do
@@ -101,7 +103,7 @@ defmodule ICalendar.Serialize.Event do
       |> Map.delete(:freq)
       |> Enum.map(&to_rrule_entry/1)
 
-    ["RRULE:FREQ=", frequency, other_rrules, "\n" | acc]
+    ["RRULE:FREQ=", frequency, other_rrules, ?\n | acc]
   end
 
   defp to_kv({:status, value}, acc) do
@@ -109,20 +111,19 @@ defmodule ICalendar.Serialize.Event do
       :tentative -> ["STATUS:TENTATIVE\n" | acc]
       :confirmed -> ["STATUS:CONFIRMED\n" | acc]
       :cancelled -> ["STATUS:CANCELLED\n" | acc]
-      value when is_binary(value) -> [to_text_kv("STATUS:", value) | acc]
-      _ -> acc
+      value -> [to_text_kv("STATUS", to_string(value)) | acc]
     end
   end
 
   defp to_kv({key, value}, acc) when is_number(value) do
     name = Serialize.atom_to_value(key)
-    [[name, ":", to_string(value), "\n"] | acc]
+    [[name, ?:, to_string(value), ?\n] | acc]
   end
 
   defp to_kv({key, value}, acc) when is_atom(value) do
     name = Serialize.atom_to_value(key)
     value = Serialize.atom_to_value(value)
-    [[name, ":", to_string(value), "\n"] | acc]
+    [[name, ?:, to_string(value), ?\n] | acc]
   end
 
   defp to_kv({key, value}, acc) do
@@ -131,11 +132,11 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp to_text_kv(key, value) do
-    [key, ":", Serialize.to_ics(value), "\n"]
+    [key, ?:, Serialize.to_ics(value), ?\n]
   end
 
   def to_date_kv(key, %Date{} = date) do
-    [key, ":", Serialize.to_ics(date), "\n"]
+    [key, ";VALUE=DATE:", Serialize.to_ics(date), ?\n]
   end
 
   def to_date_kv(key, %DateTime{time_zone: "Etc/UTC"} = date) do
@@ -143,28 +144,34 @@ defmodule ICalendar.Serialize.Event do
   end
 
   def to_date_kv(key, %DateTime{} = date) do
-    [key, ";TZID=", date.time_zone, ":", Serialize.to_ics(date), "\n"]
+    [key, ";TZID=", date.time_zone, ?:, Serialize.to_ics(date), ?\n]
+  end
+
+  def to_date_kv(key, {from, to}) do
+    [key, ";VALUE=PERIOD:", Serialize.to_ics(from), ?/, Serialize.to_ics(to), ?\n]
   end
 
   defp to_attachment_kv(%ICalendar.Attachment{} = attachment) do
     params =
       if attachment.mimetype != nil do
         [";FMTTYPE=", attachment.mimetype]
+      else
+        []
       end
 
-    {encoding_params, value} =
+    value_with_extra_params =
       case attachment.data_type do
-        :uri -> {nil, attachment.data}
-        :cid -> {nil, ["CID:", attachment.data]}
-        :base64 -> {";ENCODING=BASE64;VALUE=BINARY", attachment.data}
-        :base8 -> {";ENCODING=8BIT;VALUE=BINARY", attachment.data}
+        :uri -> [?:, attachment.data]
+        :cid -> [":CID:", attachment.data]
+        :base64 -> [";ENCODING=BASE64;VALUE=BINARY:", attachment.data]
+        :base8 -> [";ENCODING=8BIT;VALUE=BINARY:", attachment.data]
       end
 
-    ["ATTACH", params, encoding_params, ":", value]
+    ["ATTACH", params, value_with_extra_params, ?\n]
   end
 
   defp to_rrule_entry({key, _} = rrule) do
-    [";", Serialize.atom_to_value(key), "=", rrule_value(rrule)]
+    [?;, Serialize.atom_to_value(key), "=", rrule_value(rrule)]
   end
 
   defp rrule_value({:until, value}), do: Serialize.to_ics(value)
