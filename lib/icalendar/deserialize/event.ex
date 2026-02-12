@@ -309,4 +309,21 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp rrule_value(_key, value), do: value
+
+  defp to_rdate("DATE", params, value, acc) do
+    case Deserialize.to_date(value, params) do
+      nil -> acc
+      date -> [date | acc]
+    end
+  end
+
+  defp to_rdate("PERIOD", params, value, acc) do
+    with [first, second] <- String.split(value, "/", parts: 2),
+         p_start when p_start != nil <- Deserialize.to_date(first, params),
+         p_end when p_end != nil <- Deserialize.to_date(second, params) do
+      [{p_start, p_end}, acc]
+    else
+      _ -> acc
+    end
+  end
 end
