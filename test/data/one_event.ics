@@ -1,4 +1,5 @@
 BEGIN:VEVENT
+UID:1001
 DESCRIPTION:Escape from the world. Stare at some water.
 COMMENT:Don't forget to take something to eat !
 SUMMARY:Going fishing
@@ -15,4 +16,8 @@ DURATION:P15DT5H0M20S
 LAST-MODIFIED:19960817T133000Z
 GEO:43.6978819;-79.3810277
 ORGANIZER;SENT-BY="mailto:jane_doe@example.com":mailto:jsmith@example.com
+PRIORITY:2
+RELATED-TO:jsmith.part7.19960817T083000.xyzMail@example.com
+RESOURCES;LANGUAGE=fr:EASEL,PROJECTOR,VCR
+SEQUENCE:1000
 END:VEVENT

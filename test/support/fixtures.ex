@@ -16,7 +16,104 @@ defmodule ICalendar.Test.Fixtures do
       duration: "P15DT5H0M20S",
       geo: {43.6978819, -79.3810277},
       modified: ~U[1996-08-17 13:30:00Z],
-      organizer: "mailto:jsmith@example.com"
+      organizer: "mailto:jsmith@example.com",
+      priority: 2,
+      related_to: ["jsmith.part7.19960817T083000.xyzMail@example.com"],
+      resources: ["EASEL", "PROJECTOR", "VCR"],
+      sequence: 1000,
+      uid: "1001"
+    }
+  end
+
+  def uid_only_event do
+    %ICalendar.Event{
+      uid: "YES",
+      comments: ["Should appear normally"]
+    }
+  end
+
+  def transparencies do
+    %ICalendar{
+      events: [
+        %ICalendar.Event{
+          uid: "1",
+          transparency: :transparent
+        },
+        %ICalendar.Event{
+          uid: "2",
+          transparency: :opaque
+        },
+        %ICalendar.Event{
+          uid: "3",
+          transparency: nil
+        }
+      ]
+    }
+  end
+
+  def rdates do
+    %ICalendar{
+      events: [
+        %ICalendar.Event{
+          uid: "1",
+          rdates: [
+            ~U[1997-01-01 00:00:00Z],
+            ~U[1997-01-20 00:00:00Z],
+            ~U[1997-02-17 00:00:00Z],
+            ~U[1997-04-21 00:00:00Z]
+          ]
+        },
+        %ICalendar.Event{
+          uid: "2",
+          rdates: [
+            ~U[1997-01-01 00:00:00Z],
+            ~U[1997-01-20 00:00:00Z],
+            ~U[1997-02-17 00:00:00Z],
+            ~U[1997-04-21 00:00:00Z]
+          ]
+        },
+        %ICalendar.Event{
+          uid: "3",
+          rdates: [
+            {~U[1997-01-01 18:00:00Z], ~U[1997-01-02 07:00:00Z]}
+          ]
+        },
+        %ICalendar.Event{
+          uid: "4"
+        },
+        %ICalendar.Event{
+          uid: "5"
+        },
+        %ICalendar.Event{
+          uid: "6"
+        },
+        %ICalendar.Event{
+          uid: "7"
+        }
+      ]
+    }
+  end
+
+  def statuses do
+    %ICalendar{
+      events: [
+        %ICalendar.Event{
+          uid: "1",
+          status: :tentative
+        },
+        %ICalendar.Event{
+          uid: "2",
+          status: :confirmed
+        },
+        %ICalendar.Event{
+          uid: "3",
+          status: :cancelled
+        },
+        %ICalendar.Event{
+          uid: "4",
+          status: nil
+        }
+      ]
     }
   end
 
@@ -33,7 +130,19 @@ defmodule ICalendar.Test.Fixtures do
       comments: ["Don't forget to take something to eat !"],
       contacts: ["Jim Dolittle, ABC Industries, +1-919-555-1234"],
       class: "PRIVATE",
-      geo: {43.6978819, -79.3810277}
+      geo: {43.6978819, -79.3810277},
+      resources: ["Nettoyeur haute pression"]
+    }
+  end
+
+  def broken_dates_event do
+    %ICalendar.Event{
+      dtstart: nil,
+      dtend: nil,
+      dtstamp: nil,
+      created: nil,
+      exdates: [],
+      uid: "1"
     }
   end
 

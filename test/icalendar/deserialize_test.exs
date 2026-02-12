@@ -20,6 +20,24 @@ defmodule ICalendar.DeserializeTest do
       assert event == Fixtures.one_event()
     end
 
+    test "Deserializing a non-extant file returns an :error tuple" do
+      assert ICalendar.from_file("/does/not/exist.ics") == {:error, :enoent}
+    end
+
+    test "Bad separators do not disturb parsing" do
+      ics = Helper.test_data("broken_uid")
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
+
+      assert event == Fixtures.uid_only_event()
+    end
+
+    test "Priority must be an integer" do
+      ics = Helper.test_data("broken_priority")
+      %ICalendar{events: [event]} = ICalendar.from_ics(ics)
+
+      assert event == Fixtures.uid_only_event()
+    end
+
     test "Single Event via Event.from_ics" do
       ics = Helper.test_data("one_event")
       assert ICalendar.Event.from_ics(ics) == Fixtures.one_event()
@@ -28,10 +46,6 @@ defmodule ICalendar.DeserializeTest do
     test "Truncated data is handled gracefully" do
       ics = Helper.test_data("truncated_event")
       assert ICalendar.Event.from_ics(ics) == Fixtures.one_truncated_event()
-    end
-
-    test "Deserializing a non-extant file returns an :error tuple" do
-      assert ICalendar.from_file("/does/not/exist.ics") == {:error, :enoent}
     end
 
     test "Single event with wrapped description and summary" do
@@ -154,6 +168,26 @@ defmodule ICalendar.DeserializeTest do
       assert a3.cname == "John Smith"
       assert a3.dir == "ldap://example.com:6666/o=ABC%20Industries,c=US???(cn=Jim%20Dolittle)"
       assert a3.language == "de-ch"
+    end
+
+    test "Bad dates result in nils" do
+      ics = Helper.test_data("broken_dates")
+      assert ICalendar.Event.from_ics(ics) == Fixtures.broken_dates_event()
+    end
+
+    test "Status is properly parsed" do
+      ics = Helper.test_data("status")
+      assert ICalendar.from_ics(ics) == Fixtures.statuses()
+    end
+
+    test "Transparency is properly parsed" do
+      ics = Helper.test_data("transparency")
+      assert ICalendar.from_ics(ics) == Fixtures.transparencies()
+    end
+
+    test "Recurrence dates are properly parsed" do
+      ics = Helper.test_data("rdates")
+      assert ICalendar.from_ics(ics) == Fixtures.rdates()
     end
   end
 end
