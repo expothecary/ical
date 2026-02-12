@@ -14,14 +14,14 @@ defmodule ICalendar.Deserialize do
 
   def comma_separated_list(data), do: comma_separated_list(data, "", [])
   defp comma_separated_list(<<>> = data, "", acc), do: {data, acc}
-  defp comma_separated_list(<<>> = data, value, acc), do: {data, List.insert_at(acc, -1, value)}
+  defp comma_separated_list(<<>> = data, value, acc), do: {data, acc ++ [value]}
 
   defp comma_separated_list(<<?\r, ?\n, data::binary>>, value, acc) do
-    if value == "", do: {data, acc}, else: {data, List.insert_at(acc, -1, value)}
+    if value == "", do: {data, acc}, else: {data, acc ++ [value]}
   end
 
   defp comma_separated_list(<<?\n, data::binary>>, value, acc) do
-    if value == "", do: {data, acc}, else: {data, List.insert_at(acc, -1, value)}
+    if value == "", do: {data, acc}, else: {data, acc ++ [value]}
   end
 
   defp comma_separated_list(<<"\\n", data::binary>>, value, acc) do
@@ -37,7 +37,7 @@ defmodule ICalendar.Deserialize do
   end
 
   defp comma_separated_list(<<?,, data::binary>>, value, acc) do
-    comma_separated_list(data, "", List.insert_at(acc, -1, value))
+    comma_separated_list(data, "", acc ++ [value])
   end
 
   defp comma_separated_list(<<c::utf8, data::binary>>, value, acc) do
