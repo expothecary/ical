@@ -17,6 +17,17 @@ defmodule ICalendarTest do
            """
   end
 
+  test "ICalendar.to_ics/1 of empty calendar with nil values" do
+    ics =
+      %ICalendar{scale: nil, version: nil, product_id: nil} |> ICalendar.to_ics() |> to_string()
+
+    assert ics == """
+           BEGIN:VCALENDAR
+           VERSION:2.0
+           END:VCALENDAR
+           """
+  end
+
   test "ICalendar.to_ics/1 of empty calendar with custom vendor" do
     ics = %ICalendar{} |> ICalendar.set_vendor(@vendor) |> ICalendar.to_ics() |> to_string()
 
