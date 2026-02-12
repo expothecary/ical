@@ -1,6 +1,11 @@
 defmodule ICalendar.Test.Helper do
-  def test_data(name) do
+  def test_data_path(name) do
     Path.join([File.cwd!(), "/test/data"], name <> ".ics")
+  end
+
+  def test_data(name) do
+    name
+    |> test_data_path()
     |> File.read!()
   end
 
