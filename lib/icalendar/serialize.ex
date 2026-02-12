@@ -54,15 +54,6 @@ defmodule ICalendar.Serialize do
     String.replace(x, ~S|"|, ~S|\"|)
   end
 
-  # creates an entry of the form "KEY;paramslist:value"
-  def to_parameterized_text_kv(key, params, value) do
-    for {param, param_value} <- params do
-      [";", param, "=", to_ics(param_value)]
-    end
-
-    [key, params, ":", to_ics(value), "\n"]
-  end
-
   # create a key/value pair with a comma-separated list
   def to_comma_list_kv(key, values) do
     [key, ":", to_comma_list(values), "\n"]
