@@ -181,7 +181,7 @@ defmodule ICalendar.Deserialize.Event do
 
   defp next(<<"RRULE", data::binary>>, event) do
     data = Deserialize.skip_params(data)
-    {data, values} = Deserialize.params(data)
+    {data, values} = Deserialize.param_list(data)
 
     # TODO: this should really be a Recurrence struct
     rrule = Enum.reduce(values, %{}, &to_rrule/2)
