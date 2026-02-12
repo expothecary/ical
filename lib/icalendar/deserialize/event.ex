@@ -11,7 +11,7 @@ defmodule ICalendar.Deserialize.Event do
   @spec one(data :: binary, ICalendar.t()) :: ICalendar.t()
   def one(data, calendar) do
     {data, event} = next(data, %ICalendar.Event{})
-    calendar = %{calendar | events: [event | calendar.events]}
+    calendar = %{calendar | events: calendar.events ++ [event]}
     ICalendar.Deserialize.Calendar.next(data, calendar)
   end
 
