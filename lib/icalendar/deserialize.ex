@@ -288,10 +288,10 @@ defmodule ICalendar.Deserialize do
     # Microsoft Outlook calendar .ICS files report times in Greenwich Standard Time (UTC +0)
     # so just convert this to UTC
     timezone =
-      if Regex.match?(~r/\//, timezone) do
-        timezone
-      else
-        Timex.Timezone.Utils.to_olson(timezone)
+      cond do
+        String.contains?(timezone, "/") -> timezone
+        Timex.Timezone.Utils.to_olson(timezone) != nil -> Timex.Timezone.Utils.to_olson(timezone)
+        true -> "Etc/UTC"
       end
 
     with_timezone =
