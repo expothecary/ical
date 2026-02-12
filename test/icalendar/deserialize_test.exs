@@ -20,6 +20,10 @@ defmodule ICalendar.DeserializeTest do
       assert event == Fixtures.one_event()
     end
 
+    test "Deserializing a non-extant file returns an :error tuple" do
+      assert ICalendar.from_file("/does/not/exist.ics") == {:error, :enoent}
+    end
+
     test "Single event with wrapped description and summary" do
       ics = Helper.test_data("one_event_desc_summary")
 
