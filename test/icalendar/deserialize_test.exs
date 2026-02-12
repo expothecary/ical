@@ -95,6 +95,7 @@ defmodule ICalendar.DeserializeTest do
       assert a2.data_type == :uri
       assert a2.data == "ftp://example.com/pub/reports/r-960812.ps"
       assert a2.mimetype == "application/postscript"
+      assert ICalendar.Attachment.decoded_data(a2) == {:ok, a2.data}
 
       # an inline 8bit attachment, no mimetype
       assert a3.data_type == :base8

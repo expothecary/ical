@@ -27,5 +27,5 @@ defmodule ICalendar.Attachment do
     end
   end
 
-  def decoded_data(%__MODULE__{data: data}), do: data
+  def decoded_data(%__MODULE__{data: data}), do: {:ok, data}
 end
