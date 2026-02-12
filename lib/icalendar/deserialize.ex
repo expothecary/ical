@@ -273,6 +273,8 @@ defmodule ICalendar.Deserialize do
       ...> [Timex.to_erl(date), date.time_zone]
       [{{1998, 1, 19}, {2, 0, 0}}, "America/Chicago"]
   """
+  def to_date(nil, _params), do: nil
+
   def to_date(date_string, %{"TZID" => timezone}) do
     # Microsoft Outlook calendar .ICS files report times in Greenwich Standard Time (UTC +0)
     # so just convert this to UTC
