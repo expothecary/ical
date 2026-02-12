@@ -326,9 +326,11 @@ defmodule ICalendar.Deserialize.Event do
     with [first, second] <- String.split(value, "/", parts: 2),
          p_start when p_start != nil <- Deserialize.to_date(first, params),
          p_end when p_end != nil <- Deserialize.to_date(second, params) do
-      [{p_start, p_end}, acc]
+      [{p_start, p_end} | acc]
     else
       _ -> acc
     end
   end
+
+  defp to_rdate(_unrecognized, _params, _value, acc), do: acc
 end
