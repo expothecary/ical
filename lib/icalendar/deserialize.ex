@@ -141,7 +141,7 @@ defmodule ICalendar.Deserialize do
     params(data, <<>>, Map.put(params, val, ""))
   end
 
-  defp params(<<?:, data::binary>>, _val, params), do: {data, params}
+  defp params(<<?:, data::binary>>, val, params), do: {data, Map.put(params, val, "")}
 
   defp params(<<?=, ?", data::binary>>, val, params) do
     param_value_quoted(data, val, <<>>, params)
