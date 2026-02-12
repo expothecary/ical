@@ -145,10 +145,7 @@ defmodule ICalendar.Deserialize.Event do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
 
-    case Integer.parse(value) do
-      {priority, ""} -> next(data, %{event | priority: priority})
-      _ -> next(data, event)
-    end
+    record_integer_value(data, event, :priority, value)
   end
 
   defp next(<<"RECURRENCE-ID", data::binary>>, event) do
@@ -195,7 +192,7 @@ defmodule ICalendar.Deserialize.Event do
   defp next(<<"SEQUENCE", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    record_value(data, event, :sequence, value)
+    record_integer_value(data, event, :sequence, value)
   end
 
   defp next(<<"STATUS", data::binary>>, event) do
@@ -254,6 +251,13 @@ defmodule ICalendar.Deserialize.Event do
   end
 
   defp record_value(data, event, key, value), do: next(data, Map.put(event, key, value))
+
+  defp record_integer_value(data, event, key, value) do
+    case Integer.parse(value) do
+      {integer, ""} -> next(data, Map.put(event, key, integer))
+      _ -> next(data, event)
+    end
+  end
 
   defp to_status("TENTATIVE"), do: :tentative
   defp to_status("CONFIRMED"), do: :confirmed
