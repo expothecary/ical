@@ -87,16 +87,33 @@ defmodule ICalendar.Deserialize do
     rest_of_line(data, append(acc, c))
   end
 
+  # Skipping params allows motoring through the parameters section without
+  # complex parsing or allocation of data. e.g. this is an optimization.
   def skip_params(<<>> = data), do: data
   def skip_params(<<?\n, data::binary>>), do: data
-  def skip_params(<<?:, data::binary>>), do: data
+  def skip_params(<<?", data::binary>>), do: skip_param_quoted_section(data)
 
   def skip_params(<<?\\, _::utf8, data::binary>>) do
     skip_params(data)
   end
 
+  def skip_params(<<?:, data::binary>>), do: data
+
   def skip_params(<<_::utf8, data::binary>>) do
     skip_params(data)
+  end
+
+  defp skip_param_quoted_section(<<>> = data), do: data
+  defp skip_param_quoted_section(<<?\n, data::binary>>), do: data
+
+  defp skip_param_quoted_section(<<?\\, _::utf8, data::binary>>) do
+    skip_param_quoted_section(data)
+  end
+
+  defp skip_param_quoted_section(<<?", data::binary>>), do: skip_params(data)
+
+  defp skip_param_quoted_section(<<_::utf8, data::binary>>) do
+    skip_param_quoted_section(data)
   end
 
   def params(<<?;, data::binary>>), do: params(data, <<>>, %{})
