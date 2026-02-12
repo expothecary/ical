@@ -3,6 +3,7 @@ defmodule ICalendar.EventTest do
 
   alias ICalendar.Event
   alias ICalendar.Test.Helper
+  alias ICalendar.Test.Fixtures
 
   test "ICalendar.to_ics/1 of event" do
     ics =
@@ -19,23 +20,11 @@ defmodule ICalendar.EventTest do
 
   test "ICalendar.to_ics/1 with some attributes" do
     ics =
-      %Event{
-        summary: "Going fishing",
-        description: "Escape from the world. Stare at some water.",
-        comments: ["Don't forget to take something to eat !"],
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
-      }
+      Fixtures.one_event(:serialize)
       |> ICalendar.to_ics()
       |> Helper.extract_event_props()
 
-    assert ics == """
-           BEGIN:VEVENT
-           COMMENT:Don't forget to take something to eat !
-           DESCRIPTION:Escape from the world. Stare at some water.
-           DTSTAMP:20151224T084500Z
-           SUMMARY:Going fishing
-           END:VEVENT
-           """
+    assert ics == Helper.test_data("serialized_event")
   end
 
   test "ICalendar.to_ics/1 with date start and end" do
@@ -50,9 +39,9 @@ defmodule ICalendar.EventTest do
 
     assert ics == """
            BEGIN:VEVENT
-           DTEND:20151224
+           DTEND;VALUE=DATE:20151224
            DTSTAMP:20151224T084500Z
-           DTSTART:20151224
+           DTSTART;VALUE=DATE:20151224
            END:VEVENT
            """
   end
@@ -241,5 +230,23 @@ defmodule ICalendar.EventTest do
            DTSTAMP:20151224T084500Z
            END:VEVENT
            """
+  end
+
+  test "Serializing statuses" do
+    ics =
+      Fixtures.statuses(:serialize)
+      |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
+
+    assert ics == Helper.test_data("status_serialized")
+  end
+
+  test "Serializing rdates" do
+    ics =
+      Fixtures.rdates()
+      |> ICalendar.to_ics()
+      |> Helper.extract_event_props()
+
+    assert ics == Helper.test_data("rdates_serialized")
   end
 end

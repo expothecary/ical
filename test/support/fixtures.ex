@@ -1,5 +1,50 @@
 defmodule ICalendar.Test.Fixtures do
-  def one_event do
+  def one_event(which \\ :deserialize)
+
+  def one_event(:serialize) do
+    %ICalendar.Event{
+      summary: "Going fishing",
+      description: "Escape from the world. Stare at some water.",
+      comments: ["Don't forget to take something to eat !"],
+      dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+      created: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+      contacts: ["Joe Blow", "Jill Bar"],
+      priority: "",
+      attachments: [
+        %ICalendar.Attachment{
+          data_type: :cid,
+          data: "jsmith.part3.960817T083000.xyzMail@example.com",
+          mimetype: nil
+        },
+        %ICalendar.Attachment{
+          data_type: :uri,
+          data: "ftp://example.com/pub/reports/r-960812.ps",
+          mimetype: "application/postscript"
+        },
+        %ICalendar.Attachment{
+          data_type: :base8,
+          data: "Some plain text",
+          mimetype: nil
+        },
+        %ICalendar.Attachment{
+          data_type: :base64,
+          data: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4",
+          mimetype: "text/plain"
+        },
+        %ICalendar.Attachment{
+          data_type: :base64,
+          data:
+            "TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2ljaW5nIGVsaXQsIHNlZCBkbyBlaXVzbW9kIHRlbXBvciBpbmNpZGlkdW50IHV0IGxhYm9yZSBldCBkb2xvcmUgbWFnbmEgYWxpcXVhLiBVdCBlbmltIGFkIG1pbmltIHZlbmlhbSwgcXVpcyBub3N0cnVkIGV4ZXJjaXRhdGlvbiB1bGxhbWNvIGxhYm9yaXMgbmlzaSB1dCBhbGlxdWlwIGV4IGVhIGNvbW1vZG8gY29uc2VxdWF0LiBEdWlzIGF1dGUgaXJ1cmUgZG9sb3IgaW4gcmVwcmVoZW5kZXJpdCBpbiB2b2x1cHRhdGUgdmVsaXQgZXNzZSBjaWxsdW0gZG9sb3JlIGV1IGZ1Z2lhdCBudWxsYSBwYXJpYXR1ci4gRXhjZXB0ZXVyIHNpbnQgb2NjYWVjYXQgY3VwaWRhdGF0IG5vbiBwcm9pZGVudCwgc3VudCBpbiBjdWxwYSBxdWkgb2ZmaWNpYSBkZXNlcnVudCBtb2xsaXQgYW5pbSBpZCBlc3QgbGFib3J1bS4=",
+          mimetype: "text/plain"
+        }
+      ],
+      resources: ["one", "two", "three"],
+      related_to: ["jsmith.part7.19960817T083000.xyzMail@example.com", "other"],
+      transparency: :opaque
+    }
+  end
+
+  def one_event(:deserialize) do
     %ICalendar.Event{
       dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
       dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
@@ -56,6 +101,7 @@ defmodule ICalendar.Test.Fixtures do
       events: [
         %ICalendar.Event{
           uid: "1",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
             ~U[1997-01-01 00:00:00Z],
             ~U[1997-01-20 00:00:00Z],
@@ -65,6 +111,7 @@ defmodule ICalendar.Test.Fixtures do
         },
         %ICalendar.Event{
           uid: "2",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
             ~U[1997-01-01 00:00:00Z],
             ~U[1997-01-20 00:00:00Z],
@@ -74,44 +121,87 @@ defmodule ICalendar.Test.Fixtures do
         },
         %ICalendar.Event{
           uid: "3",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
             {~U[1997-01-01 18:00:00Z], ~U[1997-01-02 07:00:00Z]}
           ]
         },
         %ICalendar.Event{
-          uid: "4"
+          uid: "4",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
         %ICalendar.Event{
-          uid: "5"
+          uid: "5",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
         %ICalendar.Event{
-          uid: "6"
+          uid: "6",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
         %ICalendar.Event{
-          uid: "7"
+          uid: "7",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         }
       ]
     }
   end
 
-  def statuses do
+  def statuses(which \\ :deserialize)
+
+  def statuses(:deserialize) do
     %ICalendar{
       events: [
         %ICalendar.Event{
           uid: "1",
-          status: :tentative
+          status: :tentative,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
         %ICalendar.Event{
           uid: "2",
-          status: :confirmed
+          status: :confirmed,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
         %ICalendar.Event{
           uid: "3",
-          status: :cancelled
+          status: :cancelled,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
         %ICalendar.Event{
           uid: "4",
-          status: nil
+          status: nil,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+        }
+      ]
+    }
+  end
+
+  def statuses(:serialize) do
+    %ICalendar{
+      events: [
+        %ICalendar.Event{
+          uid: "1",
+          status: :tentative,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+        },
+        %ICalendar.Event{
+          uid: "2",
+          status: :confirmed,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+        },
+        %ICalendar.Event{
+          uid: "3",
+          status: :cancelled,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+        },
+        %ICalendar.Event{
+          uid: "4",
+          status: nil,
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+        },
+        %ICalendar.Event{
+          uid: "5",
+          status: "CUSTOM",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         }
       ]
     }
