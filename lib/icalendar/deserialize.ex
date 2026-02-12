@@ -49,7 +49,7 @@ defmodule ICalendar.Deserialize do
   defp multi_line(data, separator, trim_char, acc) do
     {data, line} = rest_of_line(data)
 
-    acc = [String.trim_leading(line, trim_char) | acc]
+    acc = add_trimmed(line, trim_char, acc)
 
     # peek ahead to see if there is more multi-line data
     case data do
@@ -68,6 +68,9 @@ defmodule ICalendar.Deserialize do
         {data, value}
     end
   end
+
+  defp add_trimmed(nil, _trim_char, acc), do: acc
+  defp add_trimmed(line, trim_char, acc), do: [String.trim_leading(line, trim_char) | acc]
 
   def rest_of_line(<<?\n, data::binary>>), do: {data, nil}
   def rest_of_line(data), do: rest_of_line(data, <<>>)
