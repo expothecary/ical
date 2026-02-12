@@ -121,19 +121,24 @@ defmodule ICalendar.Deserialize do
     skip_param_quoted_section(data)
   end
 
+  # used to get parameters applied to keys, e.g. KEY;PARAMS...:VALUE
   def params(<<?;, data::binary>>), do: params(data, <<>>, %{})
-  def params(data), do: params(data, <<>>, %{})
+  def params(<<?:, data::binary>>), do: {data, %{}}
+  def params(data), do: {data, %{}}
+
+  # used to get parameter-list formatted *values*
+  def param_list(data), do: params(data, <<>>, %{})
 
   defp params(<<>> = data, _val, params), do: {data, params}
-  defp params(<<?\n, data::binary>>, _val, params), do: {data, params}
-  defp params(<<?r, ?\n, data::binary>>, _val, params), do: {data, params}
-
-  defp params(<<"\\n", data::binary>>, val, params) do
-    params(data, append(val, ?\n), params)
-  end
+  defp params(<<?\n, _::binary>> = data, _val, params), do: {data, params}
+  defp params(<<?r, ?\n, _::binary>> = data, _val, params), do: {data, params}
 
   defp params(<<?\\, c::utf8, data::binary>>, val, params) do
     params(data, append(val, c), params)
+  end
+
+  defp params(<<?;, data::binary>>, val, params) do
+    params(data, <<>>, Map.put(params, val, ""))
   end
 
   defp params(<<?:, data::binary>>, _val, params), do: {data, params}
@@ -147,7 +152,6 @@ defmodule ICalendar.Deserialize do
 
   # a param value goes to the end of the data, the line, or until an unescaped `:` character.
   # an unescaped `;` also stops the value, but signals that another parameter is next
-  defp param_value(<<?:, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
   defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
 
   defp param_value(<<?\r, ?\n, data::binary>>, key, val, params),
@@ -163,7 +167,9 @@ defmodule ICalendar.Deserialize do
     param_value(data, key, append(val, c), params)
   end
 
-  # another param detect, so recurse to params again
+  defp param_value(<<?:, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+
+  # another param starts, so recurse to params again
   defp param_value(<<?;, data::binary>>, key, val, params) do
     params(data, <<>>, Map.put(params, key, val))
   end
