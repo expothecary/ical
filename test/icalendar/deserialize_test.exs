@@ -27,7 +27,7 @@ defmodule ICalendar.DeserializeTest do
 
     test "Truncated data is handled gracefully" do
       ics = Helper.test_data("truncated_event")
-      assert ICalendar.Event.from_ics(ics) == Fixtures.one_event()
+      assert ICalendar.Event.from_ics(ics) == Fixtures.one_truncated_event()
     end
 
     test "Deserializing a non-extant file returns an :error tuple" do

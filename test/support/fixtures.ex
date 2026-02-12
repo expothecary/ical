@@ -10,6 +10,28 @@ defmodule ICalendar.Test.Fixtures do
       status: :tentative,
       categories: ["Fishing", "Nature"],
       comments: ["Don't forget to take something to eat !"],
+      contacts: ["Jim Dolittle, ABC Industries, +1-919-555-1234"],
+      created: ~U[1996-03-29 13:30:00Z],
+      class: "PRIVATE",
+      duration: "P15DT5H0M20S",
+      geo: {43.6978819, -79.3810277},
+      modified: ~U[1996-08-17 13:30:00Z],
+      organizer: "mailto:jsmith@example.com"
+    }
+  end
+
+  def one_truncated_event do
+    %ICalendar.Event{
+      dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
+      dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
+      dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+      summary: "Going fishing",
+      description: "Escape from the world. Stare at some water.",
+      location: "123 Fun Street, Toronto ON, Canada",
+      status: :tentative,
+      categories: ["Fishing", "Nature"],
+      comments: ["Don't forget to take something to eat !"],
+      contacts: ["Jim Dolittle, ABC Industries, +1-919-555-1234"],
       class: "PRIVATE",
       geo: {43.6978819, -79.3810277}
     }
