@@ -25,7 +25,7 @@ defmodule ICalendar.Serialize.Calendar do
   defp method(acc, %{method: nil}), do: acc
   defp method(acc, calendar), do: acc ++ ["METHOD:", calendar.method, "\n"]
 
-  defp version(acc, %{version: nil}), do: acc
+  defp version(acc, %{version: nil}), do: acc ++ ["VERSION:2.0\n"]
   defp version(acc, calendar), do: acc ++ ["VERSION:", calendar.version, "\n"]
 
   defp product_id(acc, %{product_id: nil}), do: acc
