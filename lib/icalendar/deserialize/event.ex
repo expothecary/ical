@@ -37,37 +37,30 @@ defmodule ICalendar.Deserialize.Event do
       end
       |> Map.put(:mimetype, Map.get(params, "FMTTYPE"))
 
-    next(
-      data,
-      %{event | attachments: event.attachments ++ [attachment]}
-    )
+    record_value(data, event, :attachments, [attachment])
   end
 
   defp next(<<"ATTENDEE", data::binary>>, event) do
     {data, attendee} = ICalendar.Deserialize.Attendee.from_ics(data)
-
-    next(
-      data,
-      %{event | attendees: event.attendees ++ [attendee]}
-    )
+    record_value(data, event, :attendees, [attendee])
   end
 
   defp next(<<"CATEGORIES", data::binary>>, event) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.comma_separated_list(data)
-    next(data, %{event | categories: event.categories ++ value})
+    {data, values} = Deserialize.comma_separated_list(data)
+    record_value(data, event, :categories, values)
   end
 
   defp next(<<"CLASS", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | class: value})
+    record_value(data, event, :class, value)
   end
 
   defp next(<<"COMMENT", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.multi_line(data)
-    next(data, %{event | comments: [value | event.comments]})
+    record_value(data, event, :comments, [value])
   end
 
   defp next(<<"CONTACT", data::binary>>, event) do
@@ -75,37 +68,37 @@ defmodule ICalendar.Deserialize.Event do
     # since CONTACT does support params, such as ALTREP
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.multi_line(data)
-    next(data, %{event | contacts: event.contacts ++ [value]})
+    record_value(data, event, :contacts, [value])
   end
 
   defp next(<<"CREATED", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.multi_line(data)
-    next(data, %{event | created: Deserialize.to_date(value, params)})
+    record_value(data, event, :created, Deserialize.to_date(value, params))
   end
 
   defp next(<<"DESCRIPTION", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.multi_line(data)
-    next(data, %{event | description: value})
+    record_value(data, event, :description, value)
   end
 
   defp next(<<"DTSTART", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | dtstart: Deserialize.to_date(value, params)})
+    record_value(data, event, :dtstart, Deserialize.to_date(value, params))
   end
 
   defp next(<<"DTEND", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | dtend: Deserialize.to_date(value, params)})
+    record_value(data, event, :dtend, Deserialize.to_date(value, params))
   end
 
   defp next(<<"DTSTAMP", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | dtstamp: Deserialize.to_date(value, params)})
+    record_value(data, event, :dtstamp, Deserialize.to_date(value, params))
   end
 
   defp next(<<"DURATION", data::binary>>, event) do
@@ -113,42 +106,39 @@ defmodule ICalendar.Deserialize.Event do
     {data, value} = Deserialize.rest_of_line(data)
     # TODO: a duration parser, and a duration struct
     # see https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.6
-    next(data, %{event | duration: value})
+    record_value(data, event, :duration, value)
   end
 
   defp next(<<"EXDATE", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
-
-    case Deserialize.to_date(value, params) do
-      nil -> next(data, event)
-      date -> next(data, %{event | exdates: event.exdates ++ [date]})
-    end
+    date = Deserialize.to_date(value, params)
+    record_value(data, event, :exdates, [date])
   end
 
   defp next(<<"GEO", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
     geo = Deserialize.parse_geo(value)
-    next(data, %{event | geo: geo})
+    record_value(data, event, :geo, geo)
   end
 
   defp next(<<"LAST-MODIFIED", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | modified: Deserialize.to_date(value, params)})
+    record_value(data, event, :modified, Deserialize.to_date(value, params))
   end
 
   defp next(<<"LOCATION", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | location: value})
+    record_value(data, event, :location, value)
   end
 
   defp next(<<"ORGANIZER", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | organizer: value})
+    record_value(data, event, :organizer, value)
   end
 
   defp next(<<"PRIORITY", data::binary>>, event) do
@@ -164,32 +154,32 @@ defmodule ICalendar.Deserialize.Event do
   defp next(<<"RECURRENCE-ID", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | recurrence_id: Deserialize.to_date(value, params)})
+    record_value(data, event, :recurrence_id, Deserialize.to_date(value, params))
   end
 
   defp next(<<"RELATED-TO", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | related_to: event.related_to ++ [value]})
+    record_value(data, event, :related_to, [value])
   end
 
   defp next(<<"RESOURCES", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.comma_separated_list(data)
-    next(data, %{event | resources: value})
+    record_value(data, event, :resources, value)
   end
 
   defp next(<<"RDATE", data::binary>>, event) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, values} = Deserialize.comma_separated_list(data)
+    type = Map.get(params, "VALUE", "DATE")
 
-    case Deserialize.to_date(value, params) do
-      nil ->
-        next(data, event)
+    rdates =
+      values
+      |> Enum.reduce([], fn value, acc -> to_rdate(type, params, value, acc) end)
+      |> Enum.reverse()
 
-      date ->
-        next(data, %{event | rdates: event.rdates ++ [date]})
-    end
+    record_value(data, event, :rdates, rdates)
   end
 
   defp next(<<"RRULE", data::binary>>, event) do
@@ -199,26 +189,26 @@ defmodule ICalendar.Deserialize.Event do
     # TODO: this should really be a Recurrence struct
     rrule = Enum.reduce(values, %{}, &to_rrule/2)
 
-    next(data, %{event | rrule: rrule})
+    record_value(data, event, :rrule, rrule)
   end
 
   defp next(<<"SEQUENCE", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | sequence: value})
+    record_value(data, event, :sequence, value)
   end
 
   defp next(<<"STATUS", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.multi_line(data)
     status = to_status(value)
-    next(data, %{event | status: status})
+    record_value(data, event, :status, status)
   end
 
   defp next(<<"SUMMARY", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.multi_line(data)
-    next(data, %{event | summary: value})
+    record_value(data, event, :summary, value)
   end
 
   defp next(<<"TRANSP", data::binary>>, event) do
@@ -235,13 +225,13 @@ defmodule ICalendar.Deserialize.Event do
   defp next(<<"UID", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | uid: value})
+    record_value(data, event, :uid, value)
   end
 
   defp next(<<"URL", data::binary>>, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    next(data, %{event | url: value})
+    record_value(data, event, :url, value)
   end
 
   defp next(<<"END:VEVENT", data::binary>>, event) do
@@ -253,6 +243,17 @@ defmodule ICalendar.Deserialize.Event do
     |> Deserialize.skip_line()
     |> next(event)
   end
+
+  # a helper that skips empty values, concats lists, then moves to the next
+  defp record_value(data, event, _key, nil), do: next(data, event)
+  defp record_value(data, event, _key, []), do: next(data, event)
+  defp record_value(data, event, _key, [nil]), do: next(data, event)
+
+  defp record_value(data, event, key, value) when is_list(value) do
+    next(data, Map.put(event, key, Map.get(event, key, []) ++ value))
+  end
+
+  defp record_value(data, event, key, value), do: next(data, Map.put(event, key, value))
 
   defp to_status("TENTATIVE"), do: :tentative
   defp to_status("CONFIRMED"), do: :confirmed
