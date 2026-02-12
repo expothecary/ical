@@ -42,6 +42,15 @@ defmodule ICalendarTest do
            """
   end
 
+  test "ICalendar metadata is correctly parsed" do
+    calendar = Helper.test_data("empty_calendar") |> ICalendar.from_ics()
+
+    assert calendar.scale == "GREGORIAN"
+    assert calendar.version == "2.0"
+    assert calendar.product_id == "-//Elixir ICalendar//EN"
+    assert calendar.method == "REQUEST"
+  end
+
   test "ICalendar.to_ics/1 of a calendar with an event, as in README" do
     events = [
       %ICalendar.Event{

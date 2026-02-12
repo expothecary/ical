@@ -28,22 +28,22 @@ defmodule ICalendar.Deserialize.Calendar do
     next(data, calendar)
   end
 
-  def next(<<"PRODID\n", data::binary>>, calendar) do
+  def next(<<"PRODID:", data::binary>>, calendar) do
     {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | product_id: value})
   end
 
-  def next(<<"METHOD\n", data::binary>>, calendar) do
+  def next(<<"METHOD:", data::binary>>, calendar) do
     {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | method: value})
   end
 
-  def next(<<"CALSCALE\n", data::binary>>, calendar) do
+  def next(<<"CALSCALE:", data::binary>>, calendar) do
     {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | scale: value})
   end
 
-  def next(<<"VERSION\n", data::binary>>, calendar) do
+  def next(<<"VERSION:", data::binary>>, calendar) do
     {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | version: value})
   end
