@@ -5,6 +5,98 @@ defmodule ICalendar.DeserializeTest do
   alias ICalendar.Test.Helper
   alias ICalendar.Test.Fixtures
 
+  describe "ICalendar.Deserialize" do
+    test "Comma separated list parsing" do
+      assert {"", []} == ICalendar.Deserialize.comma_separated_list("")
+      assert {"", []} == ICalendar.Deserialize.comma_separated_list("\n")
+      assert {"", []} == ICalendar.Deserialize.comma_separated_list("\r\n")
+
+      assert {"", ["a", "b"]} == ICalendar.Deserialize.comma_separated_list(~S"a,b")
+      assert {"", ["a", "b"]} == ICalendar.Deserialize.comma_separated_list(~S"a,,b")
+      assert {"", ["a\n", "b"]} == ICalendar.Deserialize.comma_separated_list(~S"\a\n,b")
+    end
+
+    test "Multi-line parsing" do
+      assert {"", ""} == ICalendar.Deserialize.multi_line("")
+      assert {"", ""} == ICalendar.Deserialize.multi_line("\n")
+      assert {"", ""} == ICalendar.Deserialize.multi_line("\r\n")
+      assert {"", "a b"} == ICalendar.Deserialize.multi_line("a\n b")
+      assert {"", "a b"} == ICalendar.Deserialize.multi_line("a\r\n   b")
+      assert {"", "a b c"} == ICalendar.Deserialize.multi_line("a\r\n\tb\n\tc")
+      assert {"MORE", "a b c"} == ICalendar.Deserialize.multi_line("a\r\n\tb\n\tc\nMORE")
+    end
+
+    test "Skipping params" do
+      assert "" == ICalendar.Deserialize.skip_params("")
+      assert "\n" == ICalendar.Deserialize.skip_params("\n")
+      assert "\r\n" == ICalendar.Deserialize.skip_params("\r\n")
+      assert "VALUE" == ICalendar.Deserialize.skip_params(":VALUE")
+      assert "VALUE" == ICalendar.Deserialize.skip_params(";PARAM=VAR:VALUE")
+      assert "VALUE" == ICalendar.Deserialize.skip_params(";PARAM=VAR\\::VALUE")
+      assert "VALUE" == ICalendar.Deserialize.skip_params(";PARAM=VAR;OTHER;OTHER=FOO:VALUE")
+      assert "VALUE" == ICalendar.Deserialize.skip_params(";PARAM=\"VAR:\":VALUE")
+      assert "VALUE" == ICalendar.Deserialize.skip_params(";PARAM=\"VAR:\",\"VAR\":VALUE")
+      assert "" == ICalendar.Deserialize.skip_params(";PARAM=\"VAR:\"")
+      assert "" == ICalendar.Deserialize.skip_params(";PARAM=\"VAR:\",")
+      assert "" == ICalendar.Deserialize.skip_params(";PARAM=\"VAR:\",\"")
+      assert "" == ICalendar.Deserialize.skip_params(";PARAM=\"VAR:\",\"\\F\",\"\"")
+    end
+
+    test "Parsing params" do
+      assert {"", %{}} == ICalendar.Deserialize.params("")
+      assert {"", %{}} == ICalendar.Deserialize.params(";")
+      assert {"\n", %{}} == ICalendar.Deserialize.params("\n")
+      assert {"\r\n", %{}} == ICalendar.Deserialize.params("\r\n")
+      assert {"VALUE", %{}} == ICalendar.Deserialize.params(":VALUE")
+      assert {"VALUE", %{"P1" => "1"}} == ICalendar.Deserialize.params(";P1=1:VALUE")
+
+      assert {"VALUE", %{"PARAM" => "VAR:"}} ==
+               ICalendar.Deserialize.params(";PARAM=VAR\\::VALUE")
+
+      assert {"", %{"PARAM" => "VAR"}} ==
+               ICalendar.Deserialize.params(";PARAM=VAR")
+
+      assert {"", %{"PARAM" => "VAR"}} ==
+               ICalendar.Deserialize.params(";PARAM=VAR\r\n")
+
+      assert {"", %{"PARAM" => "VAR"}} ==
+               ICalendar.Deserialize.params(";PARAM=VAR\n")
+
+      assert {"VALUE", %{"PARAM" => "VAR\nfoo"}} ==
+               ICalendar.Deserialize.params(";PARAM=VAR\\nfoo:VALUE")
+
+      assert {"VALUE", %{"PARAM" => "VAR\nfoo"}} ==
+               ICalendar.Deserialize.params(";PARAM=\"VAR\\nfoo\":VALUE")
+
+      assert {"VALUE", %{"P1" => "1", "P2" => "FOO", "OTHER" => ""}} ==
+               ICalendar.Deserialize.params(";P1=1;OTHER;P2=FOO:VALUE")
+
+      assert {"VALUE", %{"P1" => ["1:", ":2", ".."]}} ==
+               ICalendar.Deserialize.params(";P1=\"1:\",\":2\",\"..\":VALUE")
+
+      assert {"", %{"P1" => "VAR:\""}} ==
+               ICalendar.Deserialize.params(";P1=\"VAR:\"")
+
+      assert {"", %{"P1" => ""}} == ICalendar.Deserialize.params(";P1:")
+      assert {"VALUE", %{"P1" => ""}} == ICalendar.Deserialize.params(";P1:VALUE")
+      assert {"", %{"P1" => "VAR:\","}} == ICalendar.Deserialize.params(";P1=\"VAR:\",")
+      assert {"", %{"P1" => "VAR:\","}} == ICalendar.Deserialize.params(";P\\1=\"VAR:\",")
+      assert {"", %{"P1" => ["VAR:", ""]}} == ICalendar.Deserialize.params(";P1=\"VAR:\",\"")
+
+      assert {"", %{"P1" => ["VAR:", "F", "\""]}} ==
+               ICalendar.Deserialize.params(";P1=\"VAR:\",\"\\F\",\"\"")
+    end
+
+    test "Skip a line" do
+      assert "" == ICalendar.Deserialize.skip_line("")
+      assert "" == ICalendar.Deserialize.skip_line("\n")
+      assert "" == ICalendar.Deserialize.skip_line("\r\n")
+      assert "" == ICalendar.Deserialize.skip_line("foo\r\n")
+      assert "bar" == ICalendar.Deserialize.skip_line("foo\r\nbar")
+      assert "bar" == ICalendar.Deserialize.skip_line("foo\\r\nbar")
+    end
+  end
+
   describe "ICalendar.from_ics/1" do
     test "Single Event" do
       ics = Helper.test_data("one_event")
@@ -72,8 +164,15 @@ defmodule ICalendar.DeserializeTest do
     test "with Timezone" do
       ics = Helper.test_data("timezone_event")
       %ICalendar{events: [event]} = ICalendar.from_ics(ics)
+
+      # standard timezone
       assert event.dtstart.time_zone == "America/Chicago"
+
+      # olson
       assert event.dtend.time_zone == "America/Chicago"
+
+      # unrecognized tz
+      assert event.dtstamp.time_zone == "Etc/UTC"
     end
 
     test "with CR+LF line endings" do
