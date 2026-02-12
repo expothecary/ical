@@ -69,6 +69,7 @@ defmodule ICalendar.Deserialize do
     end
   end
 
+  def rest_of_line(<<?\n, data::binary>>), do: {data, nil}
   def rest_of_line(data), do: rest_of_line(data, <<>>)
   defp rest_of_line(<<>> = data, acc), do: {data, acc}
 
