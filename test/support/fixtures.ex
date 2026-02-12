@@ -1,4 +1,20 @@
 defmodule ICalendar.Test.Fixtures do
+  def one_event do
+    %ICalendar.Event{
+      dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
+      dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
+      dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+      summary: "Going fishing",
+      description: "Escape from the world. Stare at some water.",
+      location: "123 Fun Street, Toronto ON, Canada",
+      status: :tentative,
+      categories: ["Fishing", "Nature"],
+      comments: ["Don't forget to take something to eat !"],
+      class: "PRIVATE",
+      geo: {43.6978819, -79.3810277}
+    }
+  end
+
   def attendees do
     %ICalendar{
       product_id: "-//Elixir ICalendar//EN",

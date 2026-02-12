@@ -3,25 +3,21 @@ defmodule ICalendar.DeserializeTest do
 
   alias ICalendar.Event
   alias ICalendar.Test.Helper
+  alias ICalendar.Test.Fixtures
 
   describe "ICalendar.from_ics/1" do
     test "Single Event" do
       ics = Helper.test_data("one_event")
       %ICalendar{events: [event]} = ICalendar.from_ics(ics)
 
-      assert event == %Event{
-               dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
-               dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
-               dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
-               summary: "Going fishing",
-               description: "Escape from the world. Stare at some water.",
-               location: "123 Fun Street, Toronto ON, Canada",
-               status: :tentative,
-               categories: ["Fishing", "Nature"],
-               comments: ["Don't forget to take something to eat !"],
-               class: "PRIVATE",
-               geo: {43.6978819, -79.3810277}
-             }
+      assert event == Fixtures.one_event()
+    end
+
+    test "Single Event from a file" do
+      ics = Helper.test_data_path("one_event")
+      %ICalendar{events: [event]} = ICalendar.from_file(ics)
+
+      assert event == Fixtures.one_event()
     end
 
     test "Single event with wrapped description and summary" do
