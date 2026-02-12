@@ -41,6 +41,7 @@ defmodule ICalendar.Mixfile do
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.github": :test,
+        "coveralls.html": :test,
         "test.watch": :test
       ]
     ]
