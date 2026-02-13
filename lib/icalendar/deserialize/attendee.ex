@@ -1,4 +1,6 @@
 defmodule ICalendar.Deserialize.Attendee do
+  @moduledoc false
+
   alias ICalendar.Deserialize
 
   def from_ics(data) do

@@ -1,4 +1,6 @@
 defmodule ICalendar.Serialize.Attendee do
+  @moduledoc false
+
   alias ICalendar.Serialize
 
   def to_ics(%ICalendar.Attendee{} = attendee) do

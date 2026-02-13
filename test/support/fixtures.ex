@@ -1,4 +1,6 @@
 defmodule ICalendar.Test.Fixtures do
+  @moduledoc false
+
   def one_event(which \\ :deserialize)
 
   def one_event(:serialize) do

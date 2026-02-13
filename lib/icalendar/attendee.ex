@@ -1,9 +1,9 @@
 defmodule ICalendar.Attendee do
-  #   language, calendar user
-  #       type, group or list membership, participation role, participation
-  #       status, RSVP expectation, delegatee, delegator, sent by, common
-  #       name, or directory entry
+  @moduledoc """
+  An ICalendar attendee. While the name is required, other fields are optional.
 
+  For details on the meaning of the fields, see https://datatracker.ietf.org/doc/html/rfc5545#section-3.8.4.1
+  """
   @enforce_keys [:name]
   defstruct [
     :name,
