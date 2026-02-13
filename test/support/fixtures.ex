@@ -106,7 +106,8 @@ defmodule ICalendar.Test.Fixtures do
             ~U[1997-01-01 00:00:00Z],
             ~U[1997-01-20 00:00:00Z],
             ~U[1997-02-17 00:00:00Z],
-            ~U[1997-04-21 00:00:00Z]
+            ~U[1997-04-21 00:00:00Z],
+            DateTime.from_naive!(~N[2018-05-24 13:26:08], "Europe/Zurich")
           ]
         },
         %ICalendar.Event{

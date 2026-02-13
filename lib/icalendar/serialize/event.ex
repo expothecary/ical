@@ -4,7 +4,10 @@ defmodule ICalendar.Serialize.Event do
   alias ICalendar.Serialize
 
   def to_ics(event) do
-    contents = to_kvs(event)
+    contents =
+      event
+      |> Map.from_struct()
+      |> Enum.reduce([], &to_ics/2)
 
     [
       "BEGIN:VEVENT\n",
@@ -13,88 +16,115 @@ defmodule ICalendar.Serialize.Event do
     ]
   end
 
-  defp to_kvs(event) do
-    event
-    |> Map.from_struct()
-    |> Enum.reduce([], &to_kv/2)
-  end
+  defp to_ics({_key, ""}, acc), do: acc
+  defp to_ics({key, nil}, acc) when key != :dtstamp, do: acc
+  defp to_ics({_key, []}, acc), do: acc
 
-  defp to_kv({_key, ""}, acc), do: acc
-  defp to_kv({key, nil}, acc) when key != :dtstamp, do: acc
-  defp to_kv({_key, []}, acc), do: acc
-
-  defp to_kv({:attachments, value}, acc) do
+  defp to_ics({:attachments, value}, acc) do
     [Enum.map(value, &to_attachment_kv/1) | acc]
   end
 
-  defp to_kv({:attendees, attendees}, acc) do
+  defp to_ics({:attendees, attendees}, acc) do
     entries = Enum.map(attendees, &ICalendar.Serialize.Attendee.to_ics/1)
     [entries | acc]
   end
 
-  defp to_kv({:categories, value}, acc) do
+  defp to_ics({:categories, value}, acc) do
     [Serialize.to_comma_list_kv("CATEGORIES", value) | acc]
   end
 
-  defp to_kv({:comments, value}, acc) do
+  defp to_ics({:comments, value}, acc) do
     [Enum.map(value, &to_text_kv("COMMENT", &1)) | acc]
   end
 
-  defp to_kv({:contacts, value}, acc) do
+  defp to_ics({:contacts, value}, acc) do
     [Enum.map(value, &to_text_kv("CONTACT", &1)) | acc]
   end
 
-  defp to_kv({:created, value}, acc) do
+  defp to_ics({:created, value}, acc) do
     [to_date_kv("CREATED", value) | acc]
   end
 
-  defp to_kv({:dtstamp, value}, acc) do
+  defp to_ics({:dtstamp, value}, acc) do
     stamp = if value == nil, do: DateTime.utc_now(), else: value
 
     [to_date_kv("DTSTAMP", stamp) | acc]
   end
 
-  defp to_kv({:dtend, value}, acc) do
+  defp to_ics({:dtend, value}, acc) do
     [to_date_kv("DTEND", value) | acc]
   end
 
-  defp to_kv({:dtstart, value}, acc) do
+  defp to_ics({:dtstart, value}, acc) do
     [to_date_kv("DTSTART", value) | acc]
   end
 
-  defp to_kv({:exdates, value}, acc) when is_list(value) do
+  defp to_ics({:exdates, value}, acc) when is_list(value) do
     [Enum.map(value, &to_date_kv("EXDATE", &1)) | acc]
   end
 
-  defp to_kv({:geo, {lat, lon}}, acc) do
+  defp to_ics({:geo, {lat, lon}}, acc) do
     [["GEO:", to_string(lat), ?;, to_string(lon), ?\n] | acc]
   end
 
-  defp to_kv({:resources, value}, acc) do
+  defp to_ics({:resources, value}, acc) do
     [Serialize.to_comma_list_kv("RESOURCES", value) | acc]
   end
 
-  defp to_kv({:rdates, values}, acc) when is_list(values) do
-    # TODO: put this on the same line if they are identical types? e.g. all dates
-    # with the same tz together, etc.
-    [Enum.map(values, &to_date_kv("RDATE", &1)) | acc]
+  defp to_ics({:rdates, dates}, acc) when is_list(dates) do
+    # reduce the rdates by timezone, so the minimal set of entries gets written out
+    # this also separateds out periods, dates, and datetimes as the VALUE= needs to be
+    # different for each
+    rdates_by_tz =
+      Enum.reduce(
+        dates,
+        %{},
+        fn
+          {from, to}, acc ->
+            to =
+              case to do
+                %DateTime{} -> Serialize.to_ics(to)
+                to -> to
+              end
+
+            serialized = [[Serialize.to_ics(from), ?/, to]]
+
+            Map.update(acc, {:periods, from.time_zone}, serialized, fn periods ->
+              periods ++ serialized
+            end)
+
+          %Date{} = date, acc ->
+            serialized = [Serialize.to_ics(date)]
+
+            Map.update(acc, :dates, serialized, fn dates -> dates ++ serialized end)
+
+          %DateTime{} = date, acc ->
+            serialized = [Serialize.to_ics(date)]
+
+            Map.update(acc, date.time_zone, serialized, fn dates ->
+              dates ++ serialized
+            end)
+        end
+      )
+
+    Enum.reduce(rdates_by_tz, acc, &to_rdate_ics/2)
   end
 
-  defp to_kv({:related_to, value}, acc) do
+  defp to_ics({:related_to, value}, acc) do
     [Enum.map(value, &to_text_kv("RELATED-TO", &1)) | acc]
   end
 
-  defp to_kv({:transparency, value}, acc) do
+  defp to_ics({:transparency, value}, acc) do
     value = if value == :transparent, do: "TRANSPARENT", else: "OPAQUE"
 
     [to_text_kv("TRANSP", value) | acc]
   end
 
-  defp to_kv({:recurrence_id, value}, acc) do
+  defp to_ics({:recurrence_id, value}, acc) do
     [to_date_kv("RECURRENCE-ID", value) | acc]
   end
 
-  defp to_kv({:rrule, rrules}, acc) when is_map(rrules) do
+  defp to_ics({:rrule, rrules}, acc) when is_map(rrules) do
     # FREQ rule part MUST be the first rule part specified in a RECUR value.
     frequency = Map.get(rrules, :freq, "DAILY")
 
@@ -106,7 +136,7 @@ defmodule ICalendar.Serialize.Event do
     ["RRULE:FREQ=", frequency, other_rrules, ?\n | acc]
   end
 
-  defp to_kv({:status, value}, acc) do
+  defp to_ics({:status, value}, acc) do
     case value do
       :tentative -> ["STATUS:TENTATIVE\n" | acc]
       :confirmed -> ["STATUS:CONFIRMED\n" | acc]
@@ -115,18 +145,18 @@ defmodule ICalendar.Serialize.Event do
     end
   end
 
-  defp to_kv({key, value}, acc) when is_number(value) do
+  defp to_ics({key, value}, acc) when is_number(value) do
     name = Serialize.atom_to_value(key)
     [[name, ?:, to_string(value), ?\n] | acc]
   end
 
-  defp to_kv({key, value}, acc) when is_atom(value) do
+  defp to_ics({key, value}, acc) when is_atom(value) do
     name = Serialize.atom_to_value(key)
     value = Serialize.atom_to_value(value)
     [[name, ?:, to_string(value), ?\n] | acc]
   end
 
-  defp to_kv({key, value}, acc) do
+  defp to_ics({key, value}, acc) do
     name = Serialize.atom_to_value(key)
     [to_text_kv(name, value) | acc]
   end
@@ -140,16 +170,27 @@ defmodule ICalendar.Serialize.Event do
   end
 
   def to_date_kv(key, %DateTime{time_zone: "Etc/UTC"} = date) do
-    [key, ":", Serialize.to_ics(date), "Z\n"]
+    [key, ?:, Serialize.to_ics(date), ?\n]
   end
 
   def to_date_kv(key, %DateTime{} = date) do
     [key, ";TZID=", date.time_zone, ?:, Serialize.to_ics(date), ?\n]
   end
 
-  def to_date_kv(key, {from, to}) do
-    [key, ";VALUE=PERIOD:", Serialize.to_ics(from), ?/, Serialize.to_ics(to), ?\n]
-  end
+  defp to_rdate_ics({:dates, periods}, acc),
+    do: [["RDATE;VALUE=DATE:", Enum.intersperse(periods, ?,), ?\n] | acc]
+
+  defp to_rdate_ics({{:periods, "Etc/UTC"}, periods}, acc),
+    do: [["RDATE;VALUE=PERIOD:", Enum.intersperse(periods, ?,), ?\n] | acc]
+
+  defp to_rdate_ics({{:periods, tz}, periods}, acc),
+    do: [["RDATE;VALUE=PERIOD;TZID=", tz, ?:, Enum.intersperse(periods, ?,), ?\n] | acc]
+
+  defp to_rdate_ics({"Etc/UTC", dates}, acc),
+    do: [["RDATE:", Enum.intersperse(dates, ?,), ?\n] | acc]
+
+  defp to_rdate_ics({tz, dates}, acc),
+    do: [["RDATE;TZID=", tz, ?:, Enum.intersperse(dates, ?,), ?\n] | acc]
 
   defp to_attachment_kv(%ICalendar.Attachment{} = attachment) do
     params =

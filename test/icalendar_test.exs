@@ -190,7 +190,7 @@ defmodule ICalendarTest do
         "BYDAY=TH,WE",
         "BYSETPOS=-1",
         "INTERVAL=-2",
-        "UNTIL=20201204T045959"
+        "UNTIL=20201204T045959Z"
       ])
 
     assert rrule_params == expected_params
@@ -268,7 +268,7 @@ defmodule ICalendarTest do
            BEGIN:VEVENT
            DESCRIPTION:Let's go see Star Wars\\, and have fun.
            DTEND:20151224T084500Z
-           DTSTAMP:#{ICalendar.Serialize.to_ics(DateTime.utc_now())}Z
+           DTSTAMP:#{ICalendar.Serialize.to_ics(DateTime.utc_now())}
            DTSTART:20151224T083000Z
            SUMMARY:Film with Amy and Adam
            END:VEVENT

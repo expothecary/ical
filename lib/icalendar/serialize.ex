@@ -13,12 +13,15 @@ defmodule ICalendar.Serialize do
   def to_ics(x) when is_float(x), do: Float.to_string(x)
 
   # Convert DateTimes to UTC then into ics-format strings
-  def to_ics(%DateTime{} = timestamp) do
-    format_string = "{YYYY}{0M}{0D}T{h24}{m}{s}"
+  def to_ics(%DateTime{} = date_time) do
+    format_string =
+      if date_time.time_zone == "Etc/UTC" do
+        "{YYYY}{0M}{0D}T{h24}{m}{s}Z"
+      else
+        "{YYYY}{0M}{0D}T{h24}{m}{s}"
+      end
 
-    {:ok, result} =
-      timestamp
-      |> Timex.format(format_string)
+    {:ok, result} = Timex.format(date_time, format_string)
 
     result
   end
