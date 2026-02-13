@@ -104,9 +104,8 @@ defmodule ICalendar.Deserialize.Event do
   defp next(<<"DURATION", data::binary>>, event) do
     {data, _params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    # TODO: a duration parser, and a duration struct
-    # see https://datatracker.ietf.org/doc/html/rfc5545#section-3.3.6
-    record_value(data, event, :duration, value)
+    {_, duration} = Deserialize.Duration.from_ics(value)
+    record_value(data, event, :duration, duration)
   end
 
   defp next(<<"EXDATE", data::binary>>, event) do

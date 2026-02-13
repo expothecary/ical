@@ -215,6 +215,26 @@ defmodule ICalendarTest do
     assert ics =~ "EXDATE;TZID=America/Toronto:20200917T143000"
   end
 
+  test "ICalender.to_ics/1 with duration" do
+    events = [
+      %ICalendar.Event{
+        duration: %ICalendar.Duration{
+          days: 15,
+          positive: true,
+          time: {5, 0, 20},
+          weeks: 0
+        }
+      }
+    ]
+
+    ics =
+      %ICalendar{events: events}
+      |> ICalendar.to_ics()
+      |> to_string()
+
+    assert ics =~ "DURATION:P15DT5H20S"
+  end
+
   test "ICalender.to_ics/1 with RECURRENCE-ID in UTC" do
     events = [
       %ICalendar.Event{

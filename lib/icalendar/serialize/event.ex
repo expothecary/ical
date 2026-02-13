@@ -59,6 +59,10 @@ defmodule ICalendar.Serialize.Event do
     [to_date_kv("DTSTART", value) | acc]
   end
 
+  defp to_ics({:duration, value}, acc) do
+    [to_text_kv("DURATION", Serialize.to_ics(value)) | acc]
+  end
+
   defp to_ics({:exdates, value}, acc) when is_list(value) do
     [Enum.map(value, &to_date_kv("EXDATE", &1)) | acc]
   end

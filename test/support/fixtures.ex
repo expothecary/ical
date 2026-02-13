@@ -58,7 +58,12 @@ defmodule ICalendar.Test.Fixtures do
       contacts: ["Jim Dolittle, ABC Industries, +1-919-555-1234"],
       created: ~U[1996-03-29 13:30:00Z],
       class: "PRIVATE",
-      duration: "P15DT5H0M20S",
+      duration: %ICalendar.Duration{
+        days: 15,
+        positive: true,
+        time: {5, 0, 20},
+        weeks: 0
+      },
       geo: {43.6978819, -79.3810277},
       modified: ~U[1996-08-17 13:30:00Z],
       organizer: "mailto:jsmith@example.com",

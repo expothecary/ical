@@ -50,7 +50,7 @@ defmodule ICalendar.Event do
           rrule: map() | nil,
           class: String.t() | nil,
           description: String.t() | nil,
-          duration: String.t() | nil,
+          duration: ICalendar.Duration.t() | nil,
           location: String.t() | nil,
           organizer: String.t() | nil,
           prodid: String.t() | nil,
