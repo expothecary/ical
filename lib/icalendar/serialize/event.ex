@@ -81,13 +81,7 @@ defmodule ICalendar.Serialize.Event do
         %{},
         fn
           {from, to}, acc ->
-            to =
-              case to do
-                %DateTime{} -> Serialize.to_ics(to)
-                to -> to
-              end
-
-            serialized = [[Serialize.to_ics(from), ?/, to]]
+            serialized = [[Serialize.to_ics(from), ?/, Serialize.to_ics(to)]]
 
             Map.update(acc, {:periods, from.time_zone}, serialized, fn periods ->
               periods ++ serialized

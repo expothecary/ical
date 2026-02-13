@@ -124,7 +124,10 @@ defmodule ICalendar.Test.Fixtures do
           uid: "3",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
-            {~U[1997-01-01 18:00:00Z], ~U[1997-01-02 07:00:00Z]}
+            {~U[1997-01-01 18:00:00Z], ~U[1997-01-02 07:00:00Z]},
+            {~U[1998-01-01 18:00:00Z], ~U[1998-01-02 07:00:00Z]},
+            {~U[1999-01-01 18:00:00Z],
+             %ICalendar.Duration{positive: true, time: {0, 0, 0}, days: 0, weeks: 2}}
           ]
         },
         %ICalendar.Event{

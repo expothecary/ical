@@ -34,6 +34,9 @@ defmodule ICalendar.Event do
             related_to: [],
             resources: []
 
+  @type period ::
+          {from :: DateTime.t(), to :: DateTime.t()}
+          | {from :: DateTime.t(), to :: ICalendar.Duration.t()}
   @type t :: %__MODULE__{
           uid: String.t() | nil,
           created: DateTime.t() | nil,
@@ -43,7 +46,7 @@ defmodule ICalendar.Event do
           modified: Date.t() | nil,
           recurrence_id: Date.t() | nil,
           exdates: [DateTime.t()],
-          rdates: [DateTime.t()],
+          rdates: [DateTime.t() | period],
           rrule: map() | nil,
           class: String.t() | nil,
           description: String.t() | nil,

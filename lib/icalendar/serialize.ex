@@ -51,6 +51,10 @@ defmodule ICalendar.Serialize do
     |> to_ics()
   end
 
+  def to_ics(%ICalendar.Duration{} = duration) do
+    ICalendar.Serialize.Duration.to_ics(duration)
+  end
+
   def to_ics(x), do: x
 
   def escaped_quotes(x) do
