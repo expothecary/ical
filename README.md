@@ -10,6 +10,9 @@ A library for reading and writing iCalendar data.
 * Recurrence calculation
 * Support for common non-standard entries such as `X-WR-TIMEZONE`
 
+Curerently only events are supported. Alarms, todo's, journals, and free/busy are planned for future
+releases.
+
 ### Usage
 
 Full documentation can be found on [Hexdocs](https://hexdocs.pm/ical).
