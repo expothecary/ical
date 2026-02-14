@@ -1,15 +1,6 @@
-# ICalendar
+# ICal
 
-A library for reading and writing ICalendar data.
-
-## Goals
-
-* support the ICalendar and its related RFCs for standards-compliance
-* handle real-world data (such as produced by other clients) gracefully, and
-  not lose data while parsing, even if not used by this library
-* be performant in parsing and serializing
-* be well-documented
-* be well-tested (beyond just code coverage)
+A library for reading and writing iCalendar data.
 
 ## Features
 
@@ -19,6 +10,15 @@ Full documentation can be found on [Hexdocs](https://hexdocs.pm/ical).
 * Serializing iCalendar data to iolists suitable for writing out to files, over the network, etc.
 * Integration with Plug / Phoenix via `ICal.encode_to_iodate`
 * Support for common non-standard entries such as `X-WR-TIMEZONE`
+
+## Goals
+
+* support the iCalendar (and its related) RFCs for standards-compliance
+* handle real-world data (such as produced by other clients) gracefully, and
+  not lose data while parsing, even if not used by this library
+* be performant in parsing and serializing
+* be well-documented
+* be well-tested (beyond just code coverage)
 
 ## Installation
 
