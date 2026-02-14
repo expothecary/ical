@@ -1,10 +1,7 @@
 defmodule ICal.Deserialize.DateParser do
-  @moduledoc """
-  Responsible for parsing datestrings in predefined formats with `parse/1` and
-  `parse/2`.
-
-  Credit to @fazibear for this module.
-  """
+  @moduledoc false
+  # Parses datestrings in predefined formats with `parse/1` and `parse/2`.
+  # Credit to @fazibear for this module.
 
   @doc """
   Responsible for parsing datestrings in predefined formats into %DateTime{}
