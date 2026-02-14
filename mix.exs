@@ -65,7 +65,12 @@ defmodule ICal.Mixfile do
       main: "readme",
       source_url: @source_url,
       source_ref: "v#{@version}",
-      formatters: ["html"]
+      formatters: ["html"],
+      groups_for_modules: [
+        "Calendar Entries": [ICal.Event],
+        Properties: [ICal.Attachment, ICal.Attendee, ICal.Contact, ICal.Duration],
+        Utilities: [ICal.Recurrence]
+      ]
     ]
   end
 end

@@ -1,6 +1,6 @@
 defmodule ICal.Duration do
   @moduledoc """
-  A struct representing an ICal duration, representing the numbers days, weeks, and/or a measure time over which something occurs or lasts.
+  An iCalendar duration, representing the numbers days, weeks, and/or a measure time over which something occurs or lasts.
 
   See: https://datatracker.ietf.org/doc/html/rfc5545#section-3.8.2.5
   """

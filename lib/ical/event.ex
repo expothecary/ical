@@ -1,6 +1,6 @@
 defmodule ICal.Event do
   @moduledoc """
-  Calendars have events.
+  An iCalendar Event
   """
 
   defstruct uid: nil,

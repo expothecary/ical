@@ -1,4 +1,6 @@
 defmodule ICal.Deserialize.Contact do
+  @moduledoc false
+
   alias ICal.Contact
   alias ICal.Deserialize
 
