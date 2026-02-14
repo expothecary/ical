@@ -49,7 +49,7 @@ defmodule ICal.Mixfile do
 
   defp package do
     [
-      description: "A standards-compliant iCalendar library",
+      description: "Standards-compliant iCalendar with typed structs",
       maintainers: ["Max Salminen", "Aaron Seigo"],
       licenses: ["MIT"],
       links: %{
