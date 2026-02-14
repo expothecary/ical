@@ -294,7 +294,7 @@ defmodule ICal.Deserialize.Event do
   end
 
   defp rrule_value(key, value) when key == :until do
-    ICal.Deserialize.DateParser.parse(value)
+    Deserialize.to_date_in_timezone(value, "Etc/UTC")
   end
 
   defp rrule_value(key, value)
