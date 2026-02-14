@@ -302,7 +302,7 @@ defmodule ICal.Deserialize.Event do
   end
 
   defp rrule_value(key, value) when key == :until do
-    ICal.Util.DateParser.parse(value)
+    ICal.Deserialize.DateParser.parse(value)
   end
 
   defp rrule_value(key, value)
