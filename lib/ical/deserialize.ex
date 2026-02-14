@@ -90,7 +90,9 @@ defmodule ICal.Deserialize do
 
   def rest_of_line(<<?\r, ?\n, data::binary>>), do: {data, nil}
   def rest_of_line(<<?\n, data::binary>>), do: {data, nil}
+  def rest_of_line(<<>> = data), do: {data, nil}
   def rest_of_line(data), do: rest_of_line(data, <<>>)
+
   defp rest_of_line(<<>> = data, acc), do: {data, acc}
 
   defp rest_of_line(<<"\\n", data::binary>>, acc) do
