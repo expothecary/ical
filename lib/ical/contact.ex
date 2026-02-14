@@ -3,7 +3,9 @@ defmodule ICal.Contact do
   An iCalendar Contact.
   """
 
-  @enforce_keys :value
+  @enforce_keys [:value]
+
+  defstruct [:value, :alternative_representation, :language]
 
   @type t :: %__MODULE__{
           value: String.t(),
