@@ -52,8 +52,12 @@ defmodule ICalendar.Deserialize.Calendar do
   # that allows setting the default timezone for the whole calendar
   def next(<<"X-WR-TIMEZONE:", data::binary>>, calendar) do
     {data, value} = Deserialize.rest_of_line(data)
-    tz = Deserialize.to_timezone(value, nil)
-    next(data, %{calendar | default_timezone: tz})
+    tz = Deserialize.to_timezone(value, calendar.default_timezone)
+
+    custom_entry = %{params: %{}, value: tz}
+    custom_entries = Map.put(calendar.custom_entries, "X-WR-TIMEZONE", custom_entry)
+
+    next(data, %{calendar | default_timezone: tz, custom_entries: custom_entries})
   end
 
   # prevent losing other non-standard headers

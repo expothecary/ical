@@ -315,7 +315,8 @@ defmodule ICalendar.Test.Fixtures do
       custom_entries: %{
         "X-CUSTOM-THREE" => %{params: %{}, value: "BAZ"},
         "X-CUSTOM-TWO" => %{params: %{}, value: "Cat"},
-        "X-CUSTOM" => %{params: %{"FOO" => "bar"}, value: "Door"}
+        "X-CUSTOM" => %{params: %{"FOO" => "bar"}, value: "Door"},
+        "X-WR-TIMEZONE" => %{params: %{}, value: "Europe/Zurich"}
       },
       events: [
         %ICalendar.Event{

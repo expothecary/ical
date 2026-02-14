@@ -61,7 +61,7 @@ defmodule ICalendarTest do
     assert calendar.version == "2.0"
     assert calendar.product_id == "-//Elixir ICalendar//EN"
     assert calendar.method == "REQUEST"
-    assert calendar.default_timezone == nil
+    assert calendar.default_timezone == "Etc/UTC"
     assert calendar.custom_entries == %{}
   end
 
@@ -73,6 +73,16 @@ defmodule ICalendarTest do
   test "ICalendar metadata with custom headers is correctly serialized" do
     calendar = Helper.test_data("custom_calendar_entries") |> ICalendar.from_ics()
     assert Fixtures.calendar(:custom_entries) == calendar
+  end
+
+  test "ICalendar with custom tz alter dates" do
+    dtstamp = Timex.to_datetime({{2015, 12, 24}, {8, 0, 00}})
+
+    %ICalendar{events: [%ICalendar.Event{dtstamp: parsed_date}]} =
+      Helper.test_data("custom_calendar_tz") |> ICalendar.from_ics()
+
+    assert dtstamp != parsed_date
+    assert parsed_date.time_zone == "Europe/Zurich"
   end
 
   test "ICalendar.to_ics/1 of a calendar with an event, as in README" do

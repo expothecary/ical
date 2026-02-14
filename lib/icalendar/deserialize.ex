@@ -266,7 +266,10 @@ defmodule ICalendar.Deserialize do
     end
   end
 
-  def to_timezone(timezone, default \\ "Etc/UTC") do
+  def to_timezone(timezone, default \\ "Etc/UTC")
+  def to_timezone(nil, default), do: default
+
+  def to_timezone(timezone, default) do
     cond do
       String.contains?(timezone, "/") -> timezone
       Timex.Timezone.Utils.to_olson(timezone) != nil -> Timex.Timezone.Utils.to_olson(timezone)
@@ -301,13 +304,24 @@ defmodule ICalendar.Deserialize do
       ...> [Timex.to_erl(date), date.time_zone]
       [{{1998, 1, 19}, {2, 0, 0}}, "America/Chicago"]
   """
-  def to_date(nil, _params), do: nil
+  def to_date(nil, _params, _calendar), do: nil
 
-  def to_date(date_string, %{"TZID" => timezone}) do
+  def to_date(date_string, %{"TZID" => timezone}, %ICalendar{default_timezone: default_timezone}) do
     # Microsoft Outlook calendar .ICS files report times in Greenwich Standard Time (UTC +0)
     # so just convert this to UTC
-    timezone = to_timezone(timezone)
+    timezone = to_timezone(timezone, default_timezone)
+    to_date_with_timezone(date_string, timezone)
+  end
 
+  def to_date(date_string, %{"VALUE" => "DATE"}, %ICalendar{default_timezone: default_timezone}) do
+    to_date_with_timezone(date_string <> "T000000Z", default_timezone)
+  end
+
+  def to_date(date_string, _params, %ICalendar{default_timezone: default_timezone}) do
+    to_date_with_timezone(date_string, default_timezone)
+  end
+
+  defp to_date_with_timezone(date_string, timezone) do
     with_timezone =
       if String.ends_with?(date_string, "Z") do
         date_string <> timezone
@@ -319,17 +333,5 @@ defmodule ICalendar.Deserialize do
       {:ok, date} -> date
       _ -> nil
     end
-  end
-
-  def to_date(date_string, %{"VALUE" => "DATE"}) do
-    to_date(date_string <> "T000000Z")
-  end
-
-  def to_date(date_string, %{}) do
-    to_date(date_string, %{"TZID" => "Etc/UTC"})
-  end
-
-  def to_date(date_string) do
-    to_date(date_string, %{"TZID" => "Etc/UTC"})
   end
 end

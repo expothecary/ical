@@ -10,7 +10,6 @@ defmodule ICalendar.Serialize.Calendar do
     |> version(calendar)
     |> product_id(calendar)
     |> method(calendar)
-    |> default_timezone(calendar)
     |> Serialize.add_custom_entries(calendar.custom_entries)
     |> events(calendar)
     |> end_calendar(calendar)
@@ -34,12 +33,6 @@ defmodule ICalendar.Serialize.Calendar do
 
   defp product_id(acc, %{product_id: nil}), do: acc
   defp product_id(acc, calendar), do: acc ++ ["PRODID:", calendar.product_id, "\n"]
-
-  defp default_timezone(acc, %{default_timezone: nil}), do: acc
-
-  defp default_timezone(acc, calendar) do
-    acc ++ ["X-WR-TIMEZONE:", calendar.default_timezone, "\n"]
-  end
 
   defp events(acc, %{events: []}), do: acc
 

@@ -9,7 +9,7 @@ defmodule ICalendar do
             method: nil,
             version: "2.0",
             events: [],
-            default_timezone: nil,
+            default_timezone: "Etc/UTC",
             custom_entries: %{}
 
   @type custom_value :: %{params: map, value: String.t()}
@@ -20,7 +20,7 @@ defmodule ICalendar do
           version: String.t(),
           scale: String.t(),
           events: [ICalendar.Event.t()],
-          default_timezone: String.t() | nil,
+          default_timezone: String.t(),
           custom_entries: custom_entries
         }
 
