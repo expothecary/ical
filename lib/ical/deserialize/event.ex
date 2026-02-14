@@ -219,13 +219,13 @@ defmodule ICal.Deserialize.Event do
 
   defp next(<<"UID", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.multi_line(data)
     record_value(data, calendar, event, :uid, value)
   end
 
   defp next(<<"URL", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.multi_line(data)
     record_value(data, calendar, event, :url, value)
   end
 
