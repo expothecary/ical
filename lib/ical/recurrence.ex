@@ -81,10 +81,10 @@ defmodule ICal.Recurrence do
       if is_map(event.rrule), do: Map.take(event.rrule, @supported_by_x_rrules), else: %{}
 
     reference_events =
-      if by_x_rrules != %{} do
+      if not Enum.empty?(by_x_rrules) do
         # If there are any by_x modifiers in the rrule, build reference events based on them
         # Remove the invalid reference events later on
-        build_refernce_events_by_x_rules(event, by_x_rrules)
+        build_reference_events_by_x_rules(event, by_x_rrules)
       else
         [event]
       end
@@ -248,7 +248,7 @@ defmodule ICal.Recurrence do
     end
   end
 
-  defp build_refernce_events_by_x_rules(event, by_x_rrules) do
+  defp build_reference_events_by_x_rules(event, by_x_rrules) do
     by_x_rrules
     |> Map.keys()
     |> Enum.map(fn by_x ->
