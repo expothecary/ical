@@ -1,4 +1,4 @@
-defmodule ICalendar.Test.Helper do
+defmodule ICal.Test.Helper do
   def test_data_path(name) do
     Path.join([File.cwd!(), "/test/data"], name <> ".ics")
   end
@@ -7,6 +7,16 @@ defmodule ICalendar.Test.Helper do
     name
     |> test_data_path()
     |> File.read!()
+  end
+
+  def product_id() do
+    {:ok, version} = :application.get_key(:ical, :vsn)
+    "-//Elixir ICal//v#{version}//EN"
+  end
+
+  def product_id(custom_vendor) do
+    {:ok, version} = :application.get_key(:ical, :vsn)
+    "-//Elixir ICal//v#{version}//#{custom_vendor}//EN"
   end
 
   def extract_event_props(["BEGIN:VEVENT\n", props, "END:VEVENT\n"]) do

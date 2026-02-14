@@ -1,0 +1,466 @@
+defmodule ICalTest do
+  use ExUnit.Case
+  alias ICal.Test.Helper
+  alias ICal.Test.Fixtures
+
+  @vendor "ICal Test"
+
+  test "ICal.to_ics/1 of empty calendar" do
+    ics = %ICal{} |> ICal.to_ics() |> to_string()
+
+    assert ics == """
+           BEGIN:VCALENDAR
+           CALSCALE:GREGORIAN
+           VERSION:2.0
+           PRODID:#{Helper.product_id()}
+           END:VCALENDAR
+           """
+  end
+
+  test "ICal.to_ics/1 of empty calendar with nil values" do
+    ics =
+      %ICal{scale: nil, version: nil, product_id: nil} |> ICal.to_ics() |> to_string()
+
+    assert ics == """
+           BEGIN:VCALENDAR
+           VERSION:2.0
+           END:VCALENDAR
+           """
+  end
+
+  test "ICal.to_ics/1 of empty calendar with custom vendor" do
+    ics = %ICal{} |> ICal.set_vendor(@vendor) |> ICal.to_ics() |> to_string()
+
+    assert ics == """
+           BEGIN:VCALENDAR
+           CALSCALE:GREGORIAN
+           VERSION:2.0
+           PRODID:#{Helper.product_id(@vendor)}
+           END:VCALENDAR
+           """
+  end
+
+  test "ICal.to_ics/1 of empty calendar with method" do
+    ics = %ICal{method: "REQUEST"} |> ICal.to_ics() |> to_string()
+
+    assert ics == """
+           BEGIN:VCALENDAR
+           CALSCALE:GREGORIAN
+           VERSION:2.0
+           PRODID:#{Helper.product_id()}
+           METHOD:REQUEST
+           END:VCALENDAR
+           """
+  end
+
+  test "ICal metadata is correctly parsed" do
+    calendar = Helper.test_data("empty_calendar") |> ICal.from_ics()
+    assert Fixtures.calendar(:empty) == calendar
+
+    assert calendar.scale == "GREGORIAN"
+    assert calendar.version == "2.0"
+    assert calendar.product_id == "-//Elixir ICal//EN"
+    assert calendar.method == "REQUEST"
+    assert calendar.default_timezone == "Etc/UTC"
+    assert calendar.custom_entries == %{}
+  end
+
+  test "ICal metadata with custom headers is correctly parsed" do
+    calendar = Helper.test_data("custom_calendar_entries") |> ICal.from_ics()
+    assert Fixtures.calendar(:custom_entries) == calendar
+  end
+
+  test "ICal metadata with custom headers is correctly serialized" do
+    calendar = Helper.test_data("custom_calendar_entries") |> ICal.from_ics()
+    assert Fixtures.calendar(:custom_entries) == calendar
+  end
+
+  test "ICal with custom tz alter dates" do
+    dtstamp = Timex.to_datetime({{2015, 12, 24}, {8, 0, 00}})
+
+    %ICal{events: [%ICal.Event{dtstamp: parsed_date}]} =
+      Helper.test_data("custom_calendar_tz") |> ICal.from_ics()
+
+    assert dtstamp != parsed_date
+    assert parsed_date.time_zone == "Europe/Zurich"
+  end
+
+  test "ICal.to_ics/1 of a calendar with an event, as in README" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 23}, {19, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        description: "Let's go see Star Wars."
+      },
+      %ICal.Event{
+        summary: "Morning meeting",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {15, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
+        description: "A big long meeting with lots of details."
+      }
+    ]
+
+    ics = %ICal{events: events} |> ICal.to_ics() |> Helper.extract_event_props()
+
+    assert ics == """
+           BEGIN:VEVENT
+           DESCRIPTION:Let's go see Star Wars.
+           DTEND:20151224T084500Z
+           DTSTAMP:20151223T190000Z
+           DTSTART:20151224T083000Z
+           SUMMARY:Film with Amy and Adam
+           END:VEVENT
+           BEGIN:VEVENT
+           DESCRIPTION:A big long meeting with lots of details.
+           DTEND:20151224T223000Z
+           DTSTAMP:20151224T150000Z
+           DTSTART:20151224T190000Z
+           SUMMARY:Morning meeting
+           END:VEVENT
+           """
+  end
+
+  test "Icalender.to_ics/1 with location and sanitization" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        description: "Let's go see Star Wars, and have fun.",
+        location: "123 Fun Street, Toronto ON, Canada"
+      }
+    ]
+
+    ics =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> Helper.extract_event_props()
+
+    assert ics == """
+           BEGIN:VEVENT
+           DESCRIPTION:Let's go see Star Wars\\, and have fun.
+           DTEND:20151224T084500Z
+           DTSTAMP:20151224T080000Z
+           DTSTART:20151224T083000Z
+           LOCATION:123 Fun Street\\, Toronto ON\\, Canada
+           SUMMARY:Film with Amy and Adam
+           END:VEVENT
+           """
+  end
+
+  test "Icalender.to_ics/1 with url" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        description: "Let's go see Star Wars, and have fun.",
+        location: "123 Fun Street, Toronto ON, Canada",
+        url: "http://example.com/tr3GE5"
+      }
+    ]
+
+    ics = %ICal{events: events} |> ICal.to_ics() |> Helper.extract_event_props()
+
+    assert ics == """
+           BEGIN:VEVENT
+           DESCRIPTION:Let's go see Star Wars\\, and have fun.
+           DTEND:20151224T084500Z
+           DTSTAMP:20151224T080000Z
+           DTSTART:20151224T083000Z
+           LOCATION:123 Fun Street\\, Toronto ON\\, Canada
+           SUMMARY:Film with Amy and Adam
+           URL:http://example.com/tr3GE5
+           END:VEVENT
+           """
+  end
+
+  test "ICalender.to_ics/1 with rrule" do
+    events = [
+      %ICal.Event{
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+        rrule: %{
+          byday: ["TH", "WE"],
+          freq: "WEEKLY",
+          bysetpos: [-1],
+          interval: -2,
+          until: ~U[2020-12-04 04:59:59Z]
+        }
+      }
+    ]
+
+    ics =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> to_string()
+
+    # Extract RRULE line for comparison (parameter order doesn't matter per RFC 5545)
+    [rrule_line] = Regex.run(~r/RRULE:(.+)/, ics, capture: :all_but_first)
+
+    rrule_params =
+      rrule_line
+      |> String.split(";")
+      |> MapSet.new()
+
+    expected_params =
+      MapSet.new([
+        "FREQ=WEEKLY",
+        "BYDAY=TH,WE",
+        "BYSETPOS=-1",
+        "INTERVAL=-2",
+        "UNTIL=20201204T045959Z"
+      ])
+
+    assert rrule_params == expected_params
+  end
+
+  test "ICalender.to_ics/1 with exdates" do
+    events = [
+      %ICal.Event{
+        exdates: [
+          Timex.Timezone.convert(~U[2020-09-16 18:30:00Z], "America/Toronto"),
+          Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
+        ]
+      }
+    ]
+
+    ics =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> to_string()
+
+    assert ics =~ "EXDATE;TZID=America/Toronto:20200916T143000"
+    assert ics =~ "EXDATE;TZID=America/Toronto:20200917T143000"
+  end
+
+  test "ICalender.to_ics/1 with duration" do
+    events = [
+      %ICal.Event{
+        duration: %ICal.Duration{
+          days: 15,
+          positive: true,
+          time: {5, 0, 20},
+          weeks: 0
+        }
+      }
+    ]
+
+    ics =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> to_string()
+
+    assert ics =~ "DURATION:P15DT5H20S"
+  end
+
+  test "ICalender.to_ics/1 with RECURRENCE-ID in UTC" do
+    events = [
+      %ICal.Event{
+        recurrence_id: ~U[2020-09-17 14:30:00Z],
+        summary: "Modified instance"
+      }
+    ]
+
+    ics =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> to_string()
+
+    assert ics =~ "RECURRENCE-ID:20200917T143000Z"
+  end
+
+  test "ICalender.to_ics/1 with RECURRENCE-ID with timezone" do
+    recurrence_id = Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
+
+    events = [
+      %ICal.Event{
+        recurrence_id: recurrence_id,
+        summary: "Modified instance"
+      }
+    ]
+
+    ics =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> to_string()
+
+    assert ics =~ "RECURRENCE-ID;TZID=America/Toronto:20200917T143000"
+  end
+
+  test "Icalender.to_ics/1 with default value for DTSTAMP" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        description: "Let's go see Star Wars, and have fun."
+      }
+    ]
+
+    props =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> Helper.extract_event_props()
+
+    assert props == """
+           BEGIN:VEVENT
+           DESCRIPTION:Let's go see Star Wars\\, and have fun.
+           DTEND:20151224T084500Z
+           DTSTAMP:#{ICal.Serialize.to_ics(DateTime.utc_now())}
+           DTSTART:20151224T083000Z
+           SUMMARY:Film with Amy and Adam
+           END:VEVENT
+           """
+  end
+
+  test "ICalender.to_ics/1 -> ICal.from_ics/1 and back again" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        description: "Let's go see Star Wars, and have fun.",
+        location: "123 Fun Street, Toronto ON, Canada",
+        url: "http://www.example.com"
+      }
+    ]
+
+    %{events: [new_event]} =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> to_string()
+      |> ICal.from_ics()
+
+    assert events |> List.first() == new_event
+  end
+
+  test "ICalender.to_ics/1 -> ICal.from_ics/1 and back again, with newlines" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        dtstamp: Timex.to_datetime({{2017, 12, 24}, {8, 00, 00}}),
+        description: "First line\nThis is a new line\n\nDouble newline",
+        location: "123 Fun Street, Toronto ON, Canada",
+        url: "http://www.example.com"
+      }
+    ]
+
+    %ICal{events: [new_event]} =
+      %ICal{events: events}
+      |> ICal.to_ics()
+      |> to_string()
+      |> ICal.from_ics()
+
+    assert events |> List.first() == new_event
+  end
+
+  test "encode_to_iodata/2" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        description: "Let's go see Star Wars."
+      },
+      %ICal.Event{
+        summary: "Morning meeting",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {18, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
+        description: "A big long meeting with lots of details."
+      }
+    ]
+
+    cal = %ICal{events: events}
+
+    assert {:ok, ical} = ICal.encode_to_iodata(cal, [])
+
+    assert Helper.extract_event_props(ical) == """
+           BEGIN:VEVENT
+           DESCRIPTION:Let's go see Star Wars.
+           DTEND:20151224T084500Z
+           DTSTAMP:20151224T080000Z
+           DTSTART:20151224T083000Z
+           SUMMARY:Film with Amy and Adam
+           END:VEVENT
+           BEGIN:VEVENT
+           DESCRIPTION:A big long meeting with lots of details.
+           DTEND:20151224T223000Z
+           DTSTAMP:20151224T180000Z
+           DTSTART:20151224T190000Z
+           SUMMARY:Morning meeting
+           END:VEVENT
+           """
+  end
+
+  test "encode_to_iodata/1" do
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        description: "Let's go see Star Wars."
+      },
+      %ICal.Event{
+        summary: "Morning meeting",
+        dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
+        dtstamp: Timex.to_datetime({{2015, 12, 24}, {18, 00, 00}}),
+        dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
+        description: "A big long meeting with lots of details."
+      }
+    ]
+
+    cal = %ICal{events: events}
+
+    assert {:ok, ical} = ICal.encode_to_iodata(cal)
+
+    assert Helper.extract_event_props(ical) == """
+           BEGIN:VEVENT
+           DESCRIPTION:Let's go see Star Wars.
+           DTEND:20151224T084500Z
+           DTSTAMP:20151224T080000Z
+           DTSTART:20151224T083000Z
+           SUMMARY:Film with Amy and Adam
+           END:VEVENT
+           BEGIN:VEVENT
+           DESCRIPTION:A big long meeting with lots of details.
+           DTEND:20151224T223000Z
+           DTSTAMP:20151224T180000Z
+           DTSTART:20151224T190000Z
+           SUMMARY:Morning meeting
+           END:VEVENT
+           """
+  end
+
+  test "encode attendees" do
+    calendar = Fixtures.attendees()
+
+    ics =
+      calendar
+      |> ICal.to_ics()
+      |> Helper.extract_event_props()
+
+    expected = """
+    BEGIN:VEVENT
+    ATTENDEE;MEMBER="mailto:projectA@example.com","mailto:projectB@example.com";ROLE=CHAIR;DELEGATED-TO="mailto:jdoe@example.com","mailto:jqpublic@example.com":mailto:janedoe@example.com
+    ATTENDEE;RSVP=TRUE;DELEGATED-FROM="mailto:jsmith@example.com":mailto:jdoe@example.com
+    ATTENDEE;LANGUAGE=de-ch;CUTYPE=GROUP;PARTSTAT=ACCEPTED;SENT-BY="mailto:sray@example.com";CN="John Smith";DIR="ldap://example.com:6666/o=ABC%20Industries,c=US???(cn=Jim%20Dolittle)":mailto:ietf-calsch@example.org
+    DESCRIPTION:An event with attendees
+    DTSTAMP:20151224T080000Z
+    UID:01
+    END:VEVENT
+    """
+
+    assert ics == expected
+  end
+end

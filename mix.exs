@@ -1,13 +1,13 @@
-defmodule ICalendar.Mixfile do
+defmodule ICal.Mixfile do
   use Mix.Project
 
-  @source_url "https://github.com/expothecary/icalendar"
-  @version "2.0.0-alpha1"
+  @source_url "https://github.com/expothecary/ical"
+  @version "1.0.0"
 
   def project do
     [
-      app: :icalendar,
-      name: "ICalendar",
+      app: :ical,
+      name: "iCal",
       version: @version,
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -49,11 +49,11 @@ defmodule ICalendar.Mixfile do
 
   defp package do
     [
-      description: "ICalendar data consumer and generator",
+      description: "iCalendar data consumer and generator",
       maintainers: ["Max Salminen", "Aaron Seigo"],
       licenses: ["MIT"],
       links: %{
-        "Changelog" => "https://hexdocs.pm/icalendar/changelog.html",
+        "Changelog" => "https://hexdocs.pm/ical/changelog.html",
         "GitHub" => @source_url
       }
     ]

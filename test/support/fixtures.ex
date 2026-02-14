@@ -1,47 +1,47 @@
-defmodule ICalendar.Test.Fixtures do
+defmodule ICal.Test.Fixtures do
   @moduledoc false
 
   def one_event(which \\ :deserialize)
 
   def one_event(:serialize) do
-    %ICalendar.Event{
+    %ICal.Event{
       summary: "Going fishing",
       description: "Escape from the world. Stare at some water.",
       comments: ["Don't forget to take something to eat !"],
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
       created: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
       contacts: [
-        %ICalendar.Contact{
+        %ICal.Contact{
           alternative_representation:
             "ldap:ldap://example.com:6666/o=ABC% 20Industries,c=US???(cn=Beat%20Fuss)",
           language: "de",
           value: "Beat Fuss"
         },
-        %ICalendar.Contact{value: "Jill Bar"}
+        %ICal.Contact{value: "Jill Bar"}
       ],
       priority: "",
       attachments: [
-        %ICalendar.Attachment{
+        %ICal.Attachment{
           data_type: :cid,
           data: "jsmith.part3.960817T083000.xyzMail@example.com",
           mimetype: nil
         },
-        %ICalendar.Attachment{
+        %ICal.Attachment{
           data_type: :uri,
           data: "ftp://example.com/pub/reports/r-960812.ps",
           mimetype: "application/postscript"
         },
-        %ICalendar.Attachment{
+        %ICal.Attachment{
           data_type: :base8,
           data: "Some plain text",
           mimetype: nil
         },
-        %ICalendar.Attachment{
+        %ICal.Attachment{
           data_type: :base64,
           data: "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4",
           mimetype: "text/plain"
         },
-        %ICalendar.Attachment{
+        %ICal.Attachment{
           data_type: :base64,
           data:
             "TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2ljaW5nIGVsaXQsIHNlZCBkbyBlaXVzbW9kIHRlbXBvciBpbmNpZGlkdW50IHV0IGxhYm9yZSBldCBkb2xvcmUgbWFnbmEgYWxpcXVhLiBVdCBlbmltIGFkIG1pbmltIHZlbmlhbSwgcXVpcyBub3N0cnVkIGV4ZXJjaXRhdGlvbiB1bGxhbWNvIGxhYm9yaXMgbmlzaSB1dCBhbGlxdWlwIGV4IGVhIGNvbW1vZG8gY29uc2VxdWF0LiBEdWlzIGF1dGUgaXJ1cmUgZG9sb3IgaW4gcmVwcmVoZW5kZXJpdCBpbiB2b2x1cHRhdGUgdmVsaXQgZXNzZSBjaWxsdW0gZG9sb3JlIGV1IGZ1Z2lhdCBudWxsYSBwYXJpYXR1ci4gRXhjZXB0ZXVyIHNpbnQgb2NjYWVjYXQgY3VwaWRhdGF0IG5vbiBwcm9pZGVudCwgc3VudCBpbiBjdWxwYSBxdWkgb2ZmaWNpYSBkZXNlcnVudCBtb2xsaXQgYW5pbSBpZCBlc3QgbGFib3J1bS4=",
@@ -55,7 +55,7 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def one_event(:deserialize) do
-    %ICalendar.Event{
+    %ICal.Event{
       dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
       dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
@@ -66,17 +66,17 @@ defmodule ICalendar.Test.Fixtures do
       categories: ["Fishing", "Nature"],
       comments: ["Don't forget to take something to eat !"],
       contacts: [
-        %ICalendar.Contact{
+        %ICal.Contact{
           alternative_representation:
             "ldap:ldap://example.com:6666/o=ABC% 20Industries,c=US???(cn=Beat%20Fuss)",
           language: "de",
           value: "Beat Fuss"
         },
-        %ICalendar.Contact{value: "Jill Bar"}
+        %ICal.Contact{value: "Jill Bar"}
       ],
       created: ~U[1996-03-29 13:30:00Z],
       class: "PRIVATE",
-      duration: %ICalendar.Duration{
+      duration: %ICal.Duration{
         days: 15,
         positive: true,
         time: {5, 0, 20},
@@ -94,24 +94,24 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def uid_only_event do
-    %ICalendar.Event{
+    %ICal.Event{
       uid: "YES",
       comments: ["Should appear normally"]
     }
   end
 
   def transparencies do
-    %ICalendar{
+    %ICal{
       events: [
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "1",
           transparency: :transparent
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "2",
           transparency: :opaque
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "3",
           transparency: nil
         }
@@ -120,9 +120,9 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def rdates do
-    %ICalendar{
+    %ICal{
       events: [
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "1",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
@@ -133,7 +133,7 @@ defmodule ICalendar.Test.Fixtures do
             DateTime.from_naive!(~N[2018-05-24 13:26:08], "Europe/Zurich")
           ]
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "2",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
@@ -143,29 +143,29 @@ defmodule ICalendar.Test.Fixtures do
             ~U[1997-04-21 00:00:00Z]
           ]
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "3",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
             {~U[1997-01-01 18:00:00Z], ~U[1997-01-02 07:00:00Z]},
             {~U[1998-01-01 18:00:00Z], ~U[1998-01-02 07:00:00Z]},
             {~U[1999-01-01 18:00:00Z],
-             %ICalendar.Duration{positive: true, time: {0, 0, 0}, days: 0, weeks: 2}}
+             %ICal.Duration{positive: true, time: {0, 0, 0}, days: 0, weeks: 2}}
           ]
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "4",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "5",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "6",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "7",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         }
@@ -174,22 +174,22 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def contacts do
-    %ICalendar{
+    %ICal{
       events: [
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "1",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           contacts: [
-            %ICalendar.Contact{
+            %ICal.Contact{
               alternative_representation: "CID:part3.msg970930T083000SILVER@example.com",
               value: "Jim Dolittle, ABC Industries, +1-919-555-1234"
             },
-            %ICalendar.Contact{value: "Joe Blow"},
-            %ICalendar.Contact{
+            %ICal.Contact{value: "Joe Blow"},
+            %ICal.Contact{
               language: "de",
               value: "Beat Fuss"
             },
-            %ICalendar.Contact{
+            %ICal.Contact{
               alternative_representation:
                 "ldap:ldap://example.com:6666/o=ABC% 20Industries,c=US???(cn=Beat%20Fuss)",
               language: "de",
@@ -204,24 +204,24 @@ defmodule ICalendar.Test.Fixtures do
   def statuses(which \\ :deserialize)
 
   def statuses(:deserialize) do
-    %ICalendar{
+    %ICal{
       events: [
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "1",
           status: :tentative,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "2",
           status: :confirmed,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "3",
           status: :cancelled,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "4",
           status: nil,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
@@ -231,29 +231,29 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def statuses(:serialize) do
-    %ICalendar{
+    %ICal{
       events: [
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "1",
           status: :tentative,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "2",
           status: :confirmed,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "3",
           status: :cancelled,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "4",
           status: nil,
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
         },
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "5",
           status: "CUSTOM",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
@@ -263,7 +263,7 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def one_truncated_event do
-    %ICalendar.Event{
+    %ICal.Event{
       dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
       dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
@@ -274,7 +274,7 @@ defmodule ICalendar.Test.Fixtures do
       categories: ["Fishing", "Nature"],
       comments: ["Don't forget to take something to eat !"],
       contacts: [
-        %ICalendar.Contact{
+        %ICal.Contact{
           value: "Jim Dolittle, ABC Industries, +1-919-555-1234",
           alternative_representation: "CID:part3.msg970930T083000SILVER@example.com"
         }
@@ -286,7 +286,7 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def broken_dates_event do
-    %ICalendar.Event{
+    %ICal.Event{
       dtstart: nil,
       dtend: nil,
       dtstamp: nil,
@@ -297,8 +297,8 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def calendar(:empty) do
-    %ICalendar{
-      product_id: "-//Elixir ICalendar//EN",
+    %ICal{
+      product_id: "-//Elixir ICal//EN",
       scale: "GREGORIAN",
       method: "REQUEST",
       version: "2.0"
@@ -306,8 +306,8 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def calendar(:custom_entries) do
-    %ICalendar{
-      product_id: "-//Elixir ICalendar//EN",
+    %ICal{
+      product_id: "-//Elixir ICal//EN",
       scale: "GREGORIAN",
       method: "REQUEST",
       version: "2.0",
@@ -319,7 +319,7 @@ defmodule ICalendar.Test.Fixtures do
         "X-WR-TIMEZONE" => %{params: %{}, value: "Europe/Zurich"}
       },
       events: [
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "1",
           custom_entries: %{"X-CUSTOM" => %{params: %{}, value: "value"}}
         }
@@ -328,13 +328,13 @@ defmodule ICalendar.Test.Fixtures do
   end
 
   def attendees do
-    %ICalendar{
-      product_id: "-//Elixir ICalendar//EN",
+    %ICal{
+      product_id: "-//Elixir ICal//EN",
       scale: "GREGORIAN",
       method: nil,
       version: "2.0",
       events: [
-        %ICalendar.Event{
+        %ICal.Event{
           uid: "01",
           created: nil,
           dtstart: nil,
@@ -359,7 +359,7 @@ defmodule ICalendar.Test.Fixtures do
           priority: nil,
           transparency: nil,
           attendees: [
-            %ICalendar.Attendee{
+            %ICal.Attendee{
               name: "mailto:janedoe@example.com",
               language: nil,
               type: nil,
@@ -373,7 +373,7 @@ defmodule ICalendar.Test.Fixtures do
               cname: nil,
               dir: nil
             },
-            %ICalendar.Attendee{
+            %ICal.Attendee{
               name: "mailto:jdoe@example.com",
               language: nil,
               type: nil,
@@ -387,7 +387,7 @@ defmodule ICalendar.Test.Fixtures do
               cname: nil,
               dir: nil
             },
-            %ICalendar.Attendee{
+            %ICal.Attendee{
               name: "mailto:ietf-calsch@example.org",
               language: "de-ch",
               type: "GROUP",

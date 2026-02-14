@@ -1,3 +1,4 @@
+Copyright (c) 2026 Aaron Seigo, Max Salminen, and contributors
 Copyright (c) 2015 Louis Pilfold
 
 MIT License
