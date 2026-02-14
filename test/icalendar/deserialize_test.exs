@@ -288,5 +288,10 @@ defmodule ICalendar.DeserializeTest do
       ics = Helper.test_data("rdates")
       assert ICalendar.from_ics(ics) == Fixtures.rdates()
     end
+
+    test "Contacts are correctly deserialized" do
+      ics = Helper.test_data("contacts")
+      assert ICalendar.from_ics(ics) == Fixtures.contacts()
+    end
   end
 end

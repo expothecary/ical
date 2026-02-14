@@ -65,7 +65,7 @@ defmodule ICalendar.Event do
           attendees: [String.t()],
           categories: [String.t()],
           comments: [String.t()],
-          contacts: [String.t()],
+          contacts: [ICalendar.Contact.t()],
           related_to: [String.t()],
           resources: [String.t()]
         }

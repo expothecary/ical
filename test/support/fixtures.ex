@@ -10,7 +10,15 @@ defmodule ICalendar.Test.Fixtures do
       comments: ["Don't forget to take something to eat !"],
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
       created: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
-      contacts: ["Joe Blow", "Jill Bar"],
+      contacts: [
+        %ICalendar.Contact{
+          alternative_representation:
+            "ldap:ldap://example.com:6666/o=ABC% 20Industries,c=US???(cn=Beat%20Fuss)",
+          language: "de",
+          value: "Beat Fuss"
+        },
+        %ICalendar.Contact{value: "Jill Bar"}
+      ],
       priority: "",
       attachments: [
         %ICalendar.Attachment{
@@ -57,7 +65,15 @@ defmodule ICalendar.Test.Fixtures do
       status: :tentative,
       categories: ["Fishing", "Nature"],
       comments: ["Don't forget to take something to eat !"],
-      contacts: ["Jim Dolittle, ABC Industries, +1-919-555-1234"],
+      contacts: [
+        %ICalendar.Contact{
+          alternative_representation:
+            "ldap:ldap://example.com:6666/o=ABC% 20Industries,c=US???(cn=Beat%20Fuss)",
+          language: "de",
+          value: "Beat Fuss"
+        },
+        %ICalendar.Contact{value: "Jill Bar"}
+      ],
       created: ~U[1996-03-29 13:30:00Z],
       class: "PRIVATE",
       duration: %ICalendar.Duration{
@@ -157,6 +173,34 @@ defmodule ICalendar.Test.Fixtures do
     }
   end
 
+  def contacts do
+    %ICalendar{
+      events: [
+        %ICalendar.Event{
+          uid: "1",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+          contacts: [
+            %ICalendar.Contact{
+              alternative_representation: "CID:part3.msg970930T083000SILVER@example.com",
+              value: "Jim Dolittle, ABC Industries, +1-919-555-1234"
+            },
+            %ICalendar.Contact{value: "Joe Blow"},
+            %ICalendar.Contact{
+              language: "de",
+              value: "Beat Fuss"
+            },
+            %ICalendar.Contact{
+              alternative_representation:
+                "ldap:ldap://example.com:6666/o=ABC% 20Industries,c=US???(cn=Beat%20Fuss)",
+              language: "de",
+              value: "Beat Fuss"
+            }
+          ]
+        }
+      ]
+    }
+  end
+
   def statuses(which \\ :deserialize)
 
   def statuses(:deserialize) do
@@ -229,7 +273,12 @@ defmodule ICalendar.Test.Fixtures do
       status: :tentative,
       categories: ["Fishing", "Nature"],
       comments: ["Don't forget to take something to eat !"],
-      contacts: ["Jim Dolittle, ABC Industries, +1-919-555-1234"],
+      contacts: [
+        %ICalendar.Contact{
+          value: "Jim Dolittle, ABC Industries, +1-919-555-1234",
+          alternative_representation: "CID:part3.msg970930T083000SILVER@example.com"
+        }
+      ],
       class: "PRIVATE",
       geo: {43.6978819, -79.3810277},
       resources: ["Nettoyeur haute pression"]

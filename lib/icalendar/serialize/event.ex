@@ -38,7 +38,7 @@ defmodule ICalendar.Serialize.Event do
   end
 
   defp to_ics({:contacts, value}, acc) do
-    [Enum.map(value, &to_text_kv("CONTACT", &1)) | acc]
+    [Enum.map(value, &Serialize.Contact.to_ics(&1)) | acc]
   end
 
   defp to_ics({:created, value}, acc) do

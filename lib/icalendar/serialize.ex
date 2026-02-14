@@ -77,10 +77,14 @@ defmodule ICalendar.Serialize do
     atom |> to_string |> String.upcase()
   end
 
+  def to_quoted_value(value) do
+    [?", escaped_quotes(value), ?"]
+  end
+
   # creates a conformant comma-separated list
   def to_quoted_comma_list(values) do
     values
-    |> Enum.map(&[?", escaped_quotes(&1), ?"])
+    |> Enum.map(&to_quoted_value/1)
     |> Enum.intersperse(",")
   end
 end
