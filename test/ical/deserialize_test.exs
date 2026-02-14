@@ -130,14 +130,9 @@ defmodule ICal.DeserializeTest do
       assert event == Fixtures.uid_only_event()
     end
 
-    test "Single Event via Event.from_ics" do
-      ics = Helper.test_data("one_event")
-      assert ICal.Event.from_ics(ics) == Fixtures.one_event()
-    end
-
     test "Truncated data is handled gracefully" do
       ics = Helper.test_data("truncated_event")
-      assert ICal.Event.from_ics(ics) == Fixtures.one_truncated_event()
+      assert ICal.from_ics(ics) == %ICal{events: [Fixtures.one_truncated_event()]}
     end
 
     test "Single event with wrapped description and summary" do
@@ -271,7 +266,7 @@ defmodule ICal.DeserializeTest do
 
     test "Bad dates result in nils" do
       ics = Helper.test_data("broken_dates")
-      assert ICal.Event.from_ics(ics) == Fixtures.broken_dates_event()
+      assert ICal.from_ics(ics) == %ICal{events: [Fixtures.broken_dates_event()]}
     end
 
     test "Status is properly parsed" do

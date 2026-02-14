@@ -34,7 +34,7 @@ defmodule ICal.EventTest do
         dtend: Timex.to_date({2015, 12, 24}),
         dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
       }
-      |> ICal.Event.to_ics()
+      |> ICal.to_ics()
       |> Helper.extract_event_props()
 
     assert ics == """
