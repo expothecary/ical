@@ -9,7 +9,7 @@ defmodule ICal.Deserialize.Contact do
     {data, value} = Deserialize.multi_line(data)
 
     case value do
-      "" ->
+      nil ->
         {data, nil}
 
       value ->
