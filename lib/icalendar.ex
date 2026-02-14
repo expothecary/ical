@@ -1,10 +1,10 @@
 defmodule ICalendar do
   @moduledoc """
-  ICalendar struct that suppports data serialization and deserialization,
-  as well as integration with Plug and Phoenix.
+  The ICal struct which suppports data serialization and deserialization of
+  iCalendar data, as well as integration with Plug and Phoenix.
   """
 
-  defstruct product_id: "-//Elixir ICalendar//EN",
+  defstruct product_id: "-//Elixir ICal//#{elem(:application.get_key(:ical, :vsn), 1)}//EN",
             scale: "GREGORIAN",
             method: nil,
             version: "2.0",
@@ -14,6 +14,12 @@ defmodule ICalendar do
 
   @type custom_value :: %{params: map, value: String.t()}
   @type custom_entries :: %{String.t() => custom_value()}
+
+  @typedoc """
+  An iCalendar. Event structs are found in `events`, while vendor-specific
+  `X-name`-style entries are recorded in `custom_entries`. All other fields
+  conform to the iCalendar standard.
+  """
   @type t :: %__MODULE__{
           product_id: String.t() | nil,
           method: String.t() | nil,
@@ -24,31 +30,56 @@ defmodule ICalendar do
           custom_entries: custom_entries
         }
 
-  defdelegate to_ics(calendar), to: ICalendar.Serialize.Calendar
-  defdelegate from_ics(data), to: ICalendar.Deserialize.Calendar
-  defdelegate from_file(path), to: ICalendar.Deserialize.Calendar
+  @doc """
+  Converts an `ICal{}` struct to an iolist.
 
+  The returned iolist can be written directly to a file, sent across the network,
+  or turned into a string locally by passing the return value to `to_string/1`
+  """
+  @spec to_ics(t()) :: iolist()
+  defdelegate to_ics(calendar), to: ICalendar.Serialize.Calendar
+
+  @doc """
+  Converts a string containing iCalendar data to an `ICalendar{}` struct.
+  """
+  @spec to_ics(ics_data :: String.t()) :: t()
+  defdelegate from_ics(data), to: ICalendar.Deserialize.Calendar
+
+  @doc """
+  Converts the data in the file at `file_path` to an `ICalendar{}` struct.
+  """
+  @spec to_ics(file_path :: String.t()) :: t()
+  defdelegate from_file(file_path), to: ICalendar.Deserialize.Calendar
+
+  @doc """
+  Allows setting a custom vendor string while maintaiing the rest of the
+  default product ID string. This helps identify both the application using
+  this library as well as this library when looking at generated output, which
+  can be useful for debug purposes.
+
+  As such, this should be prefered to changing the `product_id` field on an
+  `%ICal{}` directly.
+  """
   def set_vendor(%ICalendar{} = calendar, vendor) when is_binary(vendor) do
-    %{calendar | product_id: "-//Elixir ICalendar//#{vendor}//EN"}
+    {:ok, version} = :application.get_key(:ical, :vsn)
+    product_id = "-//Elixir ICal//#{version}//#{vendor}//EN"
+    %{calendar | product_id: product_id}
   end
 
   @doc """
-  To create a Phoenix/Plug controller and view that output ics format:
+  To create a Phoenix/Plug endpoint to retrieve ICalendar data from,
+  add this to the application's `config.exs`:
 
-  Add to your config.exs:
+      config :phoenix, :format_encoders, ics: ICalendar
 
-      config :phoenix, :format_encoders,
-        ics: ICalendar
-
-  In your controller use:
+  Adding this to a controller will trigger the serialization to occur:
 
       calendar = %ICalendar{ events: events }
       render(conn, "index.ics", calendar: calendar)
 
-  The important part here is `.ics`. This triggers the `format_encoder`
-  as configured.
+  The file suffix `.ics` triggers the `format_encoder` as configured.
 
-  In your view can put:
+  The same in a view:
 
       def render("index.ics", %{calendar: calendar}) do
         calendar
