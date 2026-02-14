@@ -72,6 +72,16 @@ defmodule ICal.Event do
           custom_entries: ICal.custom_entries()
         }
 
-  defdelegate to_ics(calendar), to: ICal.Serialize.Event
+  @doc """
+  Serializes an `ICal.Event` to ics format. Useful for serializing
+  individual events separate from a calendar.
+  """
+  @spec to_ics(t()) :: iodata()
+  defdelegate to_ics(event), to: ICal.Serialize.Event
+
+  @doc """
+
+  """
+  @spec from_ics(data :: String.t()) :: t()
   defdelegate from_ics(data), to: ICal.Deserialize.Event
 end

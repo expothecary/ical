@@ -31,9 +31,9 @@ defmodule ICal do
         }
 
   @doc """
-  Converts an `ICal{}` struct to an iolist.
+  Converts an `ICal{}` struct to `iodata`.
 
-  The returned iolist can be written directly to a file, sent across the network,
+  The returned iodata can be written directly to a file, sent across the network,
   or turned into a string locally by passing the return value to `to_string/1`
   """
   @spec to_ics(t()) :: iolist()

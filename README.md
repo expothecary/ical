@@ -15,7 +15,7 @@ A library for reading and writing iCalendar data.
 Full documentation can be found on [Hexdocs](https://hexdocs.pm/ical).
 
 The primary entry points are `ICal.from_ics/1` and `ICal.from_file/1` for parsing iCalendar data,
-and `ICal.to_ics/1` for serializing an `%ICal{}` to an iolist ready for writing to a file, sending
+and `ICal.to_ics/1` for serializing an `%ICal{}` to an `iodata` ready for writing to a file, sending
 over the network, etc.
 
 Individual calendar entries (e.g. `%ICal.Event{}`) can also be de/serialized via their respective
@@ -24,7 +24,7 @@ modules.
 ```elixir
 calendar = ICal.from_file(ical_path)
 %ICal{events: events} = calendar
-ics_iolist = ICal.to_ics(calendar)
+ics_iodata = ICal.to_ics(calendar)
 ```
 
 Recurrences may be calculated from a calendar component up to a given future date:
