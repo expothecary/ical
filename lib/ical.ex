@@ -10,6 +10,7 @@ defmodule ICal do
             version: "2.0",
             events: [],
             default_timezone: "Etc/UTC",
+            name: nil,
             custom_properties: %{}
 
   @type custom_value :: %{params: map, value: String.t()}
@@ -27,6 +28,7 @@ defmodule ICal do
           scale: String.t(),
           events: [ICal.Event.t()],
           default_timezone: String.t(),
+          name: String.t() | nil,
           custom_properties: custom_properties
         }
 

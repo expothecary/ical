@@ -33,6 +33,11 @@ defmodule ICal.Deserialize.Calendar do
     next(data, %{calendar | product_id: value})
   end
 
+  def next(<<"NAME:", data::binary>>, calendar) do
+    {data, value} = Deserialize.rest_of_line(data)
+    next(data, %{calendar | name: value})
+  end
+
   def next(<<"METHOD:", data::binary>>, calendar) do
     {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | method: value})
@@ -54,10 +59,21 @@ defmodule ICal.Deserialize.Calendar do
     {data, value} = Deserialize.rest_of_line(data)
     tz = Deserialize.to_timezone(value, calendar.default_timezone)
 
-    custom_entry = %{params: %{}, value: tz}
-    custom_properties = Map.put(calendar.custom_properties, "X-WR-TIMEZONE", custom_entry)
+    next(
+      data,
+      %{calendar | default_timezone: tz}
+      |> add_custom_entry("X-WR-TIMEZONE", %{}, value)
+    )
+  end
 
-    next(data, %{calendar | default_timezone: tz, custom_properties: custom_properties})
+  # only use X-WR-CALNAME if a name is not already set
+  def next(<<"X-WR-CALNAME:", data::binary>>, %{name: nil} = calendar) do
+    {data, value} = Deserialize.rest_of_line(data)
+
+    next(
+      data,
+      %{calendar | name: value} |> add_custom_entry("X-WR-CALNAME", %{}, value)
+    )
   end
 
   # prevent losing other non-standard headers
@@ -66,9 +82,7 @@ defmodule ICal.Deserialize.Calendar do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
 
-    custom_entry = %{params: params, value: value}
-    custom_properties = Map.put(calendar.custom_properties, key, custom_entry)
-    next(data, %{calendar | custom_properties: custom_properties})
+    next(data, calendar |> add_custom_entry(key, params, value))
   end
 
   def next(<<"END:VCALENDAR", _data::binary>>, calendar) do
@@ -77,5 +91,11 @@ defmodule ICal.Deserialize.Calendar do
 
   def next(data, calendar) do
     next(Deserialize.skip_line(data), calendar)
+  end
+
+  defp add_custom_entry(calendar, key, params, value) do
+    custom_entry = %{params: params, value: value}
+    custom_properties = Map.put(calendar.custom_properties, key, custom_entry)
+    %{calendar | custom_properties: custom_properties}
   end
 end
