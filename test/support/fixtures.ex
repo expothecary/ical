@@ -296,6 +296,36 @@ defmodule ICalendar.Test.Fixtures do
     }
   end
 
+  def calendar(:empty) do
+    %ICalendar{
+      product_id: "-//Elixir ICalendar//EN",
+      scale: "GREGORIAN",
+      method: "REQUEST",
+      version: "2.0"
+    }
+  end
+
+  def calendar(:custom_entries) do
+    %ICalendar{
+      product_id: "-//Elixir ICalendar//EN",
+      scale: "GREGORIAN",
+      method: "REQUEST",
+      version: "2.0",
+      default_timezone: "Europe/Zurich",
+      custom_entries: %{
+        "X-CUSTOM-THREE" => %{params: %{}, value: "BAZ"},
+        "X-CUSTOM-TWO" => %{params: %{}, value: "Cat"},
+        "X-CUSTOM" => %{params: %{"FOO" => "bar"}, value: "Door"}
+      },
+      events: [
+        %ICalendar.Event{
+          uid: "1",
+          custom_entries: %{"X-CUSTOM" => %{params: %{}, value: "value"}}
+        }
+      ]
+    }
+  end
+
   def attendees do
     %ICalendar{
       product_id: "-//Elixir ICalendar//EN",

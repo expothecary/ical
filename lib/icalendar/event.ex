@@ -32,7 +32,8 @@ defmodule ICalendar.Event do
             comments: [],
             contacts: [],
             related_to: [],
-            resources: []
+            resources: [],
+            custom_entries: %{}
 
   @type period ::
           {from :: DateTime.t(), to :: DateTime.t()}
@@ -67,7 +68,8 @@ defmodule ICalendar.Event do
           comments: [String.t()],
           contacts: [ICalendar.Contact.t()],
           related_to: [String.t()],
-          resources: [String.t()]
+          resources: [String.t()],
+          custom_entries: ICalendar.custom_entries()
         }
 
   defdelegate to_ics(calendar), to: ICalendar.Serialize.Event

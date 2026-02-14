@@ -55,11 +55,24 @@ defmodule ICalendarTest do
 
   test "ICalendar metadata is correctly parsed" do
     calendar = Helper.test_data("empty_calendar") |> ICalendar.from_ics()
+    assert Fixtures.calendar(:empty) == calendar
 
     assert calendar.scale == "GREGORIAN"
     assert calendar.version == "2.0"
     assert calendar.product_id == "-//Elixir ICalendar//EN"
     assert calendar.method == "REQUEST"
+    assert calendar.default_timezone == nil
+    assert calendar.custom_entries == %{}
+  end
+
+  test "ICalendar metadata with custom headers is correctly parsed" do
+    calendar = Helper.test_data("custom_calendar_entries") |> ICalendar.from_ics()
+    assert Fixtures.calendar(:custom_entries) == calendar
+  end
+
+  test "ICalendar metadata with custom headers is correctly serialized" do
+    calendar = Helper.test_data("custom_calendar_entries") |> ICalendar.from_ics()
+    assert Fixtures.calendar(:custom_entries) == calendar
   end
 
   test "ICalendar.to_ics/1 of a calendar with an event, as in README" do

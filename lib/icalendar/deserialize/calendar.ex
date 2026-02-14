@@ -48,6 +48,25 @@ defmodule ICalendar.Deserialize.Calendar do
     next(data, %{calendar | version: value})
   end
 
+  # X-WR-TIMEZONE is a non-standard, but widely used, field
+  # that allows setting the default timezone for the whole calendar
+  def next(<<"X-WR-TIMEZONE:", data::binary>>, calendar) do
+    {data, value} = Deserialize.rest_of_line(data)
+    tz = Deserialize.to_timezone(value, nil)
+    next(data, %{calendar | default_timezone: tz})
+  end
+
+  # prevent losing other non-standard headers
+  def next(<<"X-", data::binary>>, calendar) do
+    {data, key} = Deserialize.rest_of_key(data, "X-")
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+
+    custom_entry = %{params: params, value: value}
+    custom_entries = Map.put(calendar.custom_entries, key, custom_entry)
+    next(data, %{calendar | custom_entries: custom_entries})
+  end
+
   def next(<<"END:VCALENDAR", _data::binary>>, calendar) do
     calendar
   end

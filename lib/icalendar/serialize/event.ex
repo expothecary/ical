@@ -29,6 +29,10 @@ defmodule ICalendar.Serialize.Event do
     [entries | acc]
   end
 
+  defp to_ics({:custom_entries, custom_entries}, acc) do
+    Serialize.add_custom_entries(acc, custom_entries)
+  end
+
   defp to_ics({:categories, value}, acc) do
     [Serialize.to_comma_list_kv("CATEGORIES", value) | acc]
   end

@@ -8,14 +8,20 @@ defmodule ICalendar do
             scale: "GREGORIAN",
             method: nil,
             version: "2.0",
-            events: []
+            events: [],
+            default_timezone: nil,
+            custom_entries: %{}
 
+  @type custom_value :: %{params: map, value: String.t()}
+  @type custom_entries :: %{String.t() => custom_value()}
   @type t :: %__MODULE__{
           product_id: String.t() | nil,
           method: String.t() | nil,
           version: String.t(),
           scale: String.t(),
-          events: [ICalendar.Event.t()]
+          events: [ICalendar.Event.t()],
+          default_timezone: String.t() | nil,
+          custom_entries: custom_entries
         }
 
   defdelegate to_ics(calendar), to: ICalendar.Serialize.Calendar

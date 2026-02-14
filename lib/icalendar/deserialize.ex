@@ -12,6 +12,16 @@ defmodule ICalendar.Deserialize do
   @moduledoc false
   import __MODULE__.Macros
 
+  def rest_of_key(<<?\r, ?\n, data::binary>>, key), do: {data, key}
+  def rest_of_key(<<?\n, data::binary>>, key), do: {data, key}
+  def rest_of_key(<<?;, _::binary>> = data, key), do: {data, key}
+
+  def rest_of_key(<<?:, _::binary>> = data, key), do: {data, key}
+
+  def rest_of_key(<<c::utf8, data::binary>>, key) do
+    rest_of_key(data, <<key::binary, c::utf8>>)
+  end
+
   def comma_separated_list(data), do: comma_separated_list(data, "", [])
   defp comma_separated_list(<<>> = data, "", acc), do: {data, acc}
   defp comma_separated_list(<<>> = data, value, acc), do: {data, acc ++ [value]}
@@ -72,6 +82,7 @@ defmodule ICalendar.Deserialize do
   defp add_trimmed(nil, _trim_char, acc), do: acc
   defp add_trimmed(line, trim_char, acc), do: [String.trim_leading(line, trim_char) | acc]
 
+  def rest_of_line(<<?\r, ?\n, data::binary>>), do: {data, nil}
   def rest_of_line(<<?\n, data::binary>>), do: {data, nil}
   def rest_of_line(data), do: rest_of_line(data, <<>>)
   defp rest_of_line(<<>> = data, acc), do: {data, acc}
@@ -255,6 +266,14 @@ defmodule ICalendar.Deserialize do
     end
   end
 
+  def to_timezone(timezone, default \\ "Etc/UTC") do
+    cond do
+      String.contains?(timezone, "/") -> timezone
+      Timex.Timezone.Utils.to_olson(timezone) != nil -> Timex.Timezone.Utils.to_olson(timezone)
+      true -> default
+    end
+  end
+
   @doc """
   This function is designed to parse iCal datetime strings into erlang dates.
 
@@ -287,12 +306,7 @@ defmodule ICalendar.Deserialize do
   def to_date(date_string, %{"TZID" => timezone}) do
     # Microsoft Outlook calendar .ICS files report times in Greenwich Standard Time (UTC +0)
     # so just convert this to UTC
-    timezone =
-      cond do
-        String.contains?(timezone, "/") -> timezone
-        Timex.Timezone.Utils.to_olson(timezone) != nil -> Timex.Timezone.Utils.to_olson(timezone)
-        true -> "Etc/UTC"
-      end
+    timezone = to_timezone(timezone)
 
     with_timezone =
       if String.ends_with?(date_string, "Z") do

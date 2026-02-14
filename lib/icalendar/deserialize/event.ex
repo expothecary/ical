@@ -227,6 +227,18 @@ defmodule ICalendar.Deserialize.Event do
     record_value(data, event, :url, value)
   end
 
+  # prevent losing other non-standard headers
+  # TODO: DRY out with Deserialize.Calendar
+  defp next(<<"X-", data::binary>>, event) do
+    {data, key} = Deserialize.rest_of_key(data, "X-")
+    {data, params} = Deserialize.params(data)
+    {data, value} = Deserialize.rest_of_line(data)
+
+    custom_entry = %{params: params, value: value}
+    custom_entries = Map.put(event.custom_entries, key, custom_entry)
+    next(data, %{event | custom_entries: custom_entries})
+  end
+
   defp next(<<"END:VEVENT", data::binary>>, event) do
     {data, event}
   end

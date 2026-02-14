@@ -57,6 +57,20 @@ defmodule ICalendar.Serialize do
 
   def to_ics(x), do: x
 
+  @spec add_custom_entries(iolist(), ICalendarTest.custom_entries()) :: iolist()
+  def add_custom_entries(acc, custom_entries) do
+    Enum.reduce(
+      custom_entries,
+      acc,
+      fn {key, %{params: params, value: value}}, acc ->
+        param_string =
+          Enum.map(params, fn {key, value} -> [?;, key, ?=, to_ics(value)] end)
+
+        acc ++ [key, ?:, param_string, value, ?\n]
+      end
+    )
+  end
+
   def escaped_quotes(x) do
     String.replace(x, ~S|"|, ~S|\"|)
   end
