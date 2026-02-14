@@ -1,8 +1,9 @@
 defmodule ICal.Contact do
-  @enforce_keys :value
+  @moduledoc """
+  An iCalendar Contact.
+  """
 
-  # TODO: should alternative_representation be parsed further for CID, URI, ..?
-  defstruct [:value, alternative_representation: nil, language: nil]
+  @enforce_keys :value
 
   @type t :: %__MODULE__{
           value: String.t(),
