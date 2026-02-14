@@ -2,8 +2,8 @@ defmodule ICal.EventTest do
   use ExUnit.Case
 
   alias ICal.Event
-  alias ICal.Test.Helper
   alias ICal.Test.Fixtures
+  alias ICal.Test.Helper
 
   test "ICal.to_ics/1 of event" do
     ics =

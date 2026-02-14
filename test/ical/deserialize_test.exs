@@ -2,8 +2,8 @@ defmodule ICal.DeserializeTest do
   use ExUnit.Case
 
   alias ICal.Event
-  alias ICal.Test.Helper
   alias ICal.Test.Fixtures
+  alias ICal.Test.Helper
 
   describe "ICal.Deserialize" do
     test "Comma separated list parsing" do
@@ -17,9 +17,9 @@ defmodule ICal.DeserializeTest do
     end
 
     test "Multi-line parsing" do
-      assert {"", ""} == ICal.Deserialize.multi_line("")
-      assert {"", ""} == ICal.Deserialize.multi_line("\n")
-      assert {"", ""} == ICal.Deserialize.multi_line("\r\n")
+      assert {"", nil} == ICal.Deserialize.multi_line("")
+      assert {"", nil} == ICal.Deserialize.multi_line("\n")
+      assert {"", nil} == ICal.Deserialize.multi_line("\r\n")
       assert {"", "a b"} == ICal.Deserialize.multi_line("a\n b")
       assert {"", "a b"} == ICal.Deserialize.multi_line("a\r\n   b")
       assert {"", "a b c"} == ICal.Deserialize.multi_line("a\r\n\tb\n\tc")
@@ -31,15 +31,15 @@ defmodule ICal.DeserializeTest do
       assert "\n" == ICal.Deserialize.skip_params("\n")
       assert "\r\n" == ICal.Deserialize.skip_params("\r\n")
       assert "VALUE" == ICal.Deserialize.skip_params(":VALUE")
-      assert "VALUE" == ICal.Deserialize.skip_params(";PARAM=VAR:VALUE")
-      assert "VALUE" == ICal.Deserialize.skip_params(";PARAM=VAR\\::VALUE")
-      assert "VALUE" == ICal.Deserialize.skip_params(";PARAM=VAR;OTHER;OTHER=FOO:VALUE")
-      assert "VALUE" == ICal.Deserialize.skip_params(";PARAM=\"VAR:\":VALUE")
-      assert "VALUE" == ICal.Deserialize.skip_params(";PARAM=\"VAR:\",\"VAR\":VALUE")
-      assert "" == ICal.Deserialize.skip_params(";PARAM=\"VAR:\"")
-      assert "" == ICal.Deserialize.skip_params(";PARAM=\"VAR:\",")
-      assert "" == ICal.Deserialize.skip_params(";PARAM=\"VAR:\",\"")
-      assert "" == ICal.Deserialize.skip_params(";PARAM=\"VAR:\",\"\\F\",\"\"")
+      assert "VALUE" == ICal.Deserialize.skip_params(~S|;PARAM=VAR:VALUE|)
+      assert "VALUE" == ICal.Deserialize.skip_params(~S|;PARAM=VAR\::VALUE|)
+      assert "VALUE" == ICal.Deserialize.skip_params(~S|;PARAM=VAR;OTHER;OTHER=FOO:VALUE|)
+      assert "VALUE" == ICal.Deserialize.skip_params(~S|;PARAM="VAR:":VALUE|)
+      assert "VALUE" == ICal.Deserialize.skip_params(~S|;PARAM="VAR:","VAR":VALUE|)
+      assert "" == ICal.Deserialize.skip_params(~S|;PARAM="VAR:"|)
+      assert "" == ICal.Deserialize.skip_params(~S|;PARAM="VAR:",|)
+      assert "" == ICal.Deserialize.skip_params(~S|;PARAM="VAR:","|)
+      assert "" == ICal.Deserialize.skip_params(~S|;PARAM="VAR:","F",""|)
     end
 
     test "Parsing params" do
@@ -72,7 +72,7 @@ defmodule ICal.DeserializeTest do
                ICal.Deserialize.params(";P1=1;OTHER;P2=FOO:VALUE")
 
       assert {"VALUE", %{"P1" => ["1:", ":2", ".."]}} ==
-               ICal.Deserialize.params(";P1=\"1:\",\":2\",\"..\":VALUE")
+               ICal.Deserialize.params(~S|;P1="1:",":2","..":VALUE|)
 
       assert {"", %{"P1" => "VAR:\""}} ==
                ICal.Deserialize.params(";P1=\"VAR:\"")
@@ -84,7 +84,7 @@ defmodule ICal.DeserializeTest do
       assert {"", %{"P1" => ["VAR:", ""]}} == ICal.Deserialize.params(";P1=\"VAR:\",\"")
 
       assert {"", %{"P1" => ["VAR:", "F", "\""]}} ==
-               ICal.Deserialize.params(";P1=\"VAR:\",\"\\F\",\"\"")
+               ICal.Deserialize.params(~S|;P1="VAR:","F",""|)
     end
 
     test "Skip a line" do

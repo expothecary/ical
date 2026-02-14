@@ -1,7 +1,8 @@
 defmodule ICalTest do
   use ExUnit.Case
-  alias ICal.Test.Helper
+
   alias ICal.Test.Fixtures
+  alias ICal.Test.Helper
 
   @vendor "ICal Test"
 

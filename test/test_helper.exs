@@ -9,7 +9,7 @@ defmodule ICal.Test.Helper do
     |> File.read!()
   end
 
-  def product_id() do
+  def product_id do
     {:ok, version} = :application.get_key(:ical, :vsn)
     "-//Elixir ICal//v#{version}//EN"
   end
