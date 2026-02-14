@@ -1,68 +1,34 @@
 # ICalendar
 
-[![Module Version](https://img.shields.io/hexpm/v/icalendar.svg)](https://hex.pm/packages/icalendar)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/icalendar/)
-[![Total Download](https://img.shields.io/hexpm/dt/icalendar.svg)](https://hex.pm/packages/icalendar)
-[![License](https://img.shields.io/hexpm/l/icalendar.svg)](https://github.com/expothecary/icalendar/blob/master/LICENSE.md)
+A library for reading and writing ICalendar data.
 
-A small library for reading and writing ICalendar data.
+## Goals
+
+* support the ICalendar and its related RFCs for standards-compliance
+* handle real-world data (such as produced by other clients) gracefully, and
+  not lose data while parsing, even if not used by this library
+* be performant in parsing and serializing
+* be well-documented
+* be well-tested (beyond just code coverage)
+
+## Features
+
+Full documentation can be found on [Hexdocs](https://hexdocs.pm/ical).
+
+* Parsing iCalendar data from strings or files
+* Serializing iCalendar data to iolists suitable for writing out to files, over the network, etc.
+* Integration with Plug / Phoenix via `ICal.encode_to_iodate`
+* Support for common non-standard entries such as `X-WR-TIMEZONE`
 
 ## Installation
 
-The package can be installed by adding `:icalendar` to your list of dependencies
+The package can be installed by adding `:ical` to your list of dependencies
 in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:icalendar, "~> 2.0.0"}
+    {:ical, "~> 1.0"}
   ]
 end
 ```
-
-## Usage
-
-```elixir
-events = [
-  %ICalendar.Event{
-    summary: "Film with Amy and Adam",
-    dtstart: {{2015, 12, 24}, {8, 30, 00}},
-    dtend:   {{2015, 12, 24}, {8, 45, 00}},
-    description: "Let's go see Star Wars.",
-    location: "123 Fun Street, Toronto ON, Canada"
-  },
-  %ICalendar.Event{
-    summary: "Morning meeting",
-    dtstart: Timex.now,
-    dtend:   Timex.shift(Timex.now, hours: 3),
-    description: "A big long meeting with lots of details.",
-    location: "456 Boring Street, Toronto ON, Canada"
-  },
-]
-ics = %ICalendar{ events: events } |> ICalendar.to_ics
-File.write!("calendar.ics", ics)
-
-# BEGIN:VCALENDAR
-# CALSCALE:GREGORIAN
-# VERSION:2.0
-# BEGIN:VEVENT
-# DESCRIPTION:Let's go see Star Wars.
-# DTEND:20151224T084500Z
-# DTSTART:20151224T083000Z
-# LOCATION: 123 Fun Street\, Toronto ON\, Canada
-# SUMMARY:Film with Amy and Adam
-# END:VEVENT
-# BEGIN:VEVENT
-# DESCRIPTION:A big long meeting with lots of details.
-# DTEND:20151224T223000Z
-# DTSTART:20151224T190000Z
-# LOCATION:456 Boring Street\, Toronto ON\, Canada
-# SUMMARY:Morning meeting
-# END:VEVENT
-# END:VCALENDAR
-```
-
-## See Also
-
-- https://en.wikipedia.org/wiki/ICalendar
-- http://www.kanzaki.com/docs/ical/dateTime.html
