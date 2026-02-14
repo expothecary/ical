@@ -71,9 +71,15 @@ defmodule ICal.Deserialize do
 
       data ->
         value =
-          acc
-          |> Enum.reverse()
-          |> Enum.join(separator)
+          case acc do
+            [] ->
+              nil
+
+            lines ->
+              lines
+              |> Enum.reverse()
+              |> Enum.join(separator)
+          end
 
         {data, value}
     end
