@@ -290,13 +290,13 @@ defmodule ICal.Deserialize do
 
   It should be able to handle dates from the past:
 
-      iex> {:ok, date} = ICal.Util.Deserialize.to_date("19930407T153022Z")
+      iex> {:ok, date} = ICal.Deserialize.to_date("19930407T153022Z")
       ...> Timex.to_erl(date)
       {{1993, 4, 7}, {15, 30, 22}}
 
   As well as the future:
 
-      iex> {:ok, date} = ICal.Util.Deserialize.to_date("39930407T153022Z")
+      iex> {:ok, date} = ICal.Deserialize.to_date("39930407T153022Z")
       ...> Timex.to_erl(date)
       {{3993, 4, 7}, {15, 30, 22}}
 
@@ -307,7 +307,7 @@ defmodule ICal.Deserialize do
 
   It should handle timezones from  the Olson Database:
 
-      iex> {:ok, date} = ICal.Util.Deserialize.to_date("19980119T020000",
+      iex> {:ok, date} = ICal.Deserialize.to_date("19980119T020000",
       ...> %{"TZID" => "America/Chicago"})
       ...> [Timex.to_erl(date), date.time_zone]
       [{{1998, 1, 19}, {2, 0, 0}}, "America/Chicago"]
@@ -318,18 +318,18 @@ defmodule ICal.Deserialize do
     # Microsoft Outlook calendar .ICS files report times in Greenwich Standard Time (UTC +0)
     # so just convert this to UTC
     timezone = to_timezone(timezone, default_timezone)
-    to_date_with_timezone(date_string, timezone)
+    to_date_in_timezone(date_string, timezone)
   end
 
   def to_date(date_string, %{"VALUE" => "DATE"}, %ICal{default_timezone: default_timezone}) do
-    to_date_with_timezone(date_string <> "T000000Z", default_timezone)
+    to_date_in_timezone(date_string <> "T000000Z", default_timezone)
   end
 
   def to_date(date_string, _params, %ICal{default_timezone: default_timezone}) do
-    to_date_with_timezone(date_string, default_timezone)
+    to_date_in_timezone(date_string, default_timezone)
   end
 
-  defp to_date_with_timezone(date_string, timezone) do
+  def to_date_in_timezone(date_string, timezone) do
     with_timezone =
       if String.ends_with?(date_string, "Z") do
         date_string <> timezone
