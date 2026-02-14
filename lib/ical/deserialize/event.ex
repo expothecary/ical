@@ -181,7 +181,6 @@ defmodule ICal.Deserialize.Event do
     data = Deserialize.skip_params(data)
     {data, values} = Deserialize.param_list(data)
 
-    # TODO: this should really be a Recurrence struct
     rrule = Enum.reduce(values, %{}, &to_rrule/2)
 
     record_value(data, calendar, event, :rrule, rrule)
@@ -230,7 +229,6 @@ defmodule ICal.Deserialize.Event do
   end
 
   # prevent losing other non-standard headers
-  # TODO: DRY out with Deserialize.Calendar
   defp next(<<"X-", data::binary>>, calendar, event) do
     {data, key} = Deserialize.rest_of_key(data, "X-")
     {data, params} = Deserialize.params(data)
@@ -275,7 +273,6 @@ defmodule ICal.Deserialize.Event do
   defp to_status("CANCELLED"), do: :cancelled
   defp to_status(_), do: nil
 
-  # TODO: move to another module?
   defp to_rrule({str_key, raw_value}, acc) do
     key =
       str_key

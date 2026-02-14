@@ -4,7 +4,6 @@ defmodule ICal.Deserialize.Calendar do
   alias ICal.Deserialize
 
   def from_file(path) do
-    # TODO: a streaming parser would be nice!
     with {:ok, data} <- File.read(path),
          %ICal{} = calendar <- from_ics(data) do
       calendar
