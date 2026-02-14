@@ -29,8 +29,8 @@ defmodule ICal.Serialize.Event do
     [entries | acc]
   end
 
-  defp to_ics({:custom_entries, custom_entries}, acc) do
-    Serialize.add_custom_entries(acc, custom_entries)
+  defp to_ics({:custom_properties, custom_properties}, acc) do
+    Serialize.add_custom_properties(acc, custom_properties)
   end
 
   defp to_ics({:categories, value}, acc) do

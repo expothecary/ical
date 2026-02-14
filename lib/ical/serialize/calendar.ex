@@ -10,7 +10,7 @@ defmodule ICal.Serialize.Calendar do
     |> version(calendar)
     |> product_id(calendar)
     |> method(calendar)
-    |> Serialize.add_custom_entries(calendar.custom_entries)
+    |> Serialize.add_custom_properties(calendar.custom_properties)
     |> events(calendar)
     |> end_calendar(calendar)
   end

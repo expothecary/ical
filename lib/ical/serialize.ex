@@ -57,10 +57,10 @@ defmodule ICal.Serialize do
 
   def to_ics(x), do: x
 
-  @spec add_custom_entries(iolist(), ICalTest.custom_entries()) :: iolist()
-  def add_custom_entries(acc, custom_entries) do
+  @spec add_custom_properties(iolist(), ICalTest.custom_properties()) :: iolist()
+  def add_custom_properties(acc, custom_properties) do
     Enum.reduce(
-      custom_entries,
+      custom_properties,
       acc,
       fn {key, %{params: params, value: value}}, acc ->
         param_string =

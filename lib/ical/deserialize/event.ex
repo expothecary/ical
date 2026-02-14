@@ -237,8 +237,8 @@ defmodule ICal.Deserialize.Event do
     {data, value} = Deserialize.rest_of_line(data)
 
     custom_entry = %{params: params, value: value}
-    custom_entries = Map.put(event.custom_entries, key, custom_entry)
-    next(data, calendar, %{event | custom_entries: custom_entries})
+    custom_properties = Map.put(event.custom_properties, key, custom_entry)
+    next(data, calendar, %{event | custom_properties: custom_properties})
   end
 
   defp next(<<"END:VEVENT", data::binary>>, _calendar, event) do

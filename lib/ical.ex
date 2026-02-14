@@ -10,14 +10,14 @@ defmodule ICal do
             version: "2.0",
             events: [],
             default_timezone: "Etc/UTC",
-            custom_entries: %{}
+            custom_properties: %{}
 
   @type custom_value :: %{params: map, value: String.t()}
-  @type custom_entries :: %{String.t() => custom_value()}
+  @type custom_properties :: %{String.t() => custom_value()}
 
   @typedoc """
   An iCalendar. Event structs are found in `events`, while vendor-specific
-  `X-name`-style entries are recorded in `custom_entries`. All other fields
+  `X-name`-style entries are recorded in `custom_properties`. All other fields
   conform to the iCalendar standard.
   """
   @type t :: %__MODULE__{
@@ -27,7 +27,7 @@ defmodule ICal do
           scale: String.t(),
           events: [ICal.Event.t()],
           default_timezone: String.t(),
-          custom_entries: custom_entries
+          custom_properties: custom_properties
         }
 
   @doc """

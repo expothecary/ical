@@ -62,17 +62,17 @@ defmodule ICalTest do
     assert calendar.product_id == "-//Elixir ICal//EN"
     assert calendar.method == "REQUEST"
     assert calendar.default_timezone == "Etc/UTC"
-    assert calendar.custom_entries == %{}
+    assert calendar.custom_properties == %{}
   end
 
   test "ICal metadata with custom headers is correctly parsed" do
     calendar = Helper.test_data("custom_calendar_entries") |> ICal.from_ics()
-    assert Fixtures.calendar(:custom_entries) == calendar
+    assert Fixtures.calendar(:custom_properties) == calendar
   end
 
   test "ICal metadata with custom headers is correctly serialized" do
     calendar = Helper.test_data("custom_calendar_entries") |> ICal.from_ics()
-    assert Fixtures.calendar(:custom_entries) == calendar
+    assert Fixtures.calendar(:custom_properties) == calendar
   end
 
   test "ICal with custom tz alter dates" do

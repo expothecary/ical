@@ -305,14 +305,14 @@ defmodule ICal.Test.Fixtures do
     }
   end
 
-  def calendar(:custom_entries) do
+  def calendar(:custom_properties) do
     %ICal{
       product_id: "-//Elixir ICal//EN",
       scale: "GREGORIAN",
       method: "REQUEST",
       version: "2.0",
       default_timezone: "Europe/Zurich",
-      custom_entries: %{
+      custom_properties: %{
         "X-CUSTOM-THREE" => %{params: %{}, value: "BAZ"},
         "X-CUSTOM-TWO" => %{params: %{}, value: "Cat"},
         "X-CUSTOM" => %{params: %{"FOO" => "bar"}, value: "Door"},
@@ -321,7 +321,7 @@ defmodule ICal.Test.Fixtures do
       events: [
         %ICal.Event{
           uid: "1",
-          custom_entries: %{"X-CUSTOM" => %{params: %{}, value: "value"}}
+          custom_properties: %{"X-CUSTOM" => %{params: %{}, value: "value"}}
         }
       ]
     }

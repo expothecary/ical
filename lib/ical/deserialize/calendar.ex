@@ -55,9 +55,9 @@ defmodule ICal.Deserialize.Calendar do
     tz = Deserialize.to_timezone(value, calendar.default_timezone)
 
     custom_entry = %{params: %{}, value: tz}
-    custom_entries = Map.put(calendar.custom_entries, "X-WR-TIMEZONE", custom_entry)
+    custom_properties = Map.put(calendar.custom_properties, "X-WR-TIMEZONE", custom_entry)
 
-    next(data, %{calendar | default_timezone: tz, custom_entries: custom_entries})
+    next(data, %{calendar | default_timezone: tz, custom_properties: custom_properties})
   end
 
   # prevent losing other non-standard headers
@@ -67,8 +67,8 @@ defmodule ICal.Deserialize.Calendar do
     {data, value} = Deserialize.rest_of_line(data)
 
     custom_entry = %{params: params, value: value}
-    custom_entries = Map.put(calendar.custom_entries, key, custom_entry)
-    next(data, %{calendar | custom_entries: custom_entries})
+    custom_properties = Map.put(calendar.custom_properties, key, custom_entry)
+    next(data, %{calendar | custom_properties: custom_properties})
   end
 
   def next(<<"END:VCALENDAR", _data::binary>>, calendar) do

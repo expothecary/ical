@@ -33,7 +33,7 @@ defmodule ICal.Event do
             contacts: [],
             related_to: [],
             resources: [],
-            custom_entries: %{}
+            custom_properties: %{}
 
   @type period ::
           {from :: DateTime.t(), to :: DateTime.t()}
@@ -69,6 +69,6 @@ defmodule ICal.Event do
           contacts: [ICal.Contact.t()],
           related_to: [String.t()],
           resources: [String.t()],
-          custom_entries: ICal.custom_entries()
+          custom_properties: ICal.custom_properties()
         }
 end
