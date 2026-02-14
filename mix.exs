@@ -49,7 +49,7 @@ defmodule ICal.Mixfile do
 
   defp package do
     [
-      description: "iCalendar data consumer and generator",
+      description: "A standards-compliant iCalendar library",
       maintainers: ["Max Salminen", "Aaron Seigo"],
       licenses: ["MIT"],
       links: %{
