@@ -12,7 +12,7 @@ defmodule ICal.Deserialize.Event do
 
   defp next(<<"ATTACH", data::binary>>, calendar, event) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.multi_line(data, "")
+    {data, value} = Deserialize.multi_line(data)
 
     attachment =
       case params do

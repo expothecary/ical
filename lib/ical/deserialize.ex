@@ -54,44 +54,41 @@ defmodule ICal.Deserialize do
     comma_separated_list(data, append(value, c), acc)
   end
 
-  def multi_line(data, separator \\ " "), do: multi_line(data, separator, " ", [])
+  def multi_line(data), do: multi_line(data, [])
 
-  defp multi_line(data, separator, trim_char, acc) do
+  defp multi_line(data, acc) do
     {data, line} = rest_of_line(data)
-
-    acc = add_trimmed(line, trim_char, acc)
+    acc = add_trimmed(line, acc)
 
     # peek ahead to see if there is more multi-line data
     case data do
       <<?\t, data::binary>> ->
-        multi_line(data, separator, "\t", acc)
+        multi_line(data, acc)
 
       <<" ", data::binary>> ->
-        multi_line(data, separator, " ", acc)
+        multi_line(data, acc)
 
       data ->
         value =
           case acc do
-            [] ->
-              nil
-
-            lines ->
-              lines
-              |> Enum.reverse()
-              |> Enum.join(separator)
+            [] -> nil
+            lines -> Enum.join(lines)
           end
 
         {data, value}
     end
   end
 
-  defp add_trimmed(nil, _trim_char, acc), do: acc
-  defp add_trimmed(line, trim_char, acc), do: [String.trim_leading(line, trim_char) | acc]
+  defp add_trimmed(nil, acc), do: acc
+  defp add_trimmed(line, acc), do: acc ++ [line]
 
   def rest_of_line(<<?\r, ?\n, data::binary>>), do: {data, nil}
   def rest_of_line(<<?\n, data::binary>>), do: {data, nil}
   def rest_of_line(<<>> = data), do: {data, nil}
-  def rest_of_line(data), do: rest_of_line(data, <<>>)
+
+  def rest_of_line(data) do
+    rest_of_line(data, <<>>)
+  end
 
   defp rest_of_line(<<>> = data, acc), do: {data, acc}
 
