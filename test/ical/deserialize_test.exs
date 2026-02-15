@@ -20,10 +20,10 @@ defmodule ICal.DeserializeTest do
       assert {"", nil} == ICal.Deserialize.multi_line("")
       assert {"", nil} == ICal.Deserialize.multi_line("\n")
       assert {"", nil} == ICal.Deserialize.multi_line("\r\n")
-      assert {"", "a b"} == ICal.Deserialize.multi_line("a\n b")
-      assert {"", "a b"} == ICal.Deserialize.multi_line("a\r\n   b")
-      assert {"", "a b c"} == ICal.Deserialize.multi_line("a\r\n\tb\n\tc")
-      assert {"MORE", "a b c"} == ICal.Deserialize.multi_line("a\r\n\tb\n\tc\nMORE")
+      assert {"", "ab"} == ICal.Deserialize.multi_line("a\n b")
+      assert {"", "a  b"} == ICal.Deserialize.multi_line("a\r\n   b")
+      assert {"", "ab c"} == ICal.Deserialize.multi_line("a\r\n\tb\n\t c")
+      assert {"MORE", "a b c"} == ICal.Deserialize.multi_line("a\r\n\t b\n\t c\nMORE")
     end
 
     test "Skipping params" do
