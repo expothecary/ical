@@ -147,9 +147,19 @@ defmodule ICal.Recurrence do
     end
   end
 
-  defp resolve_end_date(nil, %{dtstart: %Date{}}), do: DateTime.to_date(DateTime.utc_now())
-  defp resolve_end_date(nil, %{dtstart: %DateTime{}}), do: DateTime.utc_now()
-  defp resolve_end_date(end_date, _event), do: end_date
+  # The end date and the original event's dtsart must be the same sort of date
+  # The user *should* take care of this, but let's not expect to much of ourselves
+  # and instead ensure that they match!
+  defp resolve_end_date(end_date, %{dtstart: match_to}), do: resolve_end_date(end_date, match_to)
+  defp resolve_end_date(%x{} = end_date, %x{}), do: end_date
+  defp resolve_end_date(nil, %Date{}), do: DateTime.to_date(DateTime.utc_now())
+  defp resolve_end_date(nil, %DateTime{}), do: DateTime.utc_now()
+
+  defp resolve_end_date(%Date{} = end_date, %DateTime{} = match_to) do
+    DateTime.new(end_date, ~T[00:00:00], match_to.time_zone)
+  end
+
+  defp resolve_end_date(%DateTime{} = end_date, %Date{}), do: DateTime.to_date(end_date)
 
   defp shift_opts(:daily, nil), do: [days: 1]
   defp shift_opts(:daily, interval), do: [days: interval]
