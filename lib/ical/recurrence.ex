@@ -102,9 +102,9 @@ defmodule ICal.Recurrence do
 
   ## Examples
 
-      iex> dt = Timex.Date.from({2016,8,13})
-      iex> dt_end = Timex.Date.from({2016, 8, 23})
-      iex> event = %ICal.Event{rrule:%{frequency: :daily}, dtstart: dt, dtend: dt}
+      iex> dt = Timex.to_date({2016,8,13})
+      iex> dt_end = Timex.to_date({2016, 8, 23})
+      iex> event = %ICal.Event{rrule: %ICal.Recurrence{frequency: :daily}, dtstart: dt, dtend: dt}
       iex> recurrences =
             ICal.Recurrence.get_recurrences(event)
             |> Enum.to_list()
