@@ -39,7 +39,7 @@ defmodule ICal.Recurrence do
           by_second: [non_neg_integer],
           by_minute: [non_neg_integer],
           by_hour: [non_neg_integer],
-          by_day: [non_neg_integer],
+          by_day: [{offset :: integer, byday :: weekdays}],
           by_month_day: [non_neg_integer],
           by_year_day: [non_neg_integer],
           by_month: [non_neg_integer],
@@ -266,22 +266,31 @@ defmodule ICal.Recurrence do
     |> List.flatten()
   end
 
-  @day_values %{
-    sunday: 0,
-    monday: 1,
-    tuesday: 2,
-    wednesday: 3,
-    thursday: 4,
-    friday: 5,
-    saturday: 6
-  }
-
   defp build_reference_events_by_x_rule(event, _by_x, nil), do: [event]
 
+  # TODO: support offsets in the form 1TU or -3FR
   defp build_reference_events_by_x_rule(event, :by_day, entries) do
-    Enum.map(entries, fn by_day ->
+    day_values = %{
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+      sunday: 7
+    }
+
+    entries
+    |> Enum.sort(fn {loffset, lday}, {roffset, rday} ->
+      if loffset == roffset do
+        Map.get(day_values, lday) <= Map.get(day_values, rday)
+      else
+        loffset <= roffset
+      end
+    end)
+    |> Enum.map(fn {_offset, by_day} ->
       # determine the difference between the by_day and the event's dtstart
-      day_offset_for_reference = Map.get(@day_values, by_day) - Timex.weekday(event.dtstart)
+      day_offset_for_reference = Map.get(day_values, by_day) - Timex.weekday(event.dtstart)
 
       %{
         event
