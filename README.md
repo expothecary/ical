@@ -13,7 +13,7 @@ A library for reading and writing iCalendar data.
 Curerently only events are supported. Alarms, todo's, journals, and free/busy are planned for future
 releases.
 
-### Usage
+## Usage
 
 Full documentation can be found on [Hexdocs](https://hexdocs.pm/ical).
 
@@ -33,7 +33,7 @@ ics_iodata = ICal.to_ics(calendar)
 Recurrences may be calculated from a calendar component up to a given future date:
 
 ```elixir
-  reccurences = 
+  reccurences =
     event
     |> ICalendar.Recurrence.get_recurrences(~U[2027-01-01 00:00:00Z])
     |> Enum.take(4)
@@ -43,12 +43,15 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
 
 ## Goals
 
-* support the iCalendar (and its related) RFCs for standards-compliance
-* handle real-world data (such as produced by other clients) gracefully, and
+* corrrect: support the iCalendar (and its related) RFCs for standards-compliance
+* useful: handle real-world data (such as produced by other clients) gracefully, and
   not lose data while parsing, even if not used by this library
-* be performant in parsing and serializing
-* be well-documented
-* be well-tested (beyond just code coverage)
+* good DevExp
+  * parsed results should be easy to use, even if iCalednar is a complex format
+  * typed structs and clear APIs
+  * good doucmentation
+* resource friendly: be performant in parsing and serializing
+* reliable: be well-tested, beyond just code coverage
 
 ## Installation
 
