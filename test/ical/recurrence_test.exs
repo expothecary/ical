@@ -46,7 +46,7 @@ defmodule ICal.RecurrenceTest do
       |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
-          ICal.Recurrence.get_recurrences(event)
+          ICal.Recurrence.stream(event)
           |> Enum.to_list()
 
         [event | recurrences]
@@ -80,7 +80,7 @@ defmodule ICal.RecurrenceTest do
       |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
-          ICal.Recurrence.get_recurrences(event)
+          ICal.Recurrence.stream(event)
           |> Enum.to_list()
 
         [event | recurrences]
@@ -102,7 +102,7 @@ defmodule ICal.RecurrenceTest do
       |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
-          ICal.Recurrence.get_recurrences(event)
+          ICal.Recurrence.stream(event)
           |> Enum.to_list()
 
         [event | recurrences]
@@ -134,7 +134,7 @@ defmodule ICal.RecurrenceTest do
       |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
-          ICal.Recurrence.get_recurrences(event)
+          ICal.Recurrence.stream(event)
           |> Enum.to_list()
 
         [event | recurrences]
@@ -164,7 +164,7 @@ defmodule ICal.RecurrenceTest do
       |> Map.get(:events)
       |> Enum.map(fn event ->
         recurrences =
-          ICal.Recurrence.get_recurrences(event)
+          ICal.Recurrence.stream(event)
           |> Enum.to_list()
 
         [event | recurrences]

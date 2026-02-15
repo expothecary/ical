@@ -108,11 +108,11 @@ defmodule ICal.Recurrence do
       iex> recurrences =
             ICal.Recurrence.get_recurrences(event)
             |> Enum.to_list()
-
   """
-  @spec get_recurrences(%Event{}) :: %Stream{}
-  @spec get_recurrences(%Event{}, %Date{} | %DateTime{}) :: %Stream{}
-  def get_recurrences(event, end_date \\ nil) do
+
+  @spec stream(%Event{}) :: %Stream{}
+  @spec stream(%Event{}, %Date{} | %DateTime{}) :: %Stream{}
+  def stream(event, end_date \\ nil) do
     create_recurrence_stream(event, end_date, ICal.Deserialize.Recurrence.from_event(event))
   end
 
