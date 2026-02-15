@@ -412,4 +412,35 @@ defmodule ICal.Test.Fixtures do
       ]
     }
   end
+
+  def recurrence_event do
+    %ICal{
+      version: "2.0",
+      events: [
+        %ICal.Event{
+          uid: "1",
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+          dtend: Timex.to_datetime({{2015, 12, 24}, {12, 45, 00}}),
+          created: Timex.to_datetime({{2015, 11, 24}, {8, 45, 00}}),
+          rrule: %ICal.Recurrence{
+            until: Timex.to_datetime({{2019, 11, 24}, {8, 45, 00}}),
+            count: 3,
+            by_second: [1],
+            by_minute: [2],
+            by_hour: [3],
+            by_day: [{0, :wednesday}, {1, :friday}, {-2, :saturday}],
+            by_month_day: [6],
+            by_year_day: [7, 8, 9],
+            by_month: [10],
+            by_set_position: [20],
+            by_week_number: [-1],
+            weekday: :monday,
+            frequency: :daily,
+            interval: 1
+          }
+        }
+      ],
+      default_timezone: "Etc/UTC"
+    }
+  end
 end

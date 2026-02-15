@@ -126,16 +126,8 @@ defmodule ICal.Serialize.Event do
     [to_date_kv("RECURRENCE-ID", value) | acc]
   end
 
-  defp to_ics({:rrule, rrules}, acc) when is_map(rrules) do
-    # FREQ rule part MUST be the first rule part specified in a RECUR value.
-    frequency = Map.get(rrules, :freq, "DAILY")
-
-    other_rrules =
-      rrules
-      |> Map.delete(:freq)
-      |> Enum.map(&to_rrule_entry/1)
-
-    ["RRULE:FREQ=", frequency, other_rrules, ?\n | acc]
+  defp to_ics({:rrule, rrules}, acc) do
+    Serialize.Recurrence.to_ics(rrules, acc)
   end
 
   defp to_ics({:status, value}, acc) do
@@ -213,17 +205,4 @@ defmodule ICal.Serialize.Event do
     ["ATTACH", params, value_with_extra_params, ?\n]
   end
 
-  defp to_rrule_entry({key, _} = rrule) do
-    [?;, Serialize.atom_to_value(key), "=", rrule_value(rrule)]
-  end
-
-  defp rrule_value({:until, value}), do: Serialize.to_ics(value)
-
-  defp rrule_value({_key, values}) when is_list(values) do
-    values
-    |> Enum.map(&Serialize.to_ics/1)
-    |> Enum.intersperse(",")
-  end
-
-  defp rrule_value({_key, value}), do: Serialize.to_ics(value)
 end

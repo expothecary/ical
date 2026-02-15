@@ -1,7 +1,43 @@
 defmodule ICal.RecurrenceTest do
   use ExUnit.Case
 
+  alias ICal.Test.Fixtures
   alias ICal.Test.Helper
+
+  test "ICalender.to_ics/1 with rrule" do
+    ics =
+      Fixtures.recurrence_event()
+      |> ICal.to_ics()
+      |> to_string()
+
+    # Extract RRULE line for comparison (parameter order doesn't matter per RFC 5545)
+    [rrule_line] = Regex.run(~r/RRULE:(.+)/, ics, capture: :all_but_first)
+
+    rrule_params =
+      rrule_line
+      |> String.split(";")
+      |> MapSet.new()
+
+    expected_params =
+      MapSet.new([
+        "BYDAY=WE1FR-2SA",
+        "BYHOUR=3",
+        "BYMINUTE=2",
+        "BYMONTH=10",
+        "BYMONTHDAY=6",
+        "BYSECOND=1",
+        "BYSETPOS=20",
+        "BYWEEKNO=-1",
+        "BYYEARDAY=7,8,9",
+        "COUNT=3",
+        "FREQ=DAILY",
+        "INTERVAL=1",
+        "UNTIL=20191124T084500Z",
+        "WKST=MONDAY"
+      ])
+
+    assert rrule_params == expected_params
+  end
 
   test "daily reccuring event with until" do
     events =

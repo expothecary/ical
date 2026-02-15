@@ -181,45 +181,6 @@ defmodule ICalTest do
            """
   end
 
-  test "ICalender.to_ics/1 with rrule" do
-    events = [
-      %ICal.Event{
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
-        rrule: %{
-          byday: ["TH", "WE"],
-          freq: "WEEKLY",
-          bysetpos: [-1],
-          interval: -2,
-          until: ~U[2020-12-04 04:59:59Z]
-        }
-      }
-    ]
-
-    ics =
-      %ICal{events: events}
-      |> ICal.to_ics()
-      |> to_string()
-
-    # Extract RRULE line for comparison (parameter order doesn't matter per RFC 5545)
-    [rrule_line] = Regex.run(~r/RRULE:(.+)/, ics, capture: :all_but_first)
-
-    rrule_params =
-      rrule_line
-      |> String.split(";")
-      |> MapSet.new()
-
-    expected_params =
-      MapSet.new([
-        "FREQ=WEEKLY",
-        "BYDAY=TH,WE",
-        "BYSETPOS=-1",
-        "INTERVAL=-2",
-        "UNTIL=20201204T045959Z"
-      ])
-
-    assert rrule_params == expected_params
-  end
-
   test "ICalender.to_ics/1 with exdates" do
     events = [
       %ICal.Event{

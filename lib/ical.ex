@@ -4,7 +4,7 @@ defmodule ICal do
   iCalendar data, as well as integration with Plug and Phoenix.
   """
 
-  defstruct product_id: "-//Elixir ICal//v1.0.0//EN",
+  defstruct product_id: "-//Elixir ICal//v0.1.0//EN",
             scale: "GREGORIAN",
             method: nil,
             version: "2.0",
