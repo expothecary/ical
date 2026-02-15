@@ -48,7 +48,7 @@ defmodule ICal.Deserialize.Recurrence do
   end
 
   defp add_to_recurrence({"WKST", value}, recurrence) do
-    case to_week_day(value) do
+    case to_weekday(value) do
       :error -> recurrence
       {weekday_atom, _} -> %{recurrence | weekday: weekday_atom}
     end
@@ -56,6 +56,10 @@ defmodule ICal.Deserialize.Recurrence do
 
   defp add_to_recurrence(_, recurrence), do: recurrence
 
+  # all of these keywords start with "BY", so we look for that first
+  # and then parse into which one it is. these all map to bounded
+  # sets of numbres, except BYDAY which is extra complicated.
+  # see to_weekdays for more on that.
   defp add_by_list_to_recurrence("SECOND", value, recurrence) do
     number_list = to_clamped_numbers(value, 0, 59)
     %{recurrence | by_second: number_list}
@@ -72,7 +76,7 @@ defmodule ICal.Deserialize.Recurrence do
   end
 
   defp add_by_list_to_recurrence("DAY", value, recurrence) do
-    number_list = to_week_days(value)
+    number_list = to_weekdays(value)
     %{recurrence | by_day: number_list}
   end
 
@@ -108,6 +112,9 @@ defmodule ICal.Deserialize.Recurrence do
     end
   end
 
+  # this processes a string with comma-separated numbers, tries parsing them
+  # to integers, and constrains them to a range. optionally, don't include zeros.
+  # yes, iCalendar is a nutso standard in which {[-366,1],[1,366]} is "sensible"
   defp to_clamped_numbers(string, min, max) do
     to_clamped_numbers(string, min, max, min >= 0, "", [])
   end
@@ -139,54 +146,73 @@ defmodule ICal.Deserialize.Recurrence do
     to_clamped_numbers(string, min, max, zeros?, <<value::binary, c>>, acc)
   end
 
-  defp to_week_days(string), do: to_week_days(string, [])
-  defp to_week_days(<<>>, acc), do: acc
-  defp to_week_days(<<?,, string::binary>>, acc), do: to_week_days(string, acc)
-  defp to_week_days(<<?+, string::binary>>, acc), do: to_offset_week_days(string, <<>>, acc)
-  defp to_week_days(<<?-, string::binary>>, acc), do: to_offset_week_days(string, <<?->>, acc)
+  # Weekdays are two-letter abbreviations for the 7 English days of the week
+  # optionally preceded by #, +#, or -# which indicates that they are the Nth of that
+  # day, e.g. -1MO in a month recurrance would mean the last Monday of the month.
+  # Yes, it's insane, but so is everything about iCalendar.
+  defp to_weekdays(string), do: to_weekdays(string, [])
 
-  defp to_week_days(<<n, string::binary>>, acc) when n >= ?0 and n <= ?9 do
-    to_offset_week_days(string, <<n>>, acc)
+  # as usual, check for end of string before we get started
+  defp to_weekdays(<<>>, acc), do: acc
+
+  # commas are always separators, so we reset when we find one
+  defp to_weekdays(<<?,, string::binary>>, acc), do: to_weekdays(string, acc)
+
+  # here we check for the optional +/-# and if we find one we parse for an offset weekday
+  defp to_weekdays(<<?+, string::binary>>, acc), do: to_offset_weekdays(string, <<>>, acc)
+  defp to_weekdays(<<?-, string::binary>>, acc), do: to_offset_weekdays(string, <<?->>, acc)
+
+  defp to_weekdays(<<n, string::binary>>, acc) when n >= ?0 and n <= ?9 do
+    to_offset_weekdays(string, <<n>>, acc)
   end
 
-  defp to_week_days(string, acc) do
-    to_week_day_with_offset(string, 0, acc)
+  # no offset, so just send it in with a 0 for the offset, which the user will ignore
+  # in a {0, someweekday} tuple
+  defp to_weekdays(string, acc) do
+    to_weekday_with_offset(string, nil, acc)
   end
 
-  defp skip_to_comma(<<>>), do: <<>>
-  defp skip_to_comma(<<?,, string::binary>>), do: string
-  defp skip_to_comma(<<_::utf8, string::binary>>), do: skip_to_comma(string)
-
-  defp to_offset_week_days(<<n::utf8, string::binary>>, offset, acc) when n >= ?0 and n <= ?9 do
-    to_offset_week_days(string, <<offset::binary, n::utf8>>, acc)
+  # doing an entry with an offset, and we have more numbers,  so keep going
+  defp to_offset_weekdays(<<n::utf8, string::binary>>, offset, acc) when n >= ?0 and n <= ?9 do
+    to_offset_weekdays(string, <<offset::binary, n::utf8>>, acc)
   end
 
-  defp to_offset_week_days(string, offset, acc) do
+  # done with nubmers? parse our number and then get the weekday
+  defp to_offset_weekdays(string, offset, acc) do
     offset =
       case Integer.parse(offset) do
         {number, ""} -> number
         _ -> 0
       end
 
-    to_week_day_with_offset(string, offset, acc)
+    to_weekday_with_offset(string, offset, acc)
   end
 
-  defp to_week_day_with_offset(string, offset, acc) do
-    case to_week_day(string) do
-      {weekday, string} -> to_week_days(string, acc ++ [{offset, weekday}])
-      :error -> to_week_days(skip_to_comma(string), acc)
+  # here we try to map the weekday string to a valid value. if it works, we have  {#, atom} tuple
+  # otherwise, drop this value as it is broken, and move on to the next parse
+  defp to_weekday_with_offset(string, offset, acc) do
+    case to_weekday(string) do
+      {weekday, string} -> to_weekdays(string, acc ++ [{offset, weekday}])
+      :error -> to_weekdays(skip_to_comma(string), acc)
     end
   end
 
-  defp to_week_day(<<"SU", rest::binary>>), do: {:sunday, rest}
-  defp to_week_day(<<"MO", rest::binary>>), do: {:monday, rest}
-  defp to_week_day(<<"TU", rest::binary>>), do: {:tuesday, rest}
-  defp to_week_day(<<"WE", rest::binary>>), do: {:wednesday, rest}
-  defp to_week_day(<<"TH", rest::binary>>), do: {:thursday, rest}
-  defp to_week_day(<<"FR", rest::binary>>), do: {:friday, rest}
-  defp to_week_day(<<"SA", rest::binary>>), do: {:saturday, rest}
-  defp to_week_day(_), do: :error
+  # motor on through to the comma
+  defp skip_to_comma(<<>>), do: <<>>
+  defp skip_to_comma(<<?,, string::binary>>), do: string
+  defp skip_to_comma(<<_::utf8, string::binary>>), do: skip_to_comma(string)
 
+  # map the two-letter abbreviations to atoms
+  defp to_weekday(<<"SU", rest::binary>>), do: {:sunday, rest}
+  defp to_weekday(<<"MO", rest::binary>>), do: {:monday, rest}
+  defp to_weekday(<<"TU", rest::binary>>), do: {:tuesday, rest}
+  defp to_weekday(<<"WE", rest::binary>>), do: {:wednesday, rest}
+  defp to_weekday(<<"TH", rest::binary>>), do: {:thursday, rest}
+  defp to_weekday(<<"FR", rest::binary>>), do: {:friday, rest}
+  defp to_weekday(<<"SA", rest::binary>>), do: {:saturday, rest}
+  defp to_weekday(_), do: :error
+
+  # map the frequency strings to atoms, or error out
   @spec to_frequency_atom(String.t()) :: {:ok, ICal.Recurrence.frequency()} | :error
   defp to_frequency_atom("DAILY"), do: {:ok, :daily}
   defp to_frequency_atom("WEEKLY"), do: {:ok, :weekly}
