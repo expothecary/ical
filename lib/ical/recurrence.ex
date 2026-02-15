@@ -268,7 +268,6 @@ defmodule ICal.Recurrence do
 
   defp build_reference_events_by_x_rule(event, _by_x, nil), do: [event]
 
-  # TODO: support offsets in the form 1TU or -3FR
   defp build_reference_events_by_x_rule(event, :by_day, entries) do
     day_values = %{
       monday: 1,
@@ -289,6 +288,7 @@ defmodule ICal.Recurrence do
       end
     end)
     |> Enum.map(fn {_offset, by_day} ->
+      # TODO: support offsets other than the trivial case of 0
       # determine the difference between the by_day and the event's dtstart
       day_offset_for_reference = Map.get(day_values, by_day) - Timex.weekday(event.dtstart)
 
