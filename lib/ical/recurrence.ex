@@ -6,14 +6,50 @@ defmodule ICal.Recurrence do
 
   Events can recur by frequency, count, interval, and/or start/end date. To
   see the specific rules and examples, see `add_recurring_events/2` below.
-
-  Credit to @fazibear for this module.
   """
+
+  require Logger
 
   alias ICal.Event
 
+  defstruct [
+    :until,
+    :count,
+    :by_second,
+    :by_minute,
+    :by_hour,
+    :by_day,
+    :by_month_day,
+    :by_year_day,
+    :by_month,
+    :by_set_position,
+    :by_week_number,
+    :weekday,
+    frequency: :daily,
+    interval: 1
+  ]
+
+  @type frequency :: :secondly | :minutely | :hourly | :daily | :weekly | :monthly | :yearly
+  @type weekdays :: :monday | :tuesday | :wednesday | :thursday | :friday | :saturday | :sunday
+  @type t :: %__MODULE__{
+          frequency: frequency,
+          until: DateTime.t() | nil,
+          count: integer,
+          interval: integer,
+          by_second: [non_neg_integer],
+          by_minute: [non_neg_integer],
+          by_hour: [non_neg_integer],
+          by_day: [non_neg_integer],
+          by_month_day: [non_neg_integer],
+          by_year_day: [non_neg_integer],
+          by_month: [non_neg_integer],
+          by_week_number: [non_neg_integer],
+          by_set_position: [non_neg_integer],
+          weekday: weekdays
+        }
+
   # ignore :byhour, :monthday, :byyearday, :byweekno, :bymonth for now
-  @supported_by_x_rrules [:byday]
+  @supported_by_x_rrules [:by_day]
 
   @doc """
   Given an event, return a stream of recurrences for that event.
@@ -50,7 +86,7 @@ defmodule ICal.Recurrence do
     - `until` *(optional)*: Represents the end date for a recurring event.
       This takes precedence over the `end_date` parameter.
 
-    - `byday` *(optional)*: Represents the days of the week at which events occur.
+    - `by_day` *(optional)*: Represents the days of the week at which events occur.
 
     The `freq` option is required for a valid rrule, but the others are
     optional. They may be used either individually (ex. just `freq`) or in
@@ -68,7 +104,7 @@ defmodule ICal.Recurrence do
 
       iex> dt = Timex.Date.from({2016,8,13})
       iex> dt_end = Timex.Date.from({2016, 8, 23})
-      iex> event = %ICal.Event{rrule:%{freq: "DAILY"}, dtstart: dt, dtend: dt}
+      iex> event = %ICal.Event{rrule:%{frequency: :daily}, dtstart: dt, dtend: dt}
       iex> recurrences =
             ICal.Recurrence.get_recurrences(event)
             |> Enum.to_list()
@@ -77,94 +113,73 @@ defmodule ICal.Recurrence do
   @spec get_recurrences(%Event{}) :: %Stream{}
   @spec get_recurrences(%Event{}, %DateTime{}) :: %Stream{}
   def get_recurrences(event, end_date \\ DateTime.utc_now()) do
-    by_x_rrules =
-      if is_map(event.rrule), do: Map.take(event.rrule, @supported_by_x_rrules), else: %{}
+    get_recurrences(event, end_date, ICal.Deserialize.Recurrence.from_event(event))
+  end
+
+  def get_recurrences(_event, _end_date, nil), do: Stream.map([nil], fn _ -> [] end)
+
+  def get_recurrences(event, end_date, rule) do
+    by_x_rrules = Map.take(Map.from_struct(rule), @supported_by_x_rrules)
 
     reference_events =
-      if not Enum.empty?(by_x_rrules) do
-        # If there are any by_x modifiers in the rrule, build reference events based on them
-        # Remove the invalid reference events later on
-        build_reference_events_by_x_rules(event, by_x_rrules)
-      else
+      if Enum.empty?(by_x_rrules) do
         [event]
+      else
+        # There supported by_x modifiers in the rrule, build reference events based on them
+        # The invalid reference events are removed later
+        build_reference_events_by_x_rules(event, by_x_rrules)
       end
 
-    case event.rrule do
-      nil ->
-        Stream.map([nil], fn _ -> [] end)
+    case rule do
+      %{frequency: :daily, count: count, interval: interval} when count != nil ->
+        add_recurring_events_count(event, reference_events, count, days: interval || 1)
 
-      %{freq: "DAILY", count: count, interval: interval} ->
-        add_recurring_events_count(event, reference_events, count, days: interval)
+      %{frequency: :daily, until: until, interval: interval} when until != nil ->
+        add_recurring_events_until(event, reference_events, until, days: interval || 1)
 
-      %{freq: "DAILY", until: until, interval: interval} ->
-        add_recurring_events_until(event, reference_events, until, days: interval)
+      %{frequency: :daily, interval: interval} ->
+        add_recurring_events_until(event, reference_events, end_date, days: interval || 1)
 
-      %{freq: "DAILY", count: count} ->
-        add_recurring_events_count(event, reference_events, count, days: 1)
+      %{frequency: :weekly, until: until, interval: interval} when until != nil ->
+        add_recurring_events_until(event, reference_events, until, days: (interval || 1) * 7)
 
-      %{freq: "DAILY", until: until} ->
-        add_recurring_events_until(event, reference_events, until, days: 1)
-
-      %{freq: "DAILY", interval: interval} ->
-        add_recurring_events_until(event, reference_events, end_date, days: interval)
-
-      %{freq: "DAILY"} ->
-        add_recurring_events_until(event, reference_events, end_date, days: 1)
-
-      %{freq: "WEEKLY", until: until, interval: interval} ->
-        add_recurring_events_until(event, reference_events, until, days: interval * 7)
-
-      %{freq: "WEEKLY", count: count} ->
+      %{frequency: :weekly, count: count} when count != nil ->
         add_recurring_events_count(event, reference_events, count, days: 7)
 
-      %{freq: "WEEKLY", until: until} ->
-        add_recurring_events_until(event, reference_events, until, days: 7)
+      %{frequency: :weekly, interval: interval} ->
+        add_recurring_events_until(event, reference_events, end_date, days: (interval || 1) * 7)
 
-      %{freq: "WEEKLY", interval: interval} ->
-        add_recurring_events_until(event, reference_events, end_date, days: interval * 7)
+      %{frequency: :monthly, count: count, interval: interval} when count != nil ->
+        add_recurring_events_count(event, reference_events, count, months: interval || 1)
 
-      %{freq: "WEEKLY"} ->
-        add_recurring_events_until(event, reference_events, end_date, days: 7)
+      %{frequency: :monthly, until: until, interval: interval} when until != nil ->
+        add_recurring_events_until(event, reference_events, until, months: interval || 1)
 
-      %{freq: "MONTHLY", count: count, interval: interval} ->
-        add_recurring_events_count(event, reference_events, count, months: interval)
-
-      %{freq: "MONTHLY", until: until, interval: interval} ->
-        add_recurring_events_until(event, reference_events, until, months: interval)
-
-      %{freq: "MONTHLY", count: count} ->
-        add_recurring_events_count(event, reference_events, count, months: 1)
-
-      %{freq: "MONTHLY", until: until} ->
-        add_recurring_events_until(event, reference_events, until, months: 1)
-
-      %{freq: "MONTHLY", interval: interval} ->
+      %{frequency: :monthly, interval: interval} ->
         add_recurring_events_until(event, reference_events, end_date, months: interval)
 
-      %{freq: "MONTHLY"} ->
+      %{frequency: :monthly} ->
         add_recurring_events_until(event, reference_events, end_date, months: 1)
 
-      %{freq: "YEARLY", count: count, interval: interval} ->
-        add_recurring_events_count(event, reference_events, count, years: interval)
+      %{frequency: :yearly, count: count, interval: interval} when count != nil ->
+        add_recurring_events_count(event, reference_events, count, years: interval || 1)
 
-      %{freq: "YEARLY", until: until, interval: interval} ->
-        add_recurring_events_until(event, reference_events, until, years: interval)
+      %{frequency: :yearly, until: until, interval: interval} when until != nil ->
+        add_recurring_events_until(event, reference_events, until, years: interval || 1)
 
-      %{freq: "YEARLY", count: count} ->
-        add_recurring_events_count(event, reference_events, count, years: 1)
-
-      %{freq: "YEARLY", until: until} ->
-        add_recurring_events_until(event, reference_events, until, years: 1)
-
-      %{freq: "YEARLY", interval: interval} ->
+      %{frequency: :yearly, interval: interval} when interval != nil ->
         add_recurring_events_until(event, reference_events, end_date, years: interval)
 
-      %{freq: "YEARLY"} ->
+      %{frequency: :yearly} ->
         add_recurring_events_until(event, reference_events, end_date, years: 1)
+
+      %{frequency: unsupported} ->
+        Logger.warning("Recurrence for frequency of #{unsupported} has not been implemented.")
+        Stream.map([nil], fn _ -> [] end)
     end
   end
 
-  defp add_recurring_events_until(original_event, reference_events, until, shift_opts) do
+  def add_recurring_events_until(original_event, reference_events, until, shift_opts) do
     Stream.resource(
       fn -> [reference_events] end,
       fn acc_events ->
@@ -196,7 +211,7 @@ defmodule ICal.Recurrence do
     )
   end
 
-  defp add_recurring_events_count(original_event, reference_events, count, shift_opts) do
+  def add_recurring_events_count(original_event, reference_events, count, shift_opts) do
     Stream.resource(
       fn -> {[reference_events], count} end,
       fn {acc_events, count} ->
@@ -230,7 +245,7 @@ defmodule ICal.Recurrence do
     )
   end
 
-  defp shift_event(event, shift_opts) do
+  def shift_event(event, shift_opts) do
     Map.merge(event, %{
       dtstart: shift_date(event.dtstart, shift_opts),
       dtend: shift_date(event.dtend, shift_opts),
@@ -238,7 +253,7 @@ defmodule ICal.Recurrence do
     })
   end
 
-  defp shift_date(date, shift_opts) do
+  def shift_date(date, shift_opts) do
     case Timex.shift(date, shift_opts) do
       %Timex.AmbiguousDateTime{} = new_date ->
         new_date.after
@@ -248,43 +263,45 @@ defmodule ICal.Recurrence do
     end
   end
 
-  defp build_reference_events_by_x_rules(event, by_x_rrules) do
+  def build_reference_events_by_x_rules(event, by_x_rrules) do
+    IO.inspect(by_x_rrules, label: "x rules are")
+
     by_x_rrules
-    |> Map.keys()
-    |> Enum.map(fn by_x ->
-      build_refernce_events_by_x_rule(event, by_x)
+    |> Enum.map(fn {by_x, entries} ->
+      build_reference_events_by_x_rule(event, by_x, entries)
     end)
     |> List.flatten()
   end
 
-  @valid_days ["SU", "MO", "TU", "WE", "TH", "FR", "SA"]
-  @day_values %{su: 0, mo: 1, tu: 2, we: 3, th: 4, fr: 5, sa: 6}
+  @day_values %{
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6
+  }
 
-  defp build_refernce_events_by_x_rule(
-         %{rrule: %{byday: bydays}} = event,
-         :byday
-       ) do
-    bydays
-    |> Enum.map(fn byday ->
-      if byday in @valid_days do
-        day_atom = byday |> String.downcase() |> String.to_existing_atom()
+  def build_reference_events_by_x_rule(event, _by_x, nil), do: [event]
 
-        # determine the difference between the byday and the event's dtstart
-        day_offset_for_reference = Map.get(@day_values, day_atom) - Timex.weekday(event.dtstart)
+  def build_reference_events_by_x_rule(event, :by_day, entries) do
+    IO.inspect(entries, label: "x rules are")
 
-        Map.merge(event, %{
-          dtstart: Timex.shift(event.dtstart, days: day_offset_for_reference),
+    Enum.map(entries, fn by_day ->
+      # determine the difference between the by_day and the event's dtstart
+      IO.inspect(Map.get(@day_values, by_day), label: "OFFET FOR #{by_day}")
+      day_offset_for_reference = Map.get(@day_values, by_day) - Timex.weekday(event.dtstart)
+
+      %{
+        event
+        | dtstart: Timex.shift(event.dtstart, days: day_offset_for_reference),
           dtend: Timex.shift(event.dtend, days: day_offset_for_reference)
-        })
-      else
-        # Ignore the invalid byday value
-        nil
-      end
+      }
     end)
-    |> Enum.filter(&(!is_nil(&1)))
   end
 
-  defp remove_excluded_dates(recurrences, original_event) do
+  def remove_excluded_dates(recurrences, original_event) do
     Enum.filter(recurrences, fn new_event ->
       # Make sure new event doesn't fall on an EXDATE
       falls_on_exdate = not is_nil(new_event) and new_event.dtstart in new_event.exdates

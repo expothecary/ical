@@ -63,7 +63,7 @@ defmodule ICal.Deserialize.Event do
 
   defp next(<<"CREATED", data::binary>>, calendar, event) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.multi_line(data)
+    {data, value} = Deserialize.rest_of_line(data)
     record_value(data, calendar, event, :created, Deserialize.to_date(value, params, calendar))
   end
 
@@ -179,8 +179,7 @@ defmodule ICal.Deserialize.Event do
     data = Deserialize.skip_params(data)
     {data, values} = Deserialize.param_list(data)
 
-    rrule = Enum.reduce(values, %{}, &to_rrule/2)
-
+    rrule = Deserialize.Recurrence.from_params(values)
     record_value(data, calendar, event, :rrule, rrule)
   end
 
@@ -216,7 +215,9 @@ defmodule ICal.Deserialize.Event do
 
   defp next(<<"UID", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
+
     {data, value} = Deserialize.multi_line(data)
+
     record_value(data, calendar, event, :uid, value)
   end
 
@@ -270,56 +271,6 @@ defmodule ICal.Deserialize.Event do
   defp to_status("CONFIRMED"), do: :confirmed
   defp to_status("CANCELLED"), do: :cancelled
   defp to_status(_), do: nil
-
-  defp to_rrule({str_key, raw_value}, acc) do
-    key =
-      str_key
-      |> String.downcase()
-      |> String.to_existing_atom()
-
-    value = rrule_value(key, raw_value)
-
-    Map.put(acc, key, value)
-  rescue
-    # due to atom not existing or a value parsing incorrectly
-    _ -> acc
-  end
-
-  defp rrule_value(key, value)
-       when key == :freq or
-              key == :wkst do
-    value
-  end
-
-  defp rrule_value(key, value) when key == :until do
-    Deserialize.to_date_in_timezone(value, "Etc/UTC")
-  end
-
-  defp rrule_value(key, value)
-       when key == :count or
-              key == :interval do
-    String.to_integer(value)
-  end
-
-  defp rrule_value(key, value)
-       when key == :bysecond or
-              key == :byminute or
-              key == :byhour or
-              key == :bymonthday or
-              key == :byday or
-              key == :byyearday or
-              key == :byweekno or
-              key == :bymonth do
-    String.split(value, ",")
-  end
-
-  defp rrule_value(:bysetpos, value) do
-    value
-    |> String.split(",")
-    |> Enum.map(&String.to_integer(&1))
-  end
-
-  defp rrule_value(_key, value), do: value
 
   defp to_rdate("DATE", params, value, calendar, acc) do
     case Deserialize.to_date(value, params, calendar) do
