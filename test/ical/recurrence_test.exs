@@ -140,12 +140,12 @@ defmodule ICal.RecurrenceTest do
     [event | events] = events
     assert event.dtstart == ~U[2020-09-03 14:30:00Z]
     [event | events] = events
-    assert event.dtstart == ~U[2020-10-01 14:30:00Z]
-    [event | events] = events
     assert event.dtstart == ~U[2020-09-30 14:30:00Z]
     [event | events] = events
-    assert event.dtstart == ~U[2020-10-15 14:30:00Z]
-    [event] = events
+    assert event.dtstart == ~U[2020-10-01 14:30:00Z]
+    [event | events] = events
     assert event.dtstart == ~U[2020-10-14 14:30:00Z]
+    [event] = events
+    assert event.dtstart == ~U[2020-10-15 14:30:00Z]
   end
 end
