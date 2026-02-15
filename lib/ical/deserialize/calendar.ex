@@ -20,7 +20,9 @@ defmodule ICal.Deserialize.Calendar do
   def next(<<?\n, data::binary>>, calendar), do: next(data, calendar)
 
   def next(<<"BEGIN:VEVENT", data::binary>>, calendar) do
-    ICal.Deserialize.Event.one(data, calendar)
+    {data, event} = ICal.Deserialize.Event.one(data, calendar)
+    calendar = %{calendar | events: calendar.events ++ [event]}
+    next(data, calendar)
   end
 
   def next(<<"BEGIN:VCALENDAR\n", data::binary>>, calendar) do

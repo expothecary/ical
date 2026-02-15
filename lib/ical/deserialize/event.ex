@@ -5,9 +5,7 @@ defmodule ICal.Deserialize.Event do
 
   @spec one(data :: binary, ICal.t()) :: ICal.t()
   def one(data, calendar) do
-    {data, event} = next(data, calendar, %ICal.Event{})
-    calendar = %{calendar | events: calendar.events ++ [event]}
-    ICal.Deserialize.Calendar.next(data, calendar)
+    next(data, calendar, %ICal.Event{})
   end
 
   defp next(<<>> = data, _calendar, event), do: {data, event}
