@@ -291,17 +291,15 @@ defmodule ICal.Recurrence do
     end)
   end
 
-  def remove_excluded_dates(recurrences, original_event) do
-    Enum.filter(recurrences, fn new_event ->
-      # Make sure new event doesn't fall on an EXDATE
-      falls_on_exdate = not is_nil(new_event) and new_event.dtstart in new_event.exdates
-
-      #  This removes any events which were created as references
-      is_invalid_reference_event =
-        DateTime.compare(new_event.dtstart, original_event.dtstart) == :lt
-
-      !falls_on_exdate &&
-        !is_invalid_reference_event
+  defp remove_excluded_dates(recurrences, original_event) do
+    Enum.filter(recurrences, fn event ->
+      # 1. The event doesn't fall on an EXDATE
+      # 2. The event is not before the original event (created as a reference)
+      event.dtstart not in event.exdates &&
+        compare_dates(event.dtstart, original_event.dtstart) != :lt
     end)
   end
+
+  defp compare_dates(%Date{} = l, r), do: Date.compare(l, r)
+  defp compare_dates(%DateTime{} = l, r), do: Date.compare(l, r)
 end
