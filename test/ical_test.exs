@@ -412,17 +412,23 @@ defmodule ICalTest do
       |> ICal.to_ics()
       |> Helper.extract_event_props()
 
-    expected = """
-    BEGIN:VEVENT
-    ATTENDEE;MEMBER="mailto:projectA@example.com","mailto:projectB@example.com";ROLE=CHAIR;DELEGATED-TO="mailto:jdoe@example.com","mailto:jqpublic@example.com":mailto:janedoe@example.com
-    ATTENDEE;RSVP=TRUE;DELEGATED-FROM="mailto:jsmith@example.com":mailto:jdoe@example.com
-    ATTENDEE;LANGUAGE=de-ch;CUTYPE=GROUP;PARTSTAT=ACCEPTED;SENT-BY="mailto:sray@example.com";CN="John Smith";DIR="ldap://example.com:6666/o=ABC%20Industries,c=US???(cn=Jim%20Dolittle)":mailto:ietf-calsch@example.org
-    DESCRIPTION:An event with attendees
-    DTSTAMP:20151224T080000Z
-    UID:01
-    END:VEVENT
-    """
+    assert ics == Helper.test_data("attendees_serialized")
+  end
 
-    assert ics == expected
+  test "Unrecognized properties are kept" do
+    ics = Helper.test_data("unrecognized_component")
+    calendar = ICal.from_ics(ics)
+
+    expected = [
+      "BEGIN:CUSTOM\n",
+      {"KEY", %{"PARAM" => "param_value"}, "Value for KEY"},
+      {"KEY2", %{"PARAM" => "param_value"}, "Value for KEY2"},
+      "END:CUSTOM\n"
+    ]
+
+    assert calendar.__other_components == [expected]
+
+    serialized = ICal.to_ics(calendar) |> to_string()
+    assert serialized == ics
   end
 end

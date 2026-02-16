@@ -11,7 +11,8 @@ defmodule ICal do
             events: [],
             default_timezone: "Etc/UTC",
             name: nil,
-            custom_properties: %{}
+            custom_properties: %{},
+            __other_components: []
 
   @type custom_value :: %{params: map, value: String.t()}
   @type custom_properties :: %{String.t() => custom_value()}

@@ -29,6 +29,15 @@ defmodule ICal.Deserialize.Calendar do
     next(data, calendar)
   end
 
+  def next(<<"BEGIN:", data::binary>>, calendar) do
+    {data, value} = Deserialize.rest_of_line(data)
+
+    {data, component} =
+      Deserialize.gather_unrecognized_component(data, "END:#{value}\n", ["BEGIN:#{value}\n"])
+
+    next(data, %{calendar | __other_components: calendar.__other_components ++ [component]})
+  end
+
   def next(<<"PRODID:", data::binary>>, calendar) do
     {data, value} = Deserialize.rest_of_line(data)
     next(data, %{calendar | product_id: value})

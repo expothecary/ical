@@ -72,6 +72,20 @@ defmodule ICal.Serialize do
     )
   end
 
+  def components_to_ics(components) do
+    components
+    |> Enum.map(fn component ->
+      Enum.map(component, fn
+        {key, params, value} ->
+          param_ics = Enum.map(params, fn {key, value} -> [?;, key, ?=, to_ics(value)] end)
+          [key, param_ics, ?:, value, ?\n]
+
+        line ->
+          line
+      end)
+    end)
+  end
+
   def escaped_quotes(x) do
     String.replace(x, ~S|"|, ~S|\"|)
   end

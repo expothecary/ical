@@ -10,7 +10,22 @@ end
 
 defmodule ICal.Deserialize do
   @moduledoc false
+  # this module contains a small library of functions shared between
+  # different modules that do parsing
   import __MODULE__.Macros
+
+  def gather_unrecognized_component(data, end_tag, acc) do
+    if String.starts_with?(data, end_tag) do
+      length = byte_size(end_tag)
+      <<_::binary-size(length), rest::binary>> = data
+      {rest, acc ++ [end_tag]}
+    else
+      {data, key} = rest_of_key(data, "")
+      {data, params} = params(data)
+      {data, value} = rest_of_line(data)
+      gather_unrecognized_component(data, end_tag, acc ++ [{key, params, value}])
+    end
+  end
 
   # this fetch the rest of a key, e.g. from some part near the start
   # of a line to the first ; (signalling params) or : (signaling value)
