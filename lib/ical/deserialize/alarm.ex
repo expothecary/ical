@@ -124,8 +124,12 @@ defmodule ICal.Deserialize.Alarm do
     {data, alarm}
   end
 
+  defp populate_action(_props, %{action: %Alarm.Custom{type: nil}}) do
+    nil
+  end
+
   defp populate_action(props, %{action: %Alarm.Custom{}} = alarm) do
-    %{alarm | custom_props: Map.merge(alarm.custom_props, props)}
+    %{alarm | custom_properties: Map.merge(alarm.custom_properties, props)}
   end
 
   defp populate_action(props, %{action: action} = alarm) do

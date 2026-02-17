@@ -434,7 +434,12 @@ defmodule ICalTest do
 
   test "Deserializing an event with alarms" do
     ics = Helper.test_data("event_with_alarms")
-    %ICal{events: [event]} = ICal.from_ics(ics)
+    %ICal{events: [event]} = calendar = ICal.from_ics(ics)
+
+    assert Enum.count(calendar.events) == 1
+
+    assert %ICal.Alarm.Custom{type: "SomethingUnique"} ==
+             Map.get(Enum.at(calendar.alarms, 0), :action)
 
     assert Enum.count(event.alarms) == 3
 

@@ -9,6 +9,7 @@ defmodule ICal do
             method: nil,
             version: "2.0",
             events: [],
+            alarms: [],
             default_timezone: "Etc/UTC",
             name: nil,
             custom_properties: %{},
@@ -28,6 +29,7 @@ defmodule ICal do
           version: String.t(),
           scale: String.t(),
           events: [ICal.Event.t()],
+          alarms: [ICal.Alarm.t()],
           default_timezone: String.t(),
           name: String.t() | nil,
           custom_properties: custom_properties

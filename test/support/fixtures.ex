@@ -457,7 +457,7 @@ defmodule ICal.Test.Fixtures do
         duration: %ICal.Duration{days: 0, positive: true, time: {0, 15, 0}, weeks: 0},
         repeat: 0
       },
-      custom_properties: [],
+      custom_properties: %{},
       trigger: %ICal.Alarm.Trigger{
         relative_to: nil,
         repeat: 4,
@@ -472,7 +472,7 @@ defmodule ICal.Test.Fixtures do
         description: "Breakfast meeting with executive\nteam at 8:30 AM EST.",
         duration: %ICal.Duration{days: 0, positive: true, time: {0, 15, 0}, weeks: 0}
       },
-      custom_properties: [],
+      custom_properties: %{},
       trigger: %ICal.Alarm.Trigger{
         relative_to: nil,
         repeat: 2,
@@ -511,7 +511,7 @@ defmodule ICal.Test.Fixtures do
           "A draft agenda needs to be sent out to the attendees to the weekly managers meeting (MGR-LIST). Attached is a pointer the document template for the agenda file.",
         summary: "*** REMINDER: SEND AGENDA FOR WEEKLY STAFF MEETING ***"
       },
-      custom_properties: [],
+      custom_properties: %{},
       trigger: %ICal.Alarm.Trigger{
         on: %ICal.Duration{
           days: 2,

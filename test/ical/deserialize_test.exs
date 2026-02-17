@@ -288,5 +288,10 @@ defmodule ICal.DeserializeTest do
       ics = Helper.test_data("contacts")
       assert ICal.from_ics(ics) == Fixtures.contacts()
     end
+
+    test "to_timezone/2 respects default values" do
+      assert "Foo/Bar" == ICal.Deserialize.to_timezone(nil, "Foo/Bar")
+      assert "Etc/UTC" == ICal.Deserialize.to_timezone(nil)
+    end
   end
 end

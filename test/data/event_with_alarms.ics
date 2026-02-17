@@ -27,5 +27,12 @@ DESCRIPTION:A draft agenda needs to be sent out to the attendees
   pointer the document template for the agenda file.
 ATTACH;FMTTYPE=application/msword:http://example.com/
  templates/agenda.doc
+
+END:VALARM
+BEGIN:VALARM
 END:VALARM
 END:VEVENT
+BEGIN:VALARM
+ACTION:SomethingUnique
+END:VALARM
+BEGIN:VALARM
