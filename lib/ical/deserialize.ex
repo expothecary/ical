@@ -14,6 +14,29 @@ defmodule ICal.Deserialize do
   # different modules that do parsing
   import __MODULE__.Macros
 
+  def attachment(data) do
+    {data, params} = params(data)
+    {data, value} = multi_line(data)
+
+    attachment =
+      case params do
+        %{"ENCODING" => "BASE64", "VALUE" => "BINARY"} ->
+          %ICal.Attachment{data_type: :base64, data: value}
+
+        %{"ENCODING" => "8BIT", "VALUE" => "BINARY"} ->
+          %ICal.Attachment{data_type: :base8, data: value}
+
+        _params ->
+          case value do
+            <<"CID:", cid::binary>> -> %ICal.Attachment{data_type: :cid, data: cid}
+            value -> %ICal.Attachment{data_type: :uri, data: value}
+          end
+      end
+      |> Map.put(:mimetype, Map.get(params, "FMTTYPE"))
+
+    {data, attachment}
+  end
+
   def gather_unrecognized_component(data, end_tag, acc) do
     if String.starts_with?(data, end_tag) do
       length = byte_size(end_tag)

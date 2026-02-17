@@ -11,25 +11,7 @@ defmodule ICal.Deserialize.Event do
   defp next(<<>> = data, _calendar, event), do: {data, event}
 
   defp next(<<"ATTACH", data::binary>>, calendar, event) do
-    {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.multi_line(data)
-
-    attachment =
-      case params do
-        %{"ENCODING" => "BASE64", "VALUE" => "BINARY"} ->
-          %ICal.Attachment{data_type: :base64, data: value}
-
-        %{"ENCODING" => "8BIT", "VALUE" => "BINARY"} ->
-          %ICal.Attachment{data_type: :base8, data: value}
-
-        _params ->
-          case value do
-            <<"CID:", cid::binary>> -> %ICal.Attachment{data_type: :cid, data: cid}
-            value -> %ICal.Attachment{data_type: :uri, data: value}
-          end
-      end
-      |> Map.put(:mimetype, Map.get(params, "FMTTYPE"))
-
+    {data, attachment} = Deserialize.attachment(data)
     record_value(data, calendar, event, :attachments, [attachment])
   end
 
