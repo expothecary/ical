@@ -1,4 +1,6 @@
 defmodule ICal.Alarm.Email do
+  @moduledoc "An email alarm with attendees (receipients), description, summary, and optional attachments"
+
   defstruct attachments: [],
             attendees: [],
             description: "",
