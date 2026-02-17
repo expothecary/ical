@@ -481,6 +481,21 @@ defmodule ICal.Test.Fixtures do
     }
   end
 
+  def alarm(:display_start) do
+    %ICal.Alarm{
+      action: %ICal.Alarm.Display{
+        description: "BOINK",
+        duration: nil
+      },
+      custom_properties: %{"X-Extra" => %{params: %{}, value: "Yep"}},
+      trigger: %ICal.Alarm.Trigger{
+        relative_to: :start,
+        repeat: 0,
+        on: %ICal.Duration{positive: true, time: {0, 0, 0}, days: 2, weeks: 0}
+      }
+    }
+  end
+
   def alarm(:email) do
     %ICal.Alarm{
       action: %ICal.Alarm.Email{

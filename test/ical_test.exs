@@ -441,13 +441,14 @@ defmodule ICalTest do
     assert %ICal.Alarm.Custom{type: "SomethingUnique"} ==
              Map.get(Enum.at(calendar.alarms, 0), :action)
 
-    assert Enum.count(event.alarms) == 3
+    assert Enum.count(event.alarms) == 4
 
-    [alarm1, alarm2, alarm3] = event.alarms
+    [alarm1, alarm2, alarm3, alarm4] = event.alarms
 
     assert Fixtures.alarm(:audio) == alarm1
     assert Fixtures.alarm(:display) == alarm2
     assert Fixtures.alarm(:email) == alarm3
+    assert Fixtures.alarm(:display_start) == alarm4
     #     serialized = ICal.to_ics(calendar) |> to_string()
     #     assert serialized == ics
   end
