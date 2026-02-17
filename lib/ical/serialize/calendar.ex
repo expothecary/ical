@@ -12,6 +12,7 @@ defmodule ICal.Serialize.Calendar do
     |> method(calendar)
     |> Serialize.add_custom_properties(calendar.custom_properties)
     |> events(calendar)
+    |> alarms(calendar)
     |> other_components(calendar)
     |> end_calendar(calendar)
   end
@@ -39,6 +40,10 @@ defmodule ICal.Serialize.Calendar do
 
   defp events(acc, calendar) do
     acc ++ Enum.map(calendar.events, &ICal.Serialize.Event.to_ics/1)
+  end
+
+  defp alarms(acc, calendar) do
+    acc ++ Enum.map(calendar.alarms, &ICal.Serialize.Alarm.to_ics/1)
   end
 
   defp other_components(acc, calendar) do
