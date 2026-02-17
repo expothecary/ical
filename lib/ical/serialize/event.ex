@@ -21,11 +21,11 @@ defmodule ICal.Serialize.Event do
   defp to_ics({_key, []}, acc), do: acc
 
   defp to_ics({:attachments, value}, acc) do
-    [Enum.map(value, &to_attachment_kv/1) | acc]
+    [Enum.map(value, &Serialize.Attachment.to_ics/1) | acc]
   end
 
   defp to_ics({:attendees, attendees}, acc) do
-    entries = Enum.map(attendees, &ICal.Serialize.Attendee.to_ics/1)
+    entries = Enum.map(attendees, &Serialize.Attendee.to_ics/1)
     [entries | acc]
   end
 
@@ -185,24 +185,4 @@ defmodule ICal.Serialize.Event do
 
   defp to_rdate_ics({tz, dates}, acc),
     do: [["RDATE;TZID=", tz, ?:, Enum.intersperse(dates, ?,), ?\n] | acc]
-
-  defp to_attachment_kv(%ICal.Attachment{} = attachment) do
-    params =
-      if attachment.mimetype != nil do
-        [";FMTTYPE=", attachment.mimetype]
-      else
-        []
-      end
-
-    value_with_extra_params =
-      case attachment.data_type do
-        :uri -> [?:, attachment.data]
-        :cid -> [":CID:", attachment.data]
-        :base64 -> [";ENCODING=BASE64;VALUE=BINARY:", attachment.data]
-        :base8 -> [";ENCODING=8BIT;VALUE=BINARY:", attachment.data]
-      end
-
-    ["ATTACH", params, value_with_extra_params, ?\n]
-  end
-
 end
