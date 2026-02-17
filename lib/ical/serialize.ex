@@ -63,11 +63,15 @@ defmodule ICal.Serialize do
     Enum.reduce(
       custom_properties,
       acc,
-      fn {key, %{params: params, value: value}}, acc ->
-        param_string =
-          Enum.map(params, fn {key, value} -> [?;, key, ?=, to_ics(value)] end)
+      fn
+        {key, %{params: params, value: value}}, acc when is_binary(key) ->
+          param_string =
+            Enum.map(params, fn {key, value} -> [?;, key, ?=, to_ics(value)] end)
 
-        acc ++ [key, ?:, param_string, value, ?\n]
+          acc ++ [key, ?:, param_string, value, ?\n]
+
+        _, acc ->
+          acc
       end
     )
   end
