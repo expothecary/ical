@@ -466,6 +466,27 @@ defmodule ICal.Test.Fixtures do
     }
   end
 
+  def alarm(:audio_no_duration) do
+    %ICal.Alarm{
+      action: %ICal.Alarm.Audio{
+        attachments: [
+          %ICal.Attachment{
+            data_type: :uri,
+            data: "ftp://example.com/pub/sounds/bell-01.aud",
+            mimetype: "audio/basic"
+          }
+        ],
+        repeat: 0
+      },
+      custom_properties: %{},
+      trigger: %ICal.Alarm.Trigger{
+        relative_to: nil,
+        repeat: 4,
+        on: ~U[1997-03-17 13:30:00Z]
+      }
+    }
+  end
+
   def alarm(:display) do
     %ICal.Alarm{
       action: %ICal.Alarm.Display{

@@ -33,6 +33,21 @@ defmodule ICal.Test.Helper do
     end)
     |> to_string()
   end
+
+  def extract_alarm_props(["BEGIN:VALARM\n", props, "END:VALARM\n"]) do
+    ["BEGIN:VALARM\n", Enum.sort(props), "END:VALARM\n"] |> to_string()
+  end
+
+  def extract_alarm_props(ics) do
+    Enum.reduce(ics, [], fn
+      ["BEGIN:VALARM\n", props, "END:VALARM\n"], acc ->
+        acc ++ ["BEGIN:VALARM\n", Enum.sort(props), "END:VALARM\n"]
+
+      _, acc ->
+        acc
+    end)
+    |> to_string()
+  end
 end
 
 ExUnit.start()
