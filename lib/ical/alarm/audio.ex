@@ -1,7 +1,8 @@
 defmodule ICal.Alarm.Audio do
-  defstruct attachment: nil
+  defstruct [:duration, :attachments, repeat: 0]
 
   @type t :: %__MODULE__{
-          attachment: [ICal.Attachment.t()]
+          attachments: [ICal.Attachment.t()],
+          duration: ICal.Duration.t() | nil
         }
 end

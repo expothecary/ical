@@ -3,7 +3,7 @@ defmodule ICal.Deserialize.Attendee do
 
   alias ICal.Deserialize
 
-  def from_ics(data) do
+  def one(data) do
     {data, params} = Deserialize.params(data)
     {data, value} = Deserialize.rest_of_line(data)
 

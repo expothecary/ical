@@ -1,7 +1,7 @@
 defmodule ICal.Alarm.Display do
-  defstruct description: nil
+  defstruct description: ""
 
   @type t :: %__MODULE__{
-          description: String.t() | nil
+          description: String.t()
         }
 end

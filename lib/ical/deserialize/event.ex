@@ -16,7 +16,7 @@ defmodule ICal.Deserialize.Event do
   end
 
   defp next(<<"ATTENDEE", data::binary>>, calendar, event) do
-    {data, attendee} = ICal.Deserialize.Attendee.from_ics(data)
+    {data, attendee} = ICal.Deserialize.Attendee.one(data)
     record_value(data, calendar, event, :attendees, [attendee])
   end
 

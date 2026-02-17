@@ -1,11 +1,11 @@
 defmodule ICal.Alarm.Email do
-  defstruct attachment: nil,
+  defstruct attachments: [],
             attendees: [],
             description: "",
             summary: ""
 
   @type t :: %__MODULE__{
-          attachment: ICal.Attachment.t(),
+          attachments: [ICal.Attachment.t()],
           attendees: [ICal.Attendee.t()],
           description: String.t(),
           summary: String.t()
