@@ -5,10 +5,14 @@ defmodule ICal.Serialize.Alarm do
   alias ICal.Serialize
 
   def to_ics(%Alarm{} = alarm) do
-    []
-    |> add_trigger(alarm.trigger)
-    |> add_action(alarm.action)
-    |> Serialize.add_custom_properties(alarm.custom_properties)
+    [
+      "BEGIN:VALARM\n",
+      []
+      |> add_trigger(alarm.trigger)
+      |> add_action(alarm.action)
+      |> Serialize.add_custom_properties(alarm.custom_properties),
+      "END:VALARM\n"
+    ]
   end
 
   defp add_trigger(acc, %Alarm.Trigger{} = trigger) do
