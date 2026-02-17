@@ -26,9 +26,14 @@ defmodule ICal.Deserialize.Calendar do
   end
 
   def next(<<"BEGIN:VALARM", data::binary>>, calendar) do
-    {data, alarm} = ICal.Deserialize.Alarm.one(data, calendar)
-    calendar = %{calendar | alarms: calendar.alarms ++ [alarm]}
-    next(data, calendar)
+    case ICal.Deserialize.Alarm.one(data, calendar) do
+      {data, nil} ->
+        next(data, calendar)
+
+      {data, alarm} ->
+        calendar = %{calendar | alarms: calendar.alarms ++ [alarm]}
+        next(data, calendar)
+    end
   end
 
   def next(<<"BEGIN:VCALENDAR\n", data::binary>>, calendar) do
