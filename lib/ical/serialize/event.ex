@@ -29,6 +29,11 @@ defmodule ICal.Serialize.Event do
     [entries | acc]
   end
 
+  defp to_ics({:alarms, alarms}, acc) do
+    entries = Enum.map(alarms, &Serialize.Alarm.to_ics/1)
+    [entries | acc]
+  end
+
   defp to_ics({:custom_properties, custom_properties}, acc) do
     Serialize.add_custom_properties(acc, custom_properties)
   end
