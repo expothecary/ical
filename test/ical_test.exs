@@ -431,4 +431,19 @@ defmodule ICalTest do
     serialized = ICal.to_ics(calendar) |> to_string()
     assert serialized == ics
   end
+
+  test "Deserializing an event with alarms" do
+    ics = Helper.test_data("event_with_alarms")
+    %ICal{events: [event]} = ICal.from_ics(ics)
+
+    assert Enum.count(event.alarms) == 3
+
+    [alarm1, alarm2, alarm3] = event.alarms
+
+    assert Fixtures.alarm(:audio) == alarm1
+    assert Fixtures.alarm(:display) == alarm2
+    assert Fixtures.alarm(:email) == alarm3
+    #     serialized = ICal.to_ics(calendar) |> to_string()
+    #     assert serialized == ics
+  end
 end
