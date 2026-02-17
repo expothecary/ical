@@ -20,6 +20,11 @@ defmodule ICal.Deserialize.Event do
     record_value(data, calendar, event, :attendees, [attendee])
   end
 
+  defp next(<<"BEGIN:VALARM", data::binary>>, calendar, event) do
+    {data, alarm} = Deserialize.Alarm.one(data, calendar)
+    record_value(data, calendar, event, :alarms, [alarm])
+  end
+
   defp next(<<"CATEGORIES", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
     {data, values} = Deserialize.comma_separated_list(data)
