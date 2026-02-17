@@ -34,14 +34,15 @@ defmodule ICal.DurationTest do
   end
 
   test "ICal.Duration deserialization" do
-    assert {"", nil} = Deserialize.from_ics("")
-    assert {"\n", nil} = Deserialize.from_ics("\n")
-    assert {"T\n", nil} = Deserialize.from_ics("T\n")
-    assert {"\n", %Duration{}} = Deserialize.from_ics("P\n")
-    assert {"\n", %Duration{}} = Deserialize.from_ics("-P\n")
+    assert {"", nil} = Deserialize.one("")
+    assert {"", nil} = Deserialize.one("\n")
+    assert {"", nil} = Deserialize.one("T\n")
+    assert {"NEXT", nil} = Deserialize.one("T\nNEXT")
+    assert {"", %Duration{}} = Deserialize.one("P\n")
+    assert {"", %Duration{}} = Deserialize.one("-P\n")
 
     for {duration, string} <- durations(:external) do
-      assert {"", duration} == Deserialize.from_ics(string)
+      assert {"", duration} == Deserialize.one(string)
     end
   end
 

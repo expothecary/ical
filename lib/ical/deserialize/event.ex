@@ -74,9 +74,8 @@ defmodule ICal.Deserialize.Event do
   end
 
   defp next(<<"DURATION", data::binary>>, calendar, event) do
-    {data, _params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
-    {_, duration} = Deserialize.Duration.from_ics(value)
+    data = Deserialize.skip_params(data)
+    {data, duration} = Deserialize.Duration.one(data)
     record_value(data, calendar, event, :duration, duration)
   end
 
@@ -277,7 +276,7 @@ defmodule ICal.Deserialize.Event do
     date = Deserialize.to_date(end_string, params, calendar)
 
     if date == nil do
-      {_, duration} = Deserialize.Duration.from_ics(end_string)
+      {_, duration} = Deserialize.Duration.one(end_string)
       duration
     else
       date

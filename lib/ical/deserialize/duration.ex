@@ -1,27 +1,33 @@
 defmodule ICal.Deserialize.Duration do
   @moduledoc false
 
-  def from_ics(<<"P", data::binary>>) do
+  alias ICal.Deserialize
+
+  def one(<<"P", data::binary>>) do
     parse(data, %ICal.Duration{positive: true})
   end
 
-  def from_ics(<<"+P", data::binary>>) do
+  def one(<<"+P", data::binary>>) do
     parse(data, %ICal.Duration{positive: true})
   end
 
-  def from_ics(<<"-P", data::binary>>) do
+  def one(<<"-P", data::binary>>) do
     parse(data, %ICal.Duration{positive: false})
   end
 
-  def from_ics(data) do
-    {data, nil}
+  def one(data) do
+    {Deserialize.skip_line(data), nil}
   end
 
   defp parse(<<>> = data, duration) do
     {data, duration}
   end
 
-  defp parse(<<?\n, _::binary>> = data, duration) do
+  defp parse(<<?\r, ?\n, data::binary>>, duration) do
+    {data, duration}
+  end
+
+  defp parse(<<?\n, data::binary>>, duration) do
     {data, duration}
   end
 
