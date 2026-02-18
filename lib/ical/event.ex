@@ -3,6 +3,7 @@ defmodule ICal.Event do
   An iCalendar Event
   """
 
+  # credo:disable-for-next-line
   defstruct uid: nil,
             created: nil,
             dtstart: nil,
