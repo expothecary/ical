@@ -30,7 +30,7 @@ defmodule ICal.Recurrence do
   ]
 
   @type frequency :: :secondly | :minutely | :hourly | :daily | :weekly | :monthly | :yearly
-  @type weekdays :: :monday | :tuesday | :wednesday | :thursday | :friday | :saturday | :sunday
+  @type weekday :: :monday | :tuesday | :wednesday | :thursday | :friday | :saturday | :sunday
   @type t :: %__MODULE__{
           frequency: frequency,
           until: DateTime.t() | nil,
@@ -39,13 +39,13 @@ defmodule ICal.Recurrence do
           by_second: [non_neg_integer],
           by_minute: [non_neg_integer],
           by_hour: [non_neg_integer],
-          by_day: [{offset :: integer, byday :: weekdays}],
+          by_day: [{offset :: integer, byday :: weekday}],
           by_month_day: [non_neg_integer],
           by_year_day: [non_neg_integer],
           by_month: [non_neg_integer],
           by_week_number: [non_neg_integer],
           by_set_position: [non_neg_integer],
-          weekday: weekdays
+          weekday: weekday
         }
 
   # ignore :byhour, :monthday, :byyearday, :byweekno, :bymonth for now
