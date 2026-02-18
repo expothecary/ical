@@ -10,15 +10,9 @@ defmodule ICal.Serialize.Recurrence do
     [["RRULE:FREQ=", Serialize.to_ics(recurrence.frequency), rules, ?\n] | acc]
   end
 
-  def to_ics(%{freq: frequency} = recurrence, acc) do
-    rules = Enum.reduce(recurrence, [], &to_rrule_entry/2)
-    [["RRULE:FREQ=", frequency, rules, ?\n] | acc]
-  end
-
   def to_ics(_, acc), do: acc
 
   # frequency is done "manually" as the first entry
-  defp to_rrule_entry({:freq, _}, acc), do: acc
   defp to_rrule_entry({:frequency, _}, acc), do: acc
 
   # skip empty entries
@@ -71,7 +65,7 @@ defmodule ICal.Serialize.Recurrence do
   defp key_to_string(:by_set_position), do: "BYSETPOS"
   defp key_to_string(:by_week_number), do: "BYWEEKNO"
   defp key_to_string(:weekday), do: "WKST"
-  defp key_to_string(:frequency), do: "FREQ"
+  # :frequency is handled manually in `to_ics`
+  #   defp key_to_string(:frequency), do: "FREQ"
   defp key_to_string(:interval), do: "INTERVAL"
-  defp key_to_string(key), do: Serialize.atom_to_value(key)
 end
