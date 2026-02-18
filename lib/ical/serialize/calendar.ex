@@ -25,13 +25,13 @@ defmodule ICal.Serialize.Calendar do
   defp end_calendar(acc, _calendar), do: acc ++ ["END:VCALENDAR\n"]
 
   defp scale(acc, %{scale: nil}), do: acc
-  defp scale(acc, calendar), do: acc ++ ["CALSCALE:", calendar.scale, "\n"]
+  defp scale(acc, calendar), do: acc ++ ["CALSCALE:", calendar.scale, ?\n]
 
   defp method(acc, %{method: nil}), do: acc
-  defp method(acc, calendar), do: acc ++ ["METHOD:", calendar.method, "\n"]
+  defp method(acc, calendar), do: acc ++ ["METHOD:", calendar.method, ?\n]
 
   defp version(acc, %{version: nil}), do: acc ++ ["VERSION:2.0\n"]
-  defp version(acc, calendar), do: acc ++ ["VERSION:", calendar.version, "\n"]
+  defp version(acc, calendar), do: acc ++ ["VERSION:", calendar.version, ?\n]
 
   defp product_id(acc, %{product_id: nil}), do: acc ++ ["PRODID:", ICal.default_product_id(), ?\n]
   defp product_id(acc, calendar), do: acc ++ ["PRODID:", calendar.product_id, ?\n]
