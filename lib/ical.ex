@@ -47,13 +47,13 @@ defmodule ICal do
   @doc """
   Converts a string containing iCalendar data to an `ICal{}` struct.
   """
-  @spec to_ics(ics_data :: String.t()) :: t()
+  @spec from_ics(ics_data :: String.t()) :: t()
   defdelegate from_ics(data), to: ICal.Deserialize.Calendar
 
   @doc """
   Converts the data in the file at `file_path` to an `ICal{}` struct.
   """
-  @spec to_ics(file_path :: String.t()) :: t()
+  @spec from_file(file_path :: String.t()) :: t()
   defdelegate from_file(file_path), to: ICal.Deserialize.Calendar
 
   @doc """
