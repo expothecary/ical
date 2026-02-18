@@ -5,13 +5,33 @@ A library for reading and writing iCalendar data.
 ## Features
 
 * Parsing iCalendar data from strings or files
-* Serializing iCalendar data to iolists suitable for writing out to files, over the network, etc.
-* Integration with Plug / Phoenix via `ICal.encode_to_iodate`
-* Recurrence calculation
-* Support for common non-standard entries such as `X-WR-TIMEZONE`
+* Serializing iCalendar data to iolists suitable for writing out to files, send over the network, etc.
+* Integration with Plug / Phoenix via `ICal.encode_to_iodata`
+* Components supported
+  * Events (with alarms)
+  * Alarms
+* Recurrence calculations (currrently only `BYDAY` is supported)
+* Compatibility
+  * RFC 5545 compliant
+  * Support for common non-standard properties, including:
+      * `X-WR-TIMEZONE`
+      * `X-WR-CALNAME`/`NAME`
+  * Timezones are resolved using the system timezone library, supporting variants seen in the wild
+  * All`X-*` fields and valid-by-not-yet-supported fields are retained
 
-Curerently only events are supported. Alarms, todo's, journals, and free/busy are planned for future
-releases.
+### Future work
+
+Components that will eventually be supported (in rough order):
+
+* Timezone (VTIMEZONE)
+* Free/busy (VFREEBUSY)
+* Todos (VTODO)
+* Journals (VJOURNAL)
+
+Planned features:
+
+* Alarm calculation
+* Expanded recurrency calculation
 
 ## Usage
 
@@ -44,8 +64,8 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
 ## Goals
 
 * corrrect: support the iCalendar (and its related) RFCs for standards-compliance
-* useful: handle real-world data (such as produced by other clients) gracefully, and
-  not lose data while parsing, even if not used by this library
+* useful: handle real-world data (such as produced by other clients) gracefully, do
+  not lose data while parsing (including fields not supported by / used in this library)
 * good DevExp
   * parsed results should be easy to use, even if iCalednar is a complex format
   * typed structs and clear APIs
@@ -65,3 +85,13 @@ def deps do
   ]
 end
 ```
+
+## Participating in develpoment
+
+Visit the [issue tracker](https://github.com/expothecary/icalendar/issues) to see what
+tasks are outstanding. You are welcome to file new issues, as well!
+
+PRs are welcome and responded to in a timely fashion.
+
+Benchee is used for benchmarking, credo for linting, and the test suite must pass before
+PRs are merged. New functionality and bug fixes must have accompanying unit tests.
