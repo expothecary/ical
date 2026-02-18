@@ -25,6 +25,7 @@ defmodule ICalTest do
     assert ics == """
            BEGIN:VCALENDAR
            VERSION:2.0
+           PRODID:#{Helper.product_id()}
            END:VCALENDAR
            """
   end
