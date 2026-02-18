@@ -4,7 +4,7 @@ defmodule ICal do
   iCalendar data, as well as integration with Plug and Phoenix.
   """
 
-  defstruct product_id: "-//Elixir ICal//v0.1.0//EN",
+  defstruct product_id: nil,
             scale: "GREGORIAN",
             method: nil,
             version: "2.0",
@@ -65,10 +65,21 @@ defmodule ICal do
   As such, this should be prefered to changing the `product_id` field on an
   `%ICal{}` directly.
   """
+  @spec set_vendor(t(), vendor :: String.t()) :: t()
   def set_vendor(%ICal{} = calendar, vendor) when is_binary(vendor) do
     {:ok, version} = :application.get_key(:ical, :vsn)
     product_id = "-//Elixir ICal//v#{version}//#{vendor}//EN"
     %{calendar | product_id: product_id}
+  end
+
+  @doc """
+  Returns the default product ID for calendars generated with the ICal library.
+  To customize this, either set the `produdct_id` on an `%ICal{}` struct before
+  serializing it with `to_ics`, or use the `set_vendor/2` convenience function.
+  """
+  def default_product_id do
+    {:ok, version} = :application.get_key(:ical, :vsn)
+    "-//Elixir ICal//v#{version}//EN"
   end
 
   @doc """
