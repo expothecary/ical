@@ -33,8 +33,8 @@ defmodule ICal.Serialize.Calendar do
   defp version(acc, %{version: nil}), do: acc ++ ["VERSION:2.0\n"]
   defp version(acc, calendar), do: acc ++ ["VERSION:", calendar.version, "\n"]
 
-  defp product_id(acc, %{product_id: nil}), do: acc
-  defp product_id(acc, calendar), do: acc ++ ["PRODID:", calendar.product_id, "\n"]
+  defp product_id(acc, %{product_id: nil}), do: acc ++ ["PRODID:", ICal.default_product_id(), ?\n]
+  defp product_id(acc, calendar), do: acc ++ ["PRODID:", calendar.product_id, ?\n]
 
   defp events(acc, %{events: []}), do: acc
 
