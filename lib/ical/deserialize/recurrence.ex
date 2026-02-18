@@ -112,38 +112,37 @@ defmodule ICal.Deserialize.Recurrence do
     end
   end
 
-  # this processes a string with comma-separated numbers, tries parsing them
-  # to integers, and constrains them to a range. optionally, don't include zeros.
-  # yes, iCalendar is a nutso standard in which {[-366,1],[1,366]} is "sensible"
   defp to_clamped_numbers(string, min, max) do
-    to_clamped_numbers(string, min, max, min >= 0, "", [])
+    to_clamped_numbers(string, min, max, "", [])
   end
 
-  defp to_clamped_numbers(<<>>, min, max, zeros?, value, acc) do
+  defp to_clamped_numbers(<<>>, min, max, value, acc) do
+    clamp_number(value, min, max, acc)
+  end
+
+  defp to_clamped_numbers(<<?,, string::binary>>, min, max, value, acc) do
+    acc = clamp_number(value, min, max, acc)
+    to_clamped_numbers(string, min, max, "", acc)
+  end
+
+  defp to_clamped_numbers(<<c, string::binary>>, min, max, value, acc) do
+    to_clamped_numbers(string, min, max, <<value::binary, c>>, acc)
+  end
+
+  defp clamp_number(value, min, max, acc) do
+    # zeros are only allowed when the min value is also zero:
+    # a negative min means no zeros, and if the min is above zero, obviously
+    # zero is not ok
     case Integer.parse(value) do
-      {number, ""} when number >= min and number <= max and (zeros? or number != 0) ->
+      {0, ""} when min == 0 ->
+        acc ++ [0]
+
+      {number, ""} when number != 0 and number <= max and number >= min ->
         acc ++ [number]
 
       _ ->
         acc
     end
-  end
-
-  defp to_clamped_numbers(<<?,, string::binary>>, min, max, zeros?, value, acc) do
-    acc =
-      case Integer.parse(value) do
-        {number, ""} when number >= min and number <= max and (zeros? or number != 0) ->
-          acc ++ [number]
-
-        _ ->
-          acc
-      end
-
-    to_clamped_numbers(string, min, max, zeros?, "", acc)
-  end
-
-  defp to_clamped_numbers(<<c, string::binary>>, min, max, zeros?, value, acc) do
-    to_clamped_numbers(string, min, max, zeros?, <<value::binary, c>>, acc)
   end
 
   # Weekdays are two-letter abbreviations for the 7 English days of the week
@@ -179,12 +178,7 @@ defmodule ICal.Deserialize.Recurrence do
 
   # done with nubmers? parse our number and then get the weekday
   defp to_offset_weekdays(string, offset, acc) do
-    offset =
-      case Integer.parse(offset) do
-        {number, ""} -> number
-        _ -> 0
-      end
-
+    offset = String.to_integer(offset)
     to_weekday_with_offset(string, offset, acc)
   end
 
