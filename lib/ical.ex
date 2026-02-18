@@ -29,7 +29,6 @@ defmodule ICal do
           version: String.t(),
           scale: String.t(),
           events: [ICal.Event.t()],
-          alarms: [ICal.Alarm.t()],
           default_timezone: String.t(),
           name: String.t() | nil,
           custom_properties: custom_properties

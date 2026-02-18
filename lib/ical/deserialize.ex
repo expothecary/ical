@@ -37,6 +37,8 @@ defmodule ICal.Deserialize do
     {data, attachment}
   end
 
+  def gather_unrecognized_component(<<>> = data, _end_tag, acc), do: {data, acc}
+
   def gather_unrecognized_component(data, end_tag, acc) do
     if String.starts_with?(data, end_tag) do
       length = byte_size(end_tag)

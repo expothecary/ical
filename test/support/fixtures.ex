@@ -560,4 +560,12 @@ defmodule ICal.Test.Fixtures do
       }
     }
   end
+
+  def alarm(:custom) do
+    %ICal.Alarm{
+              action: %ICal.Alarm.Custom{properties: %{}, type: "SomethingUnique"},
+              custom_properties: %{attachments: [], attendees: []},
+              trigger: %ICal.Alarm.Trigger{on: nil, relative_to: nil, repeat: 0}
+            }
+  end
 end
