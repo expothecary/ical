@@ -58,7 +58,7 @@ defmodule ICal.Serialize do
   def to_ics(x) when is_atom(x), do: atom_to_value(x)
   def to_ics(x), do: x
 
-  @spec add_custom_properties(iolist(), ICalTest.custom_properties()) :: iolist()
+  @spec add_custom_properties(iolist(), ICal.custom_properties()) :: iolist()
   def add_custom_properties(acc, custom_properties) do
     Enum.reduce(
       custom_properties,
