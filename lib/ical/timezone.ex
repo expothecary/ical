@@ -7,21 +7,21 @@ defmodule ICal.Timezone do
     @moduledoc "The detailed properties of a timezone component"
     defstruct [
       :dtstart,
-      :tzoffset,
+      offsets: %{from: 0, to: 0},
       rrule: nil,
-      comment: [],
-      rdate: [],
-      tzname: [],
+      comments: [],
+      rdates: [],
+      names: [],
       custom_properties: []
     ]
 
     @type t :: %__MODULE__{
             dtstart: DateTime.t(),
-            tzoffset: %{from: integer(), to: integer()},
+            offsets: %{from: integer(), to: integer()},
             rrule: ICal.Recurrence.t() | nil,
-            comment: [String.t()],
-            rdate: [DateTime.t()],
-            tzname: [String.t()],
+            comments: [String.t()],
+            rdates: [DateTime.t()],
+            names: [String.t()],
             custom_properties: ICal.custom_properties()
           }
   end
