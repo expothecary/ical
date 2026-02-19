@@ -12,7 +12,7 @@ defmodule ICal.Attachment do
           mimetype: String.t() | nil
         }
 
-  @spec decoded_data(t()) :: String.t() | binary
+  @spec decoded_data(t()) :: :error | String.t() | binary
   @doc """
   Returns the decoded data for an Attachment.
 

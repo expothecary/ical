@@ -3,7 +3,7 @@ defmodule ICal.Deserialize.Event do
 
   alias ICal.Deserialize
 
-  @spec one(data :: binary, ICal.t()) :: ICal.t()
+  @spec one(data :: binary, ICal.t()) :: {data :: binary, ICal.Event.t()}
   def one(data, calendar) do
     next(data, calendar, %ICal.Event{})
   end

@@ -110,9 +110,13 @@ defmodule ICal.Recurrence do
             |> Enum.to_list()
   """
 
-  @spec stream(%Event{}) :: %Stream{}
-  @spec stream(%Event{}, %Date{} | %DateTime{}) :: %Stream{}
-  def stream(event, end_date \\ nil) do
+  @spec stream(%Event{}) :: Enumerable.t()
+  def stream(event) do
+    create_recurrence_stream(event, nil, ICal.Deserialize.Recurrence.from_event(event))
+  end
+
+  @spec stream(%Event{}, %Date{} | %DateTime{}) :: Enumerable.t()
+  def stream(event, end_date) do
     create_recurrence_stream(event, end_date, ICal.Deserialize.Recurrence.from_event(event))
   end
 
@@ -161,13 +165,9 @@ defmodule ICal.Recurrence do
 
   defp resolve_end_date(%DateTime{} = end_date, %Date{}), do: DateTime.to_date(end_date)
 
-  defp shift_opts(:daily, nil), do: [days: 1]
   defp shift_opts(:daily, interval), do: [days: interval]
-  defp shift_opts(:weekly, nil), do: [days: 7]
   defp shift_opts(:weekly, interval), do: [days: interval * 7]
-  defp shift_opts(:monthly, nil), do: [months: 1]
   defp shift_opts(:monthly, interval), do: [months: interval]
-  defp shift_opts(:yearly, nil), do: [years: 1]
   defp shift_opts(:yearly, interval), do: [years: interval]
 
   defp add_recurring_events_until(original_event, reference_events, until, shift_opts) do
