@@ -1,0 +1,14 @@
+BEGIN:VEVENT
+DESCRIPTION:Escape from the world. Stare at some water.
+COMMENT:Don't forget to take something to eat !
+SUMMARY:Going fishing
+DTEND:20151224T084500Z
+DTSTAMP:20151224T080000Z
+DTSTART:20151224T083000Z
+LOCATION:123 Fun Street\, Toronto ON\, Canada
+STATUS:TENTATIVE
+CATEGORIES:Fishing,Nature
+CONTACT;ALTREP="CID:part3.msg970930T083000SILVER@example.com":Jim Dolittle\, ABC Industries\, +1-919-555-1234
+CLASS:PRIVATE
+GEO:43.6978819;-79.3810277
+RESOURCES;LANGUAGE=fr:Nettoyeur haute pression

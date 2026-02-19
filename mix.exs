@@ -1,15 +1,16 @@
-defmodule ICalendar.Mixfile do
+defmodule ICal.Mixfile do
   use Mix.Project
 
-  @source_url "https://github.com/expothecary/icalendar"
-  @version "1.2.0"
+  @source_url "https://github.com/expothecary/ical"
+  @version "1.0.0"
 
   def project do
     [
-      app: :icalendar,
-      name: "ICalendar",
+      app: :ical,
+      name: "iCal",
       version: @version,
       elixir: "~> 1.15",
+      elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -20,14 +21,20 @@ defmodule ICalendar.Mixfile do
     ]
   end
 
+  defp elixirc_paths(:test), do: ["lib", "test/support", "test/data"]
+  defp elixirc_paths(_), do: ["lib"]
+
   defp deps do
     [
       {:timex, "~> 3.4"},
-      {:mix_test_watch, ">= 0.0.0", only: :dev, runtime: false},
+      {:mix_test_watch, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14", only: :test, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: [:dev, :test], runtime: false}
+      {:ex_doc, ">= 0.0.0", only: [:dev, :test], runtime: false},
+
+      # benchmarking...
+      {:benchee, "~> 1.0", only: [:dev, :test]}
     ]
   end
 
@@ -36,18 +43,20 @@ defmodule ICalendar.Mixfile do
       preferred_envs: [
         coveralls: :test,
         "coveralls.detail": :test,
-        "coveralls.github": :test
+        "coveralls.github": :test,
+        "coveralls.html": :test,
+        "test.watch": :test
       ]
     ]
   end
 
   defp package do
     [
-      description: "An ICalendar file generator",
+      description: "iCalendar support with a focus on real-world usage and good DevEx",
       maintainers: ["Max Salminen", "Aaron Seigo"],
       licenses: ["MIT"],
       links: %{
-        "Changelog" => "https://hexdocs.pm/icalendar/changelog.html",
+        "Changelog" => "https://hexdocs.pm/ical/changelog.html",
         "GitHub" => @source_url
       }
     ]
@@ -59,7 +68,12 @@ defmodule ICalendar.Mixfile do
       main: "readme",
       source_url: @source_url,
       source_ref: "v#{@version}",
-      formatters: ["html"]
+      formatters: ["html"],
+      groups_for_modules: [
+        "Calendar Entries": [ICal.Event],
+        Properties: [ICal.Attachment, ICal.Attendee, ICal.Contact, ICal.Duration],
+        Utilities: [ICal.Recurrence]
+      ]
     ]
   end
 end

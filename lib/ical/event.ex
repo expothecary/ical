@@ -1,0 +1,77 @@
+defmodule ICal.Event do
+  @moduledoc """
+  An iCalendar Event
+  """
+
+  # credo:disable-for-next-line
+  defstruct uid: nil,
+            created: nil,
+            dtstart: nil,
+            dtend: nil,
+            dtstamp: nil,
+            modified: nil,
+            recurrence_id: nil,
+            exdates: [],
+            rdates: [],
+            rrule: nil,
+            class: nil,
+            description: nil,
+            duration: nil,
+            location: nil,
+            prodid: nil,
+            status: nil,
+            organizer: nil,
+            sequence: nil,
+            summary: nil,
+            url: nil,
+            geo: nil,
+            priority: nil,
+            transparency: nil,
+            alarms: [],
+            attendees: [],
+            attachments: [],
+            categories: [],
+            comments: [],
+            contacts: [],
+            related_to: [],
+            resources: [],
+            custom_properties: %{}
+
+  @type period ::
+          {from :: DateTime.t(), to :: DateTime.t()}
+          | {from :: DateTime.t(), to :: ICal.Duration.t()}
+  @type t :: %__MODULE__{
+          uid: String.t() | nil,
+          created: DateTime.t() | nil,
+          dtstart: Date.t() | DateTime.t() | nil,
+          dtend: Date.t() | DateTime.t() | nil,
+          dtstamp: DateTime.t() | nil,
+          modified: Date.t() | nil,
+          recurrence_id: Date.t() | nil,
+          exdates: [Date.t() | DateTime.t()],
+          rdates: [Date.t() | DateTime.t() | period],
+          rrule: map() | nil,
+          class: String.t() | nil,
+          description: String.t() | nil,
+          duration: ICal.Duration.t() | nil,
+          location: String.t() | nil,
+          organizer: String.t() | nil,
+          prodid: String.t() | nil,
+          sequence: String.t() | nil,
+          status: String.t() | nil,
+          summary: String.t() | nil,
+          url: String.t() | nil,
+          geo: {float, float} | nil,
+          priority: integer | nil,
+          transparency: :opaque | :transparent | nil,
+          alarms: [ICal.Alarm.t()],
+          attachments: [ICal.Attachment.t()],
+          attendees: [String.t()],
+          categories: [String.t()],
+          comments: [String.t()],
+          contacts: [ICal.Contact.t()],
+          related_to: [String.t()],
+          resources: [String.t()],
+          custom_properties: ICal.custom_properties()
+        }
+end

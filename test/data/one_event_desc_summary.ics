@@ -1,0 +1,14 @@
+BEGIN:VEVENT
+DESCRIPTION:Escape from the world. Stare at some water. Maybe you'll even
+  catch some fish!
+COMMENT:Don't forget to take something to eat !
+SUMMARY:Going fishing at the lake that happens to be in the middle of fun
+  street.
+DTEND:20151224T084500Z
+DTSTART:20151224T083000Z
+LOCATION:123 Fun Street\, Toronto ON\, Canada
+STATUS:TENTATIVE
+CATEGORIES:Fishing,Nature
+CLASS:PRIVATE
+GEO:43.6978819;-79.3810277
+END:VEVENT
