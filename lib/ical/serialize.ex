@@ -68,7 +68,7 @@ defmodule ICal.Serialize do
           param_string =
             Enum.map(params, fn {key, value} -> [?;, key, ?=, to_ics(value)] end)
 
-          acc ++ [key, ?:, param_string, value, ?\n]
+          acc ++ [key, param_string, ?:, value, ?\n]
 
         _, acc ->
           acc
