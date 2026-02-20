@@ -41,7 +41,7 @@ defmodule ICal.Deserialize.Timezone do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
     date = Deserialize.to_date_in_timezone(value, "Etc/UTC")
-    timezone = %{timezone | last_modified: date}
+    timezone = %{timezone | modified: date}
     next(data, timezone)
   end
 

@@ -8,7 +8,7 @@ defmodule ICal.Serialize.Timezone do
     contents =
       []
       |> add_id(timezone)
-      |> add_last_modified(timezone)
+      |> add_modified(timezone)
       |> add_url(timezone)
       |> add_properties("STANDARD", timezone.standard)
       |> add_properties("DAYLIGHT", timezone.daylight)
@@ -23,9 +23,9 @@ defmodule ICal.Serialize.Timezone do
 
   defp add_id(acc, %{id: id}), do: acc ++ ["TZID:", id, ?\n]
 
-  defp add_last_modified(acc, %{last_modified: nil}), do: acc
+  defp add_modified(acc, %{modified: nil}), do: acc
 
-  defp add_last_modified(acc, %{last_modified: date}) do
+  defp add_modified(acc, %{modified: date}) do
     acc ++ ["LAST-MODIFIED:", Serialize.to_ics(date), ?\n]
   end
 
