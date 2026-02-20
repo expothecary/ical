@@ -35,6 +35,7 @@ defmodule ICal.Event do
             contacts: [],
             related_to: [],
             resources: [],
+            request_status: [],
             custom_properties: %{}
 
   @type t :: %__MODULE__{
@@ -68,6 +69,7 @@ defmodule ICal.Event do
           comments: [String.t()],
           contacts: [ICal.Contact.t()],
           related_to: [String.t()],
+          request_status: [ICal.RequestStatus.t()],
           resources: [String.t()],
           custom_properties: ICal.custom_properties()
         }

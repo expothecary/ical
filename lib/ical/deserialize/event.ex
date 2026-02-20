@@ -161,6 +161,11 @@ defmodule ICal.Deserialize.Event do
     record_value(data, calendar, event, :rdates, rdates)
   end
 
+  defp next(<<"REQUEST-STATUS", data::binary>>, calendar, event) do
+    {data, status} = Deserialize.RequestStatus.one(data)
+    record_value(data, calendar, event, :request_status, [status])
+  end
+
   defp next(<<"RRULE", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
     {data, values} = Deserialize.param_list(data)
