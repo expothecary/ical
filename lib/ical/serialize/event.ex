@@ -21,17 +21,17 @@ defmodule ICal.Serialize.Event do
   defp to_ics({_key, []}, acc), do: acc
 
   defp to_ics({:attachments, value}, acc) do
-    [Enum.map(value, &Serialize.Attachment.to_ics/1) | acc]
+    acc ++ [Enum.map(value, &Serialize.Attachment.to_ics/1)]
   end
 
   defp to_ics({:attendees, attendees}, acc) do
     entries = Enum.map(attendees, &Serialize.Attendee.to_ics/1)
-    [entries | acc]
+    acc ++ [entries]
   end
 
   defp to_ics({:alarms, alarms}, acc) do
     entries = Enum.map(alarms, &Serialize.Alarm.to_ics/1)
-    [entries | acc]
+    acc ++ [entries]
   end
 
   defp to_ics({:custom_properties, custom_properties}, acc) do
@@ -39,41 +39,41 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:categories, value}, acc) do
-    [Serialize.to_comma_list_kv("CATEGORIES", value) | acc]
+    acc ++ [Serialize.to_comma_list_kv("CATEGORIES", value)]
   end
 
   defp to_ics({:comments, value}, acc) do
-    [Enum.map(value, &to_text_kv("COMMENT", &1)) | acc]
+    acc ++ [Enum.map(value, &to_text_kv("COMMENT", &1))]
   end
 
   defp to_ics({:contacts, value}, acc) do
-    [Enum.map(value, &Serialize.Contact.to_ics(&1)) | acc]
+    acc ++ [Enum.map(value, &Serialize.Contact.to_ics(&1))]
   end
 
   defp to_ics({:created, value}, acc) do
-    [to_date_kv("CREATED", value) | acc]
+    acc ++ [to_date_kv("CREATED", value)]
   end
 
   defp to_ics({:dtstamp, value}, acc) do
     stamp = if value == nil, do: DateTime.utc_now(), else: value
 
-    [to_date_kv("DTSTAMP", stamp) | acc]
+    acc ++ [to_date_kv("DTSTAMP", stamp)]
   end
 
   defp to_ics({:dtend, value}, acc) do
-    [to_date_kv("DTEND", value) | acc]
+    acc ++ [to_date_kv("DTEND", value)]
   end
 
   defp to_ics({:dtstart, value}, acc) do
-    [to_date_kv("DTSTART", value) | acc]
+    acc ++ [to_date_kv("DTSTART", value)]
   end
 
   defp to_ics({:duration, value}, acc) do
-    [to_text_kv("DURATION", Serialize.to_ics(value)) | acc]
+    acc ++ [to_text_kv("DURATION", Serialize.to_ics(value))]
   end
 
   defp to_ics({:exdates, value}, acc) when is_list(value) do
-    [Enum.map(value, &to_date_kv("EXDATE", &1)) | acc]
+    acc ++ [Enum.map(value, &to_date_kv("EXDATE", &1))]
   end
 
   defp to_ics({:geo, _} = geo, acc) do
@@ -118,17 +118,17 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:related_to, value}, acc) do
-    [Enum.map(value, &to_text_kv("RELATED-TO", &1)) | acc]
+    acc ++ [Enum.map(value, &to_text_kv("RELATED-TO", &1))]
   end
 
   defp to_ics({:transparency, value}, acc) do
     value = if value == :transparent, do: "TRANSPARENT", else: "OPAQUE"
 
-    [to_text_kv("TRANSP", value) | acc]
+    acc ++ [to_text_kv("TRANSP", value)]
   end
 
   defp to_ics({:recurrence_id, value}, acc) do
-    [to_date_kv("RECURRENCE-ID", value) | acc]
+    acc ++ [to_date_kv("RECURRENCE-ID", value)]
   end
 
   defp to_ics({:rrule, rule}, acc) do
@@ -136,28 +136,29 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:status, value}, acc) do
-    case value do
-      :tentative -> ["STATUS:TENTATIVE\n" | acc]
-      :confirmed -> ["STATUS:CONFIRMED\n" | acc]
-      :cancelled -> ["STATUS:CANCELLED\n" | acc]
-      value -> [to_text_kv("STATUS", to_string(value)) | acc]
-    end
+    acc ++
+      case value do
+        :tentative -> ["STATUS:TENTATIVE\n"]
+        :confirmed -> ["STATUS:CONFIRMED\n"]
+        :cancelled -> ["STATUS:CANCELLED\n"]
+        value -> [to_text_kv("STATUS", to_string(value))]
+      end
   end
 
   defp to_ics({key, value}, acc) when is_number(value) do
     name = Serialize.atom_to_value(key)
-    [[name, ?:, to_string(value), ?\n] | acc]
+    acc ++ [name, ?:, to_string(value), ?\n]
   end
 
   defp to_ics({key, value}, acc) when is_atom(value) do
     name = Serialize.atom_to_value(key)
     value = Serialize.atom_to_value(value)
-    [[name, ?:, to_string(value), ?\n] | acc]
+    acc ++ [name, ?:, to_string(value), ?\n]
   end
 
   defp to_ics({key, value}, acc) do
     name = Serialize.atom_to_value(key)
-    [to_text_kv(name, value) | acc]
+    acc ++ [to_text_kv(name, value)]
   end
 
   defp to_text_kv(key, value) do
@@ -177,17 +178,17 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_rdate_ics({:dates, periods}, acc),
-    do: [["RDATE;VALUE=DATE:", Enum.intersperse(periods, ?,), ?\n] | acc]
+    do: acc ++ ["RDATE;VALUE=DATE:", Enum.intersperse(periods, ?,), ?\n]
 
   defp to_rdate_ics({{:periods, "Etc/UTC"}, periods}, acc),
-    do: [["RDATE;VALUE=PERIOD:", Enum.intersperse(periods, ?,), ?\n] | acc]
+    do: acc ++ ["RDATE;VALUE=PERIOD:", Enum.intersperse(periods, ?,), ?\n]
 
   defp to_rdate_ics({{:periods, tz}, periods}, acc),
-    do: [["RDATE;VALUE=PERIOD;TZID=", tz, ?:, Enum.intersperse(periods, ?,), ?\n] | acc]
+    do: acc ++ ["RDATE;VALUE=PERIOD;TZID=", tz, ?:, Enum.intersperse(periods, ?,), ?\n]
 
   defp to_rdate_ics({"Etc/UTC", dates}, acc),
-    do: [["RDATE:", Enum.intersperse(dates, ?,), ?\n] | acc]
+    do: acc ++ ["RDATE:", Enum.intersperse(dates, ?,), ?\n]
 
   defp to_rdate_ics({tz, dates}, acc),
-    do: [["RDATE;TZID=", tz, ?:, Enum.intersperse(dates, ?,), ?\n] | acc]
+    do: acc ++ ["RDATE;TZID=", tz, ?:, Enum.intersperse(dates, ?,), ?\n]
 end
