@@ -6,17 +6,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## v1.1.0
 
-* Improvements
-  * `ICal.Timezone`: a struct that represents `VTIMEZONE` calendar components
-  * `ICal.RequestStatus`: a struct that represents the `rstatus`, or request status, of a component
-    * Added request status support to `ICal.Event`
-  * Dates with local times are represented with `NaiveDateTime`s
-* Fixes
-  * `ICal.Deserialize.to_integer` wraps integer parsing for safety in more cases
-  * Correct placement of the `:` separator in custom properties with parameters
-* Janitorial
-  * Improved documentation layout
-  * More unit tests
+- Improvements
+  - `ICal.Timezone`: a struct that represents `VTIMEZONE` calendar components
+  - `ICal.RequestStatus`: a struct that represents the `rstatus`, or request status, of a component
+    - Added request status support to `ICal.Event`
+  - Dates with local times are represented with `NaiveDateTime`s
+- Fixes
+  - `ICal.Deserialize.to_integer` wraps integer parsing for safety in more cases
+  - Correct placement of the `:` separator in custom properties with parameters
+- Janitorial
+  - Improved documentation layout
+  - More unit tests
 
 ## v1.0.0
 
