@@ -57,7 +57,7 @@ defmodule ICal.Deserialize.RequestStatus do
         end
 
       <<d::utf8, data::binary>> when d >= ?0 and d <= ?9 ->
-        code_second(data, a, <<acc::binary, d::utf8>>, request_status)
+        code_third(data, a, b, <<acc::binary, d::utf8>>, request_status)
 
       _ ->
         fail(data)
@@ -84,9 +84,6 @@ defmodule ICal.Deserialize.RequestStatus do
 
       <<c::utf8, data::binary>> ->
         desc(data, <<acc::binary, c::utf8>>, request_status)
-
-      _ ->
-        fail(data)
     end
   end
 
@@ -109,9 +106,6 @@ defmodule ICal.Deserialize.RequestStatus do
 
       <<c::utf8, data::binary>> ->
         exception(data, <<acc::binary, c::utf8>>, request_status)
-
-      _ ->
-        fail(data)
     end
   end
 

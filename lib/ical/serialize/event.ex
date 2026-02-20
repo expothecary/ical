@@ -81,7 +81,11 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:resources, value}, acc) do
-    [Serialize.to_comma_list_kv("RESOURCES", value) | acc]
+    acc ++ [Serialize.to_comma_list_kv("RESOURCES", value)]
+  end
+
+  defp to_ics({:request_status, values}, acc) do
+    acc ++ Enum.map(values, fn status -> Serialize.RequestStatus.to_ics(status) end)
   end
 
   defp to_ics({:rdates, dates}, acc) when is_list(dates) do
