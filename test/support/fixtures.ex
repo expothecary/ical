@@ -571,11 +571,11 @@ defmodule ICal.Test.Fixtures do
 
   def timezone("America/New_York") do
     %ICal.Timezone{
-      custom_properties: [],
+      custom_properties: %{},
       daylight: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1967-04-30 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -599,7 +599,7 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1974-01-06 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -608,7 +608,7 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1976-04-25 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -632,7 +632,7 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1987-04-05 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -656,7 +656,7 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[2007-03-11 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -683,7 +683,7 @@ defmodule ICal.Test.Fixtures do
       standard: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1967-10-29 02:00:00],
           names: ["EST"],
           offsets: %{from: -400, to: -500},
@@ -707,7 +707,7 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[2007-11-04 02:00:00],
           names: ["EST"],
           offsets: %{from: -400, to: -500},
@@ -737,11 +737,11 @@ defmodule ICal.Test.Fixtures do
 
   def timezone("America/New_York2") do
     %ICal.Timezone{
-      custom_properties: [],
+      custom_properties: %{},
       daylight: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[2007-03-11 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -753,7 +753,7 @@ defmodule ICal.Test.Fixtures do
       standard: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[2007-11-04 02:00:00],
           names: ["EST"],
           offsets: %{from: -400, to: -500},
@@ -768,11 +768,11 @@ defmodule ICal.Test.Fixtures do
 
   def timezone("America/New_York3") do
     %ICal.Timezone{
-      custom_properties: [],
+      custom_properties: %{},
       daylight: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[2007-03-11 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -798,8 +798,8 @@ defmodule ICal.Test.Fixtures do
       last_modified: ~U[2005-08-09 05:00:00Z],
       standard: [
         %ICal.Timezone.Properties{
-          comments: [],
-          custom_properties: [],
+          comments: ["This is for New York", "Another comment."],
+          custom_properties: %{},
           dtstart: ~N[2007-11-04 02:00:00],
           names: ["EST"],
           offsets: %{from: -400, to: -500},
@@ -829,11 +829,11 @@ defmodule ICal.Test.Fixtures do
 
   def timezone("Fictitious") do
     %ICal.Timezone{
-      custom_properties: [],
+      custom_properties: %{},
       daylight: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1987-04-05 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -860,7 +860,7 @@ defmodule ICal.Test.Fixtures do
       standard: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1967-10-29 02:00:00],
           names: ["EST"],
           offsets: %{from: -400, to: -500},
@@ -890,11 +890,11 @@ defmodule ICal.Test.Fixtures do
 
   def timezone("Also Fictitious") do
     %ICal.Timezone{
-      custom_properties: [],
+      custom_properties: %{"X-Custom" => %{params: %{}, value: "Value"}},
       daylight: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1987-04-05 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -918,7 +918,12 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{
+            "X-Custom-PROPERTY" => %{
+              params: %{},
+              value: "Property Value"
+            }
+          },
           dtstart: ~N[1999-04-24 02:00:00],
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
@@ -945,7 +950,7 @@ defmodule ICal.Test.Fixtures do
       standard: [
         %ICal.Timezone.Properties{
           comments: [],
-          custom_properties: [],
+          custom_properties: %{},
           dtstart: ~N[1967-10-29 02:00:00],
           names: ["EST"],
           offsets: %{from: -400, to: -500},
