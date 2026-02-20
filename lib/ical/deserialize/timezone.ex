@@ -9,9 +9,9 @@ defmodule ICal.Deserialize.Timezone do
   end
 
   @spec next_property(data :: binary(), ICal.Timezone.t()) ::
-          {data :: binary, ICal.Timezone.t()}
-  defp next(<<>> = data, timezone) do
-    {data, timezone}
+          {data :: binary, nil | ICal.Timezone.t()}
+  defp next(<<>> = data, _timezone) do
+    {data, nil}
   end
 
   defp next(<<"END:VTIMEZONE\n", data::binary>>, timezone) do
@@ -77,6 +77,10 @@ defmodule ICal.Deserialize.Timezone do
 
   @spec next_property(data :: binary(), ICal.Timezone.Properties.t()) ::
           {data :: binary, ICal.Timezone.Properties.t()}
+  defp next_property(<<>> = data, _properties) do
+    {data, nil}
+  end
+
   defp next_property(<<"END:", data::binary>>, properties) do
     data = Deserialize.skip_line(data)
     {data, properties}
@@ -110,9 +114,9 @@ defmodule ICal.Deserialize.Timezone do
     {data, value} = Deserialize.rest_of_line(data)
 
     properties =
-      case Integer.parse(value) do
-        {offset, ""} -> %{properties | offsets: %{properties.offsets | from: offset}}
-        _ -> properties
+      case Deserialize.to_integer(value) do
+        nil -> properties
+        offset -> %{properties | offsets: %{properties.offsets | from: offset}}
       end
 
     next_property(data, properties)
@@ -123,9 +127,9 @@ defmodule ICal.Deserialize.Timezone do
     {data, value} = Deserialize.rest_of_line(data)
 
     properties =
-      case Integer.parse(value) do
-        {offset, ""} -> %{properties | offsets: %{properties.offsets | to: offset}}
-        _ -> properties
+      case Deserialize.to_integer(value) do
+        nil -> properties
+        offset -> %{properties | offsets: %{properties.offsets | to: offset}}
       end
 
     next_property(data, properties)
@@ -155,5 +159,11 @@ defmodule ICal.Deserialize.Timezone do
     custom_entry = %{params: params, value: value}
     custom_properties = Map.put(properties.custom_properties, key, custom_entry)
     next_property(data, %{properties | custom_properties: custom_properties})
+  end
+
+  defp next_property(data, properties) do
+    data
+    |> Deserialize.skip_line()
+    |> next_property(properties)
   end
 end
