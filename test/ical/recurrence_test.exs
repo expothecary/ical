@@ -283,20 +283,12 @@ defmodule ICal.RecurrenceTest do
 
     assert recurrence === ICal.Deserialize.Recurrence.from_event(event)
 
-    serialized = ICal.Serialize.Recurrence.to_ics(recurrence, []) |> to_string()
+    serialized = ICal.Serialize.Recurrence.to_ics(recurrence) |> to_string()
 
     assert String.starts_with?(serialized, "RRULE:FREQ=DAILY")
     assert String.contains?(serialized, ";INTERVAL=1")
     assert String.contains?(serialized, ";BYDAY=-1SUSU1MO-1TU2WETHFRSA")
     assert String.ends_with?(serialized, "\n")
-  end
-
-  test "Recurrence serialization ignores anything that isn't a recurrence" do
-    assert [] == ICal.Serialize.Recurrence.to_ics(nil, [])
-    assert [] == ICal.Serialize.Recurrence.to_ics(%{}, [])
-    assert [] == ICal.Serialize.Recurrence.to_ics(%{"FREQ" => "DAILY"}, [])
-    assert [] == ICal.Serialize.Recurrence.to_ics("", [])
-    assert [] == ICal.Serialize.Recurrence.to_ics(100, [])
   end
 
   test "Recurrence deserialization parses values of frequency corrrectly" do
