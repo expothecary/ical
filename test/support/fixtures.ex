@@ -568,4 +568,408 @@ defmodule ICal.Test.Fixtures do
       trigger: %ICal.Alarm.Trigger{on: nil, relative_to: nil, repeat: 0}
     }
   end
+
+  def timezone("America/New_York") do
+    %ICal.Timezone{
+      custom_properties: [],
+      daylight: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1967-04-30 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{-1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [4],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: ~U[1973-04-29 07:00:00Z],
+            weekday: nil
+          }
+        },
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1974-01-06 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [~N[1975-02-23 02:00:00]],
+          rrule: nil
+        },
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1976-04-25 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{-1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [4],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: ~U[1986-04-27 07:00:00Z],
+            weekday: nil
+          }
+        },
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1987-04-05 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [4],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: ~U[2006-04-02 07:00:00Z],
+            weekday: nil
+          }
+        },
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[2007-03-11 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{2, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [3],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: nil,
+            weekday: nil
+          }
+        }
+      ],
+      last_modified: ~U[2005-08-09 05:00:00Z],
+      standard: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1967-10-29 02:00:00],
+          names: ["EST"],
+          offsets: %{from: -400, to: -500},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{-1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [10],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: ~U[2006-10-29 06:00:00Z],
+            weekday: nil
+          }
+        },
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[2007-11-04 02:00:00],
+          names: ["EST"],
+          offsets: %{from: -400, to: -500},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [11],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: nil,
+            weekday: nil
+          }
+        }
+      ],
+      id: "America/New_York",
+      url: nil
+    }
+  end
+
+  def timezone("America/New_York2") do
+    %ICal.Timezone{
+      custom_properties: [],
+      daylight: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[2007-03-11 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: nil
+        }
+      ],
+      last_modified: ~U[2005-08-09 05:00:00Z],
+      standard: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[2007-11-04 02:00:00],
+          names: ["EST"],
+          offsets: %{from: -400, to: -500},
+          rdates: [],
+          rrule: nil
+        }
+      ],
+      id: "America/New_York2",
+      url: nil
+    }
+  end
+
+  def timezone("America/New_York3") do
+    %ICal.Timezone{
+      custom_properties: [],
+      daylight: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[2007-03-11 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{2, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [3],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: nil,
+            weekday: nil
+          }
+        }
+      ],
+      last_modified: ~U[2005-08-09 05:00:00Z],
+      standard: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[2007-11-04 02:00:00],
+          names: ["EST"],
+          offsets: %{from: -400, to: -500},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [11],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: nil,
+            weekday: nil
+          }
+        }
+      ],
+      id: "America/New_York3",
+      url: "http://zones.example.com/tz/America-New_York.ics"
+    }
+  end
+
+  def timezone("Fictitious") do
+    %ICal.Timezone{
+      custom_properties: [],
+      daylight: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1987-04-05 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [4],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: ~U[1998-04-04 07:00:00Z],
+            weekday: nil
+          }
+        }
+      ],
+      last_modified: ~U[1987-01-01 00:00:00Z],
+      standard: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1967-10-29 02:00:00],
+          names: ["EST"],
+          offsets: %{from: -400, to: -500},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{-1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [10],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: nil,
+            weekday: nil
+          }
+        }
+      ],
+      id: "Fictitious",
+      url: nil
+    }
+  end
+
+  def timezone("Also Fictitious") do
+    %ICal.Timezone{
+      custom_properties: [],
+      daylight: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1987-04-05 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [4],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: ~U[1998-04-04 07:00:00Z],
+            weekday: nil
+          }
+        },
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1999-04-24 02:00:00],
+          names: ["EDT"],
+          offsets: %{from: -500, to: -400},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{-1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [4],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: nil,
+            weekday: nil
+          }
+        }
+      ],
+      last_modified: ~U[1987-01-01 00:00:00Z],
+      standard: [
+        %ICal.Timezone.Properties{
+          comments: [],
+          custom_properties: [],
+          dtstart: ~N[1967-10-29 02:00:00],
+          names: ["EST"],
+          offsets: %{from: -400, to: -500},
+          rdates: [],
+          rrule: %ICal.Recurrence{
+            by_day: [{-1, :sunday}],
+            by_hour: nil,
+            by_minute: nil,
+            by_month: [10],
+            by_month_day: nil,
+            by_second: nil,
+            by_set_position: nil,
+            by_week_number: nil,
+            by_year_day: nil,
+            count: nil,
+            frequency: :yearly,
+            interval: 1,
+            until: nil,
+            weekday: nil
+          }
+        }
+      ],
+      id: "Also Fictitious",
+      url: nil
+    }
+  end
 end

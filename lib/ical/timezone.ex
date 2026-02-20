@@ -16,31 +16,31 @@ defmodule ICal.Timezone do
     ]
 
     @type t :: %__MODULE__{
-            dtstart: DateTime.t(),
+            dtstart: NaiveDateTime.t(),
             offsets: %{from: integer(), to: integer()},
             rrule: ICal.Recurrence.t() | nil,
             comments: [String.t()],
-            rdates: [DateTime.t()],
+            rdates: [NaiveDateTime.t()],
             names: [String.t()],
             custom_properties: ICal.custom_properties()
           }
   end
 
   defstruct [
-    :tzid,
+    :id,
     standard: [],
     daylight: [],
     last_modified: nil,
-    tzurl: nil,
+    url: nil,
     custom_properties: []
   ]
 
   @type t :: %__MODULE__{
-          tzid: String.t(),
+          id: String.t(),
           standard: __MODULE__.Properties.t(),
           daylight: __MODULE__.Properties.t(),
           last_modified: DateTime.t() | nil,
-          tzurl: String.t() | nil,
+          url: String.t() | nil,
           custom_properties: ICal.custom_properties()
         }
 end
