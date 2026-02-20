@@ -106,9 +106,9 @@ defmodule ICal.Deserialize.Recurrence do
   end
 
   defp add_integer_value(recurrence, key, value) do
-    case Integer.parse(value) do
-      {number, ""} -> Map.put(recurrence, key, number)
-      _ -> recurrence
+    case Deserialize.to_integer(value) do
+      nil -> recurrence
+      number -> Map.put(recurrence, key, number)
     end
   end
 
@@ -133,11 +133,11 @@ defmodule ICal.Deserialize.Recurrence do
     # zeros are only allowed when the min value is also zero:
     # a negative min means no zeros, and if the min is above zero, obviously
     # zero is not ok
-    case Integer.parse(value) do
-      {0, ""} when min == 0 ->
+    case Deserialize.to_integer(value) do
+      0 when min == 0 ->
         acc ++ [0]
 
-      {number, ""} when number != 0 and number <= max and number >= min ->
+      number when is_number(number) and number != 0 and number <= max and number >= min ->
         acc ++ [number]
 
       _ ->
