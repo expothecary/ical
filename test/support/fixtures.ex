@@ -928,25 +928,9 @@ defmodule ICal.Test.Fixtures do
           names: ["EDT"],
           offsets: %{from: -500, to: -400},
           rdates: [],
-          rrule: %ICal.Recurrence{
-            by_day: [{-1, :sunday}],
-            by_hour: nil,
-            by_minute: nil,
-            by_month: [4],
-            by_month_day: nil,
-            by_second: nil,
-            by_set_position: nil,
-            by_week_number: nil,
-            by_year_day: nil,
-            count: nil,
-            frequency: :yearly,
-            interval: 1,
-            until: nil,
-            weekday: nil
-          }
+          rrule: nil
         }
       ],
-      last_modified: ~U[1987-01-01 00:00:00Z],
       standard: [
         %ICal.Timezone.Properties{
           comments: [],
