@@ -54,6 +54,7 @@ defmodule ICal.Serialize.Timezone do
         |> add_names(definition)
         |> add_comments(definition)
         |> Serialize.add_custom_properties(definition.custom_properties)
+        |> add_property_closing(type)
       end)
   end
 
@@ -74,5 +75,9 @@ defmodule ICal.Serialize.Timezone do
   defp add_comments(acc, %{comments: comments}) do
     acc ++
       Enum.map(comments, fn comment -> ["COMMENT:", Serialize.to_ics(comment), ?\n] end)
+  end
+
+  defp add_property_closing(acc, type) do
+    acc ++ ["END:", type, ?\n]
   end
 end
