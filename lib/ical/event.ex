@@ -37,9 +37,6 @@ defmodule ICal.Event do
             resources: [],
             custom_properties: %{}
 
-  @type period ::
-          {from :: DateTime.t(), to :: DateTime.t()}
-          | {from :: DateTime.t(), to :: ICal.Duration.t()}
   @type t :: %__MODULE__{
           uid: String.t() | nil,
           created: DateTime.t() | nil,
@@ -49,7 +46,7 @@ defmodule ICal.Event do
           modified: Date.t() | nil,
           recurrence_id: Date.t() | nil,
           exdates: [Date.t() | DateTime.t()],
-          rdates: [Date.t() | DateTime.t() | period],
+          rdates: [Date.t() | DateTime.t() | ICal.period()],
           rrule: map() | nil,
           class: String.t() | nil,
           description: String.t() | nil,
