@@ -61,7 +61,7 @@ defmodule ICal.Event do
           status: String.t() | nil,
           summary: String.t() | nil,
           url: String.t() | nil,
-          geo: {float, float} | nil,
+          geo: ICal.geo() | nil,
           priority: integer | nil,
           transparency: :opaque | :transparent | nil,
           alarms: [ICal.Alarm.t()],
