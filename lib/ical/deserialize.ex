@@ -439,4 +439,18 @@ defmodule ICal.Deserialize do
       _ -> nil
     end
   end
+
+  def to_integer(value, default \\ nil)
+  def to_integer(nil, default), do: default
+  def to_integer("", default), do: default
+  def to_integer(value, _default) when is_number(value), do: value
+
+  def to_integer(value, default) when is_binary(value) do
+    case Integer.parse(value) do
+      {number, ""} -> number
+      _ -> default
+    end
+  end
+
+  def to_integer(_value, default), do: default
 end

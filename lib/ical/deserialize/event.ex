@@ -247,9 +247,9 @@ defmodule ICal.Deserialize.Event do
     do: next(data, calendar, Map.put(event, key, value))
 
   defp record_integer_value(data, calendar, event, key, value) do
-    case Integer.parse(value) do
-      {integer, ""} -> next(data, calendar, Map.put(event, key, integer))
-      _ -> next(data, calendar, event)
+    case Deserialize.to_integer(value) do
+      nil -> next(data, calendar, event)
+      integer -> next(data, calendar, Map.put(event, key, integer))
     end
   end
 

@@ -61,12 +61,7 @@ defmodule ICal.Deserialize.Alarm do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
 
-    repeat =
-      case Integer.parse(value) do
-        {integer, ""} -> integer
-        _ -> 0
-      end
-
+    repeat = Deserialize.to_integer(value, 0)
     trigger = %{alarm.trigger | repeat: repeat}
     next(data, calendar, properties, %{alarm | trigger: trigger})
   end
