@@ -12,7 +12,9 @@ defmodule ICal.Serialize do
   def to_ics(x) when is_integer(x), do: Integer.to_string(x)
   def to_ics(x) when is_float(x), do: Float.to_string(x)
 
-  # Convert DateTimes to UTC then into ics-format strings
+  # Convert DateTimes into ics-format strings
+  # Timezones are dropped if they are not in UTC format as
+  # those bleong in the TZID parameter
   def to_ics(%DateTime{} = date_time) do
     format_string =
       if date_time.time_zone == "Etc/UTC" do
@@ -29,6 +31,17 @@ defmodule ICal.Serialize do
   # Convert Dates to UTC then into ics-format strings
   def to_ics(%Date{} = timestamp) do
     format_string = "{YYYY}{0M}{0D}"
+
+    {:ok, result} =
+      timestamp
+      |> Timex.format(format_string)
+
+    result
+  end
+
+  # Convert NaiveDateTimesinto ics-format strings
+  def to_ics(%NaiveDateTime{} = timestamp) do
+    format_string = "{YYYY}{0M}{0D}T{h24}{m}{s}"
 
     {:ok, result} =
       timestamp
