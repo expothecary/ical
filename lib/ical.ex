@@ -17,6 +17,7 @@ defmodule ICal do
 
   @type custom_value :: %{params: map, value: String.t()}
   @type custom_properties :: %{String.t() => custom_value()}
+  @type geo :: {float, float}
 
   @typedoc """
   An iCalendar. Event structs are found in `events`, while vendor-specific
