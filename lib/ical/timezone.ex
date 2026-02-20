@@ -12,7 +12,7 @@ defmodule ICal.Timezone do
       comments: [],
       rdates: [],
       names: [],
-      custom_properties: []
+      custom_properties: %{}
     ]
 
     @type t :: %__MODULE__{
@@ -28,19 +28,19 @@ defmodule ICal.Timezone do
 
   defstruct [
     :id,
-    standard: [],
-    daylight: [],
     last_modified: nil,
     url: nil,
-    custom_properties: []
+    standard: [],
+    daylight: [],
+    custom_properties: %{}
   ]
 
   @type t :: %__MODULE__{
+          last_modified: DateTime.t() | nil,
+          url: String.t() | nil,
           id: String.t(),
           standard: __MODULE__.Properties.t(),
           daylight: __MODULE__.Properties.t(),
-          last_modified: DateTime.t() | nil,
-          url: String.t() | nil,
           custom_properties: ICal.custom_properties()
         }
 end

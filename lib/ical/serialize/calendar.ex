@@ -11,6 +11,7 @@ defmodule ICal.Serialize.Calendar do
     |> product_id(calendar)
     |> method(calendar)
     |> Serialize.add_custom_properties(calendar.custom_properties)
+    |> timezones(calendar)
     |> events(calendar)
     |> other_components(calendar)
     |> end_calendar(calendar)
@@ -35,7 +36,9 @@ defmodule ICal.Serialize.Calendar do
   defp product_id(acc, %{product_id: nil}), do: acc ++ ["PRODID:", ICal.default_product_id(), ?\n]
   defp product_id(acc, calendar), do: acc ++ ["PRODID:", calendar.product_id, ?\n]
 
-  defp events(acc, %{events: []}), do: acc
+  defp timezones(acc, calendar) do
+    acc ++ Enum.map(calendar.timezones, &ICal.Serialize.Timezone.to_ics/1)
+  end
 
   defp events(acc, calendar) do
     acc ++ Enum.map(calendar.events, &ICal.Serialize.Event.to_ics/1)
