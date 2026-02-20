@@ -432,4 +432,11 @@ defmodule ICal.Deserialize do
       _ -> nil
     end
   end
+
+  def to_local_date(date_string) do
+    case Timex.parse(date_string, "{YYYY}{0M}{0D}T{h24}{m}{s}") do
+      {:ok, date} -> date
+      _ -> nil
+    end
+  end
 end
