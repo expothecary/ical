@@ -68,6 +68,10 @@ defmodule ICal.Serialize do
     ICal.Serialize.Duration.to_ics(duration)
   end
 
+  def to_ics({:geo, {lat, lon}}) do
+    ["GEO:", to_string(lat), ?;, to_string(lon), ?\n]
+  end
+
   def to_ics(x) when is_atom(x), do: atom_to_value(x)
   def to_ics(x), do: x
 

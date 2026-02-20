@@ -76,8 +76,8 @@ defmodule ICal.Serialize.Event do
     [Enum.map(value, &to_date_kv("EXDATE", &1)) | acc]
   end
 
-  defp to_ics({:geo, {lat, lon}}, acc) do
-    [["GEO:", to_string(lat), ?;, to_string(lon), ?\n] | acc]
+  defp to_ics({:geo, _} = geo, acc) do
+    acc ++ Serialize.to_ics(geo)
   end
 
   defp to_ics({:resources, value}, acc) do
