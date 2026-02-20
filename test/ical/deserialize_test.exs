@@ -95,6 +95,23 @@ defmodule ICal.DeserializeTest do
       assert "bar" == ICal.Deserialize.skip_line("foo\r\nbar")
       assert "bar" == ICal.Deserialize.skip_line("foo\\r\nbar")
     end
+
+    test "Parsing 'integers'" do
+      assert nil == ICal.Deserialize.to_integer("")
+      assert 1 == ICal.Deserialize.to_integer("", 1)
+      assert nil == ICal.Deserialize.to_integer(nil)
+      assert 1 == ICal.Deserialize.to_integer(nil, 1)
+      assert 1 == ICal.Deserialize.to_integer("1", 2)
+      assert 1 == ICal.Deserialize.to_integer(1, 2)
+      assert 1 == ICal.Deserialize.to_integer("garbage", 1)
+      assert 1 == ICal.Deserialize.to_integer({"garbage"}, 1)
+      assert 1 == ICal.Deserialize.to_integer(["garbage"], 1)
+    end
+
+    test "To naive date times" do
+      assert ~N[1967-10-29 02:00:00] == ICal.Deserialize.to_local_date("19671029T020000")
+      assert nil == ICal.Deserialize.to_local_date("garbage")
+    end
   end
 
   describe "ICal.from_ics/1" do
