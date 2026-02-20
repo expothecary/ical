@@ -432,4 +432,12 @@ defmodule ICalTest do
     serialized = ICal.to_ics(calendar) |> to_string()
     assert serialized == ics
   end
+
+  test "Names are supported" do
+    calendar = "calendar_name" |> Helper.test_data() |> ICal.from_ics()
+    assert calendar.name == "This is my name"
+
+    calendar = "calendar_x_name" |> Helper.test_data() |> ICal.from_ics()
+    assert calendar.name == "This is my name"
+  end
 end
