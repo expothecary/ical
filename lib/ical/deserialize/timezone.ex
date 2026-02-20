@@ -3,19 +3,24 @@ defmodule ICal.Deserialize.Timezone do
 
   alias ICal.Deserialize
 
-  @spec one(data :: binary()) :: {data :: binary, ICal.Timezone.t()}
+  @type maybe_timezone :: nil | ICal.Timezone.t()
+  @spec one(data :: binary()) :: {data :: binary, maybe_timezone}
   def one(data) do
     next(data, %ICal.Timezone{})
   end
 
-  @spec next_property(data :: binary(), ICal.Timezone.t()) ::
+  @spec next(data :: binary(), ICal.Timezone.maybe()) ::
           {data :: binary, nil | ICal.Timezone.t()}
   defp next(<<>> = data, _timezone) do
     {data, nil}
   end
 
   defp next(<<"END:VTIMEZONE\n", data::binary>>, timezone) do
-    {data, timezone}
+    if timezone.id == nil do
+      {data, nil}
+    else
+      {data, timezone}
+    end
   end
 
   defp next(<<"TZID", data::binary>>, timezone) do
@@ -46,7 +51,11 @@ defmodule ICal.Deserialize.Timezone do
       |> Deserialize.skip_line()
       |> next_property(%ICal.Timezone.Properties{})
 
-    next(data, %{timezone | standard: timezone.standard ++ [properties]})
+    if properties != nil do
+      next(data, %{timezone | standard: timezone.standard ++ [properties]})
+    else
+      next(data, timezone)
+    end
   end
 
   defp next(<<"BEGIN:DAYLIGHT", data::binary>>, timezone) do
@@ -55,7 +64,11 @@ defmodule ICal.Deserialize.Timezone do
       |> Deserialize.skip_line()
       |> next_property(%ICal.Timezone.Properties{})
 
-    next(data, %{timezone | daylight: timezone.daylight ++ [properties]})
+    if properties != nil do
+      next(data, %{timezone | daylight: timezone.daylight ++ [properties]})
+    else
+      next(data, timezone)
+    end
   end
 
   # prevent losing other non-standard headers
@@ -75,15 +88,23 @@ defmodule ICal.Deserialize.Timezone do
     |> next(timezone)
   end
 
-  @spec next_property(data :: binary(), ICal.Timezone.Properties.t()) ::
-          {data :: binary, ICal.Timezone.Properties.t()}
+  @spec next_property(data :: binary(), ICal.Timezone.Properties.maybe()) ::
+          {data :: binary, nil | ICal.Timezone.Properties.t()}
   defp next_property(<<>> = data, _properties) do
     {data, nil}
   end
 
   defp next_property(<<"END:", data::binary>>, properties) do
+    # this is a wee bit cheeky: technically it should be checking for
+    # "END:#{type}" but that is slower and should never occur in well-formed
+    # data
     data = Deserialize.skip_line(data)
-    {data, properties}
+
+    if properties.dtstart != nil do
+      {data, properties}
+    else
+      {data, nil}
+    end
   end
 
   defp next_property(<<"DTSTART", data::binary>>, properties) do
