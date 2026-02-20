@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.0
+
+* Improvements
+  * `ICal.Timezone`: a struct that represents `VTIMEZONE` calendar components
+  * Dates with local times are represented with `NaiveDateTime`s
+* Fixes
+  * `ICal.Deserialize.to_integer` wraps integer parsing for safety in more cases
+  * Correct placement of the `:` separator in custom properties with parameters
+
 ## v1.0.0
 
 - First public release.
