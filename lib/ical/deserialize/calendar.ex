@@ -26,9 +26,14 @@ defmodule ICal.Deserialize.Calendar do
   end
 
   def next(<<"BEGIN:VTIMEZONE", data::binary>>, calendar) do
-    {data, timezone} = ICal.Deserialize.Timezone.one(data)
-    calendar = %{calendar | timezones: Map.put(calendar.timezones, timezone.id, timezone)}
-    next(data, calendar)
+    case ICal.Deserialize.Timezone.one(data) do
+      {data, nil} ->
+        next(data, calendar)
+
+      {data, timezone} ->
+        calendar = %{calendar | timezones: Map.put(calendar.timezones, timezone.id, timezone)}
+        next(data, calendar)
+    end
   end
 
   def next(<<"BEGIN:VCALENDAR\n", data::binary>>, calendar) do
