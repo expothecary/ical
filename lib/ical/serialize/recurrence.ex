@@ -3,11 +3,12 @@ defmodule ICal.Serialize.Recurrence do
 
   alias ICal.Serialize
 
-  def to_ics(%ICal.Recurrence{} = recurrence, acc) do
+  @spec to_ics(ICal.Recurrence.t()) :: iodata
+  def to_ics(%ICal.Recurrence{} = recurrence) do
     rules =
       Enum.reduce(Map.from_struct(recurrence), [], &to_rrule_entry/2)
 
-    [["RRULE:FREQ=", Serialize.to_ics(recurrence.frequency), rules, ?\n] | acc]
+    ["RRULE:FREQ=", Serialize.to_ics(recurrence.frequency), rules, ?\n]
   end
 
   def to_ics(_, acc), do: acc

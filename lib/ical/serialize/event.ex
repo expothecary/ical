@@ -131,8 +131,8 @@ defmodule ICal.Serialize.Event do
     [to_date_kv("RECURRENCE-ID", value) | acc]
   end
 
-  defp to_ics({:rrule, rrules}, acc) do
-    Serialize.Recurrence.to_ics(rrules, acc)
+  defp to_ics({:rrule, rule}, acc) do
+    acc ++ Serialize.Recurrence.to_ics(rule)
   end
 
   defp to_ics({:status, value}, acc) do
