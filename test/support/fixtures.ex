@@ -679,7 +679,7 @@ defmodule ICal.Test.Fixtures do
           }
         }
       ],
-      last_modified: ~U[2005-08-09 05:00:00Z],
+      modified: ~U[2005-08-09 05:00:00Z],
       standard: [
         %ICal.Timezone.Properties{
           comments: [],
@@ -749,7 +749,7 @@ defmodule ICal.Test.Fixtures do
           rrule: nil
         }
       ],
-      last_modified: ~U[2005-08-09 05:00:00Z],
+      modified: ~U[2005-08-09 05:00:00Z],
       standard: [
         %ICal.Timezone.Properties{
           comments: [],
@@ -795,7 +795,7 @@ defmodule ICal.Test.Fixtures do
           }
         }
       ],
-      last_modified: ~U[2005-08-09 05:00:00Z],
+      modified: ~U[2005-08-09 05:00:00Z],
       standard: [
         %ICal.Timezone.Properties{
           comments: ["This is for New York", "Another comment."],
@@ -856,7 +856,7 @@ defmodule ICal.Test.Fixtures do
           }
         }
       ],
-      last_modified: ~U[1987-01-01 00:00:00Z],
+      modified: ~U[1987-01-01 00:00:00Z],
       standard: [
         %ICal.Timezone.Properties{
           comments: [],

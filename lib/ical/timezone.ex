@@ -29,7 +29,7 @@ defmodule ICal.Timezone do
 
   defstruct [
     :id,
-    last_modified: nil,
+    modified: nil,
     url: nil,
     standard: [],
     daylight: [],
@@ -41,7 +41,7 @@ defmodule ICal.Timezone do
   @type t :: %__MODULE__{
           id: String.t(),
           url: String.t() | nil,
-          last_modified: DateTime.t() | nil,
+          modified: DateTime.t() | nil,
           standard: [__MODULE__.Properties.t()],
           daylight: [__MODULE__.Properties.t()],
           custom_properties: ICal.custom_properties()
