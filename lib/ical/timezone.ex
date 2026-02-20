@@ -2,7 +2,6 @@ defmodule ICal.Timezone do
   @moduledoc """
   An iCalendar Timezone component
   """
-
   defmodule Properties do
     @moduledoc "The detailed properties of a timezone component"
     defstruct [
@@ -14,6 +13,8 @@ defmodule ICal.Timezone do
       names: [],
       custom_properties: %{}
     ]
+
+    @type maybe :: %__MODULE__{}
 
     @type t :: %__MODULE__{
             dtstart: NaiveDateTime.t(),
@@ -35,12 +36,14 @@ defmodule ICal.Timezone do
     custom_properties: %{}
   ]
 
+  @type maybe :: %__MODULE__{}
+
   @type t :: %__MODULE__{
-          last_modified: DateTime.t() | nil,
-          url: String.t() | nil,
           id: String.t(),
-          standard: __MODULE__.Properties.t(),
-          daylight: __MODULE__.Properties.t(),
+          url: String.t() | nil,
+          last_modified: DateTime.t() | nil,
+          standard: [__MODULE__.Properties.t()],
+          daylight: [__MODULE__.Properties.t()],
           custom_properties: ICal.custom_properties()
         }
 end

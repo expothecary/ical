@@ -345,6 +345,7 @@ defmodule ICal.Deserialize do
   end
 
   # just completely skip the line, don't even both collecting the data
+  @spec skip_line(binary()) :: binary()
   def skip_line(<<>> = data), do: data
   def skip_line(<<?\r, ?\n, data::binary>>), do: data
   def skip_line(<<?\n, data::binary>>), do: data
