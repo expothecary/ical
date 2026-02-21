@@ -5,6 +5,9 @@ defmodule ICal.Deserialize.Event do
   require ICal.Deserialize.Component
 
   @spec one(data :: binary, ICal.t()) :: {data :: binary, ICal.Event.t()}
+
+  Deserialize.Component.rejection_guards()
+
   def one(data, calendar) do
     next_parameter(data, calendar, %ICal.Event{})
   end
