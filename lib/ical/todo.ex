@@ -60,7 +60,7 @@ defmodule ICal.Todo do
           percent_completed: non_neg_integer,
           priority: non_neg_integer,
           sequence: non_neg_integer,
-          status: nil | String.t(),
+          status: :need_action | :completed | :in_process | :cancelled | nil,
           summary: nil | String.t(),
           url: nil | String.t(),
           rrule: nil | ICal.Recurrence.t(),
