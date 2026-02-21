@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - `ICal.RequestStatus`: a struct that represents the `rstatus`, or request status, of a component
     - Added request status support to `ICal.Event`
   - Dates with local times are represented with `NaiveDateTime`s
+  - Arbitrary lists of components can be serialized with `ICal.to_ics` without being in an `%ICal{}`
 - Fixes
   - `ICal.Deserialize.to_integer` wraps integer parsing for safety in more cases
   - Correct placement of the `:` separator in custom properties with parameters
