@@ -589,6 +589,82 @@ defmodule ICal.Test.Fixtures do
     }
   end
 
+  def todo("20070514T103211Z-123404@example.com") do
+    %ICal.Todo{
+      alarms: [],
+      attachments: [],
+      attendees: [],
+      categories: [],
+      class: nil,
+      comments: [],
+      completed: ~U[2007-07-07 10:00:00Z],
+      contacts: [],
+      created: nil,
+      custom_properties: %{},
+      description: nil,
+      dtstamp: ~U[2007-05-14 10:32:11Z],
+      dtstart: ~U[2007-05-14 11:00:00Z],
+      due: ~U[2007-07-09 13:00:00Z],
+      duration: nil,
+      exdates: [],
+      geo: nil,
+      location: nil,
+      modified: nil,
+      organizer: nil,
+      percent_completed: 0,
+      priority: 1,
+      rdates: [],
+      recurrance_id: nil,
+      related_to: [],
+      request_status: [],
+      resources: [],
+      rrule: nil,
+      sequence: 0,
+      status: nil,
+      summary: "Submit Revised Internet-Draft",
+      uid: "20070514T103211Z-123404@example.com",
+      url: nil
+    }
+  end
+
+  def todo("20070313T123432Z-456553@example.com") do
+    %ICal.Todo{
+      alarms: [],
+      attachments: [],
+      attendees: [],
+      categories: ["FAMILY", "FINANCE"],
+      class: "CONFIDENTIAL",
+      comments: [],
+      completed: nil,
+      contacts: [],
+      created: nil,
+      custom_properties: %{},
+      description: nil,
+      dtstamp: ~U[2007-03-13 12:34:32Z],
+      dtstart: nil,
+      due: ~U[2007-05-01 00:00:00Z],
+      duration: nil,
+      exdates: [],
+      geo: nil,
+      location: nil,
+      modified: nil,
+      organizer: nil,
+      percent_completed: 0,
+      priority: 0,
+      rdates: [],
+      recurrance_id: nil,
+      related_to: [],
+      request_status: [],
+      resources: [],
+      rrule: nil,
+      sequence: 0,
+      status: nil,
+      summary: "Submit Quebec Income Tax Return for 2006",
+      uid: "20070313T123432Z-456553@example.com",
+      url: nil
+    }
+  end
+
   def timezone("America/New_York") do
     %ICal.Timezone{
       custom_properties: %{},
