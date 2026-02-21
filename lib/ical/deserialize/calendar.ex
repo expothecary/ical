@@ -25,6 +25,12 @@ defmodule ICal.Deserialize.Calendar do
     next(data, calendar)
   end
 
+  def next(<<"BEGIN:VTODO", data::binary>>, calendar) do
+    {data, todo} = ICal.Deserialize.Todo.one(data, calendar)
+    calendar = %{calendar | todos: calendar.todos ++ [todo]}
+    next(data, calendar)
+  end
+
   def next(<<"BEGIN:VTIMEZONE", data::binary>>, calendar) do
     case ICal.Deserialize.Timezone.one(data) do
       {data, nil} ->
