@@ -54,7 +54,7 @@ defmodule ICal.Event do
           location: String.t() | nil,
           organizer: String.t() | nil,
           sequence: String.t() | nil,
-          status: String.t() | nil,
+          status: :tentative | :confirmed | :cancelled | nil,
           summary: String.t() | nil,
           url: String.t() | nil,
           geo: ICal.geo() | nil,
