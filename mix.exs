@@ -70,12 +70,13 @@ defmodule ICal.Mixfile do
       source_ref: "v#{@version}",
       formatters: ["html"],
       groups_for_modules: [
-        "Calendar Entries": [ICal.Alarm, ICal.Event, ICal.Timezone],
+        "Calendar Entries": [ICal.Alarm, ICal.Event, ICal.Journal, ICal.Timezone, ICal.Todo],
         Properties: [
           ICal.Attachment,
           ICal.Attendee,
           ICal.Contact,
           ICal.Duration,
+          ICal.RequestStatus,
           ICal.Timezone.Properties
         ],
         Alarms: [~r/ICal.Alarm.*/],

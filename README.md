@@ -9,6 +9,9 @@ A library for reading and writing iCalendar data.
 * Integration with Plug / Phoenix via `ICal.encode_to_iodata`
 * Components supported
   * Events (with alarms)
+  * Todos (with alarms)
+  * Journals
+  * Timezones
   * Alarms
 * Recurrence calculations (currrently only `BYDAY` is supported)
 * Compatibility
@@ -23,10 +26,7 @@ A library for reading and writing iCalendar data.
 
 Components that will eventually be supported (in rough order):
 
-* Timezone (VTIMEZONE)
 * Free/busy (VFREEBUSY)
-* Todos (VTODO)
-* Journals (VJOURNAL)
 
 Planned features:
 
