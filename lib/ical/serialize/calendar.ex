@@ -13,6 +13,7 @@ defmodule ICal.Serialize.Calendar do
     |> Serialize.add_custom_properties(calendar.custom_properties)
     |> timezones(calendar)
     |> events(calendar)
+    |> todos(calendar)
     |> other_components(calendar)
     |> end_calendar(calendar)
   end
@@ -42,6 +43,10 @@ defmodule ICal.Serialize.Calendar do
 
   defp events(acc, calendar) do
     acc ++ Enum.map(calendar.events, &ICal.Serialize.Event.to_ics/1)
+  end
+
+  defp todos(acc, calendar) do
+    acc ++ Enum.map(calendar.todos, &ICal.Serialize.Todo.to_ics/1)
   end
 
   defp other_components(acc, calendar) do
