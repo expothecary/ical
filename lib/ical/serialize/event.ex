@@ -51,21 +51,21 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:created, value}, acc) do
-    acc ++ [to_date_kv("CREATED", value)]
+    acc ++ [Serialize.date_to_ics("CREATED", value)]
   end
 
   defp to_ics({:dtstamp, value}, acc) do
     stamp = if value == nil, do: DateTime.utc_now(), else: value
 
-    acc ++ [to_date_kv("DTSTAMP", stamp)]
+    acc ++ [Serialize.date_to_ics("DTSTAMP", stamp)]
   end
 
   defp to_ics({:dtend, value}, acc) do
-    acc ++ [to_date_kv("DTEND", value)]
+    acc ++ [Serialize.date_to_ics("DTEND", value)]
   end
 
   defp to_ics({:dtstart, value}, acc) do
-    acc ++ [to_date_kv("DTSTART", value)]
+    acc ++ [Serialize.date_to_ics("DTSTART", value)]
   end
 
   defp to_ics({:duration, value}, acc) do
@@ -73,7 +73,7 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:exdates, value}, acc) when is_list(value) do
-    acc ++ [Enum.map(value, &to_date_kv("EXDATE", &1))]
+    acc ++ [Enum.map(value, &Serialize.date_to_ics("EXDATE", &1))]
   end
 
   defp to_ics({:geo, _} = geo, acc) do
@@ -89,36 +89,7 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:rdates, dates}, acc) when is_list(dates) do
-    # reduce the rdates by timezone, so the minimal set of entries gets written out
-    # this also separateds out periods, dates, and datetimes as the VALUE= needs to be
-    # different for each
-    rdates_by_tz =
-      Enum.reduce(
-        dates,
-        %{},
-        fn
-          {from, to}, acc ->
-            serialized = [[Serialize.to_ics(from), ?/, Serialize.to_ics(to)]]
-
-            Map.update(acc, {:periods, from.time_zone}, serialized, fn periods ->
-              periods ++ serialized
-            end)
-
-          %Date{} = date, acc ->
-            serialized = [Serialize.to_ics(date)]
-
-            Map.update(acc, :dates, serialized, fn dates -> dates ++ serialized end)
-
-          %DateTime{} = date, acc ->
-            serialized = [Serialize.to_ics(date)]
-
-            Map.update(acc, date.time_zone, serialized, fn dates ->
-              dates ++ serialized
-            end)
-        end
-      )
-
-    Enum.reduce(rdates_by_tz, acc, &to_rdate_ics/2)
+    Serialize.Rdate.to_ics(dates, acc)
   end
 
   defp to_ics({:related_to, value}, acc) do
@@ -132,7 +103,7 @@ defmodule ICal.Serialize.Event do
   end
 
   defp to_ics({:recurrence_id, value}, acc) do
-    acc ++ [to_date_kv("RECURRENCE-ID", value)]
+    acc ++ [Serialize.date_to_ics("RECURRENCE-ID", value)]
   end
 
   defp to_ics({:rrule, rule}, acc) do
@@ -167,18 +138,6 @@ defmodule ICal.Serialize.Event do
 
   defp to_text_kv(key, value) do
     [key, ?:, Serialize.to_ics(value), ?\n]
-  end
-
-  def to_date_kv(key, %Date{} = date) do
-    [key, ";VALUE=DATE:", Serialize.to_ics(date), ?\n]
-  end
-
-  def to_date_kv(key, %DateTime{time_zone: "Etc/UTC"} = date) do
-    [key, ?:, Serialize.to_ics(date), ?\n]
-  end
-
-  def to_date_kv(key, %DateTime{} = date) do
-    [key, ";TZID=", date.time_zone, ?:, Serialize.to_ics(date), ?\n]
   end
 
   defp to_rdate_ics({:dates, periods}, acc),
