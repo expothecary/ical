@@ -119,6 +119,10 @@ defmodule ICal.Serialize do
     [key, ";TZID=", date.time_zone, ?:, to_ics(date), ?\n]
   end
 
+  def kv_to_ics(key, value) do
+    [key, ?:, to_ics(value), ?\n]
+  end
+
   def escaped_quotes(x) do
     String.replace(x, ~S|"|, ~S|\"|)
   end
