@@ -72,7 +72,7 @@ defmodule ICal.Serialize do
     ["GEO:", to_string(lat), ?;, to_string(lon), ?\n]
   end
 
-  def value(x) when is_atom(x), do: atom_to_value(x)
+  def value(x) when is_atom(x), do: x |> to_string() |> String.upcase()
   def value(x), do: x
 
   @spec add_custom_properties(iolist(), ICal.custom_properties()) :: iolist()
@@ -137,10 +137,6 @@ defmodule ICal.Serialize do
     values
     |> Enum.map(&value/1)
     |> Enum.intersperse(",")
-  end
-
-  def atom_to_value(atom) do
-    atom |> to_string |> String.upcase()
   end
 
   def to_quoted_value(value) do
