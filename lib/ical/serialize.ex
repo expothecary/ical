@@ -107,6 +107,18 @@ defmodule ICal.Serialize do
     end)
   end
 
+  def date_to_ics(key, %Date{} = date) do
+    [key, ";VALUE=DATE:", to_ics(date), ?\n]
+  end
+
+  def date_to_ics(key, %DateTime{time_zone: "Etc/UTC"} = date) do
+    [key, ?:, to_ics(date), ?\n]
+  end
+
+  def date_to_ics(key, %DateTime{} = date) do
+    [key, ";TZID=", date.time_zone, ?:, to_ics(date), ?\n]
+  end
+
   def escaped_quotes(x) do
     String.replace(x, ~S|"|, ~S|\"|)
   end
