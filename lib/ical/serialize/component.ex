@@ -93,6 +93,10 @@ defmodule ICal.Serialize.Component do
             :tentative -> ["STATUS:TENTATIVE\n"]
             :confirmed -> ["STATUS:CONFIRMED\n"]
             :cancelled -> ["STATUS:CANCELLED\n"]
+            :needs_action -> ["STATUS:NEEDS-ACTION\n"]
+            :in_process -> ["STATUS:IN-PROCESS\n"]
+            :draft -> ["STATUS:DRAFT\̣n"]
+            :final -> ["STATUS:FINAL\n"]
             value -> [ICal.Serialize.kv_to_ics("STATUS", to_string(value))]
           end
       end
