@@ -19,6 +19,8 @@ defmodule ICal.TodoTest do
 
   test "Desierializing an empty buffer returns nil" do
     assert {"", nil} == ICal.Deserialize.Todo.one("", %ICal{})
+    assert {"", nil} == ICal.Deserialize.Todo.one("\r\n", %ICal{})
+    assert {"", nil} == ICal.Deserialize.Todo.one("\n", %ICal{})
   end
 
   test "Serializing a calendar with todos" do

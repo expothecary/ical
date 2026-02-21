@@ -649,7 +649,7 @@ defmodule ICal.Test.Fixtures do
       location: nil,
       modified: nil,
       organizer: nil,
-      percent_completed: 0,
+      percent_completed: 50,
       priority: 0,
       rdates: [],
       recurrance_id: nil,
