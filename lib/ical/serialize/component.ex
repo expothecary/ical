@@ -52,7 +52,7 @@ defmodule ICal.Serialize.Component do
       end
 
       defp to_ics({:duration, value}, acc) do
-        acc ++ [ICal.Serialize.kv_to_ics("DURATION", ICal.Serialize.to_ics(value))]
+        acc ++ [ICal.Serialize.kv_to_ics("DURATION", value)]
       end
 
       defp to_ics({:exdates, value}, acc) when is_list(value) do
