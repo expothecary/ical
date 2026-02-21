@@ -9,238 +9,224 @@ defmodule ICal.Deserialize.Component do
     end
   end
 
-  defmacro parameter_parsers do
-    quote do
-      defp next_parameter(<<>> = data, _calendar, component), do: {data, component}
+  defmacro parameter_parsers(optional \\ [:geo, :location, :resources]) do
+    [
+      quote do
+        defp next_parameter(<<>> = data, _calendar, component), do: {data, component}
 
-      defp next_parameter(<<"ATTACH", data::binary>>, calendar, component) do
-        {data, attachment} = ICal.Deserialize.attachment(data)
-        record_value(data, calendar, component, :attachments, [attachment])
+        defp next_parameter(<<"ATTACH", data::binary>>, calendar, component) do
+          {data, attachment} = ICal.Deserialize.attachment(data)
+          record_value(data, calendar, component, :attachments, [attachment])
+        end
+
+        defp next_parameter(<<"ATTENDEE", data::binary>>, calendar, component) do
+          {data, attendee} = ICal.Deserialize.Attendee.one(data)
+          record_value(data, calendar, component, :attendees, [attendee])
+        end
+
+        defp next_parameter(<<"BEGIN:VALARM", data::binary>>, calendar, component) do
+          {data, alarm} = ICal.Deserialize.Alarm.one(data, calendar)
+          record_value(data, calendar, component, :alarms, [alarm])
+        end
+
+        defp next_parameter(<<"CATEGORIES", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, values} = ICal.Deserialize.comma_separated_list(data)
+          record_value(data, calendar, component, :categories, values)
+        end
+
+        defp next_parameter(<<"CLASS", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+          record_value(data, calendar, component, :class, value)
+        end
+
+        defp next_parameter(<<"COMMENT", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.multi_line(data)
+          record_value(data, calendar, component, :comments, [value])
+        end
+
+        defp next_parameter(<<"CONTACT", data::binary>>, calendar, component) do
+          {data, contact} = ICal.Deserialize.Contact.from_ics(data)
+          record_value(data, calendar, component, :contacts, [contact])
+        end
+
+        defp next_parameter(<<"CREATED", data::binary>>, calendar, component) do
+          {data, params} = ICal.Deserialize.params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+
+          record_value(
+            data,
+            calendar,
+            component,
+            :created,
+            ICal.Deserialize.to_date(value, params, calendar)
+          )
+        end
+
+        defp next_parameter(<<"DESCRIPTION", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.multi_line(data)
+          record_value(data, calendar, component, :description, value)
+        end
+
+        defp next_parameter(<<"DTSTART", data::binary>>, calendar, component) do
+          {data, params} = ICal.Deserialize.params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+
+          record_value(
+            data,
+            calendar,
+            component,
+            :dtstart,
+            ICal.Deserialize.to_date(value, params, calendar)
+          )
+        end
+
+        defp next_parameter(<<"DTSTAMP", data::binary>>, calendar, component) do
+          {data, params} = ICal.Deserialize.params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+
+          record_value(
+            data,
+            calendar,
+            component,
+            :dtstamp,
+            ICal.Deserialize.to_date(value, params, calendar)
+          )
+        end
+
+        defp next_parameter(<<"DURATION", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, duration} = ICal.Deserialize.Duration.one(data)
+          record_value(data, calendar, component, :duration, duration)
+        end
+
+        defp next_parameter(<<"EXDATE", data::binary>>, calendar, component) do
+          {data, params} = ICal.Deserialize.params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+          date = ICal.Deserialize.to_date(value, params, calendar)
+          record_value(data, calendar, component, :exdates, [date])
+        end
+
+        defp next_parameter(<<"LAST-MODIFIED", data::binary>>, calendar, component) do
+          {data, params} = ICal.Deserialize.params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+
+          record_value(
+            data,
+            calendar,
+            component,
+            :modified,
+            ICal.Deserialize.to_date(value, params, calendar)
+          )
+        end
+
+        defp next_parameter(<<"ORGANIZER", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+          record_value(data, calendar, component, :organizer, value)
+        end
+
+        defp next_parameter(<<"PRIORITY", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+
+          record_integer_value(data, calendar, component, :priority, value)
+        end
+
+        defp next_parameter(<<"RECURRENCE-ID", data::binary>>, calendar, component) do
+          {data, params} = ICal.Deserialize.params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+
+          record_value(
+            data,
+            calendar,
+            component,
+            :recurrence_id,
+            ICal.Deserialize.to_date(value, params, calendar)
+          )
+        end
+
+        defp next_parameter(<<"RELATED-TO", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+          record_value(data, calendar, component, :related_to, [value])
+        end
+
+        defp next_parameter(<<"RDATE", data::binary>>, calendar, component) do
+          {data, params} = ICal.Deserialize.params(data)
+          {data, values} = ICal.Deserialize.comma_separated_list(data)
+          type = Map.get(params, "VALUE", "DATE")
+
+          rdates =
+            values
+            |> Enum.reduce([], fn value, acc -> to_rdate(type, params, value, calendar, acc) end)
+            |> Enum.reverse()
+
+          record_value(data, calendar, component, :rdates, rdates)
+        end
+
+        defp next_parameter(<<"REQUEST-STATUS", data::binary>>, calendar, component) do
+          {data, status} = ICal.Deserialize.RequestStatus.one(data)
+          record_value(data, calendar, component, :request_status, [status])
+        end
+
+        defp next_parameter(<<"RRULE", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, values} = ICal.Deserialize.param_list(data)
+
+          rrule = ICal.Deserialize.Recurrence.from_params(values)
+          record_value(data, calendar, component, :rrule, rrule)
+        end
+
+        defp next_parameter(<<"SEQUENCE", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+          record_integer_value(data, calendar, component, :sequence, value)
+        end
+
+        defp next_parameter(<<"STATUS", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.multi_line(data)
+          status = to_status(component, value)
+          record_value(data, calendar, component, :status, status)
+        end
+
+        defp next_parameter(<<"SUMMARY", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.multi_line(data)
+          record_value(data, calendar, component, :summary, value)
+        end
+
+        defp next_parameter(<<"UID", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.multi_line(data)
+          record_value(data, calendar, component, :uid, value)
+        end
+
+        defp next_parameter(<<"URL", data::binary>>, calendar, component) do
+          data = ICal.Deserialize.skip_params(data)
+          {data, value} = ICal.Deserialize.multi_line(data)
+          record_value(data, calendar, component, :url, value)
+        end
+
+        # prcomponent losing other non-standard headers
+        defp next_parameter(<<"X-", data::binary>>, calendar, component) do
+          {data, key} = ICal.Deserialize.rest_of_key(data, "X-")
+          {data, params} = ICal.Deserialize.params(data)
+          {data, value} = ICal.Deserialize.rest_of_line(data)
+
+          custom_entry = %{params: params, value: value}
+          custom_properties = Map.put(component.custom_properties, key, custom_entry)
+          next_parameter(data, calendar, %{component | custom_properties: custom_properties})
+        end
       end
-
-      defp next_parameter(<<"ATTENDEE", data::binary>>, calendar, component) do
-        {data, attendee} = ICal.Deserialize.Attendee.one(data)
-        record_value(data, calendar, component, :attendees, [attendee])
-      end
-
-      defp next_parameter(<<"BEGIN:VALARM", data::binary>>, calendar, component) do
-        {data, alarm} = ICal.Deserialize.Alarm.one(data, calendar)
-        record_value(data, calendar, component, :alarms, [alarm])
-      end
-
-      defp next_parameter(<<"CATEGORIES", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, values} = ICal.Deserialize.comma_separated_list(data)
-        record_value(data, calendar, component, :categories, values)
-      end
-
-      defp next_parameter(<<"CLASS", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-        record_value(data, calendar, component, :class, value)
-      end
-
-      defp next_parameter(<<"COMMENT", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.multi_line(data)
-        record_value(data, calendar, component, :comments, [value])
-      end
-
-      defp next_parameter(<<"CONTACT", data::binary>>, calendar, component) do
-        {data, contact} = ICal.Deserialize.Contact.from_ics(data)
-        record_value(data, calendar, component, :contacts, [contact])
-      end
-
-      defp next_parameter(<<"CREATED", data::binary>>, calendar, component) do
-        {data, params} = ICal.Deserialize.params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-
-        record_value(
-          data,
-          calendar,
-          component,
-          :created,
-          ICal.Deserialize.to_date(value, params, calendar)
-        )
-      end
-
-      defp next_parameter(<<"DESCRIPTION", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.multi_line(data)
-        record_value(data, calendar, component, :description, value)
-      end
-
-      defp next_parameter(<<"DTSTART", data::binary>>, calendar, component) do
-        {data, params} = ICal.Deserialize.params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-
-        record_value(
-          data,
-          calendar,
-          component,
-          :dtstart,
-          ICal.Deserialize.to_date(value, params, calendar)
-        )
-      end
-
-      defp next_parameter(<<"DTSTAMP", data::binary>>, calendar, component) do
-        {data, params} = ICal.Deserialize.params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-
-        record_value(
-          data,
-          calendar,
-          component,
-          :dtstamp,
-          ICal.Deserialize.to_date(value, params, calendar)
-        )
-      end
-
-      defp next_parameter(<<"DURATION", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, duration} = ICal.Deserialize.Duration.one(data)
-        record_value(data, calendar, component, :duration, duration)
-      end
-
-      defp next_parameter(<<"EXDATE", data::binary>>, calendar, component) do
-        {data, params} = ICal.Deserialize.params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-        date = ICal.Deserialize.to_date(value, params, calendar)
-        record_value(data, calendar, component, :exdates, [date])
-      end
-
-      defp next_parameter(<<"GEO", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-        geo = ICal.Deserialize.parse_geo(value)
-        record_value(data, calendar, component, :geo, geo)
-      end
-
-      defp next_parameter(<<"LAST-MODIFIED", data::binary>>, calendar, component) do
-        {data, params} = ICal.Deserialize.params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-
-        record_value(
-          data,
-          calendar,
-          component,
-          :modified,
-          ICal.Deserialize.to_date(value, params, calendar)
-        )
-      end
-
-      defp next_parameter(<<"LOCATION", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-        record_value(data, calendar, component, :location, value)
-      end
-
-      defp next_parameter(<<"ORGANIZER", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-        record_value(data, calendar, component, :organizer, value)
-      end
-
-      defp next_parameter(<<"PRIORITY", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-
-        record_integer_value(data, calendar, component, :priority, value)
-      end
-
-      defp next_parameter(<<"RECURRENCE-ID", data::binary>>, calendar, component) do
-        {data, params} = ICal.Deserialize.params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-
-        record_value(
-          data,
-          calendar,
-          component,
-          :recurrence_id,
-          ICal.Deserialize.to_date(value, params, calendar)
-        )
-      end
-
-      defp next_parameter(<<"RELATED-TO", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-        record_value(data, calendar, component, :related_to, [value])
-      end
-
-      defp next_parameter(<<"RESOURCES", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.comma_separated_list(data)
-        record_value(data, calendar, component, :resources, value)
-      end
-
-      defp next_parameter(<<"RDATE", data::binary>>, calendar, component) do
-        {data, params} = ICal.Deserialize.params(data)
-        {data, values} = ICal.Deserialize.comma_separated_list(data)
-        type = Map.get(params, "VALUE", "DATE")
-
-        rdates =
-          values
-          |> Enum.reduce([], fn value, acc -> to_rdate(type, params, value, calendar, acc) end)
-          |> Enum.reverse()
-
-        record_value(data, calendar, component, :rdates, rdates)
-      end
-
-      defp next_parameter(<<"REQUEST-STATUS", data::binary>>, calendar, component) do
-        {data, status} = ICal.Deserialize.RequestStatus.one(data)
-        record_value(data, calendar, component, :request_status, [status])
-      end
-
-      defp next_parameter(<<"RRULE", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, values} = ICal.Deserialize.param_list(data)
-
-        rrule = ICal.Deserialize.Recurrence.from_params(values)
-        record_value(data, calendar, component, :rrule, rrule)
-      end
-
-      defp next_parameter(<<"SEQUENCE", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-        record_integer_value(data, calendar, component, :sequence, value)
-      end
-
-      defp next_parameter(<<"STATUS", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.multi_line(data)
-        status = to_status(component, value)
-        record_value(data, calendar, component, :status, status)
-      end
-
-      defp next_parameter(<<"SUMMARY", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.multi_line(data)
-        record_value(data, calendar, component, :summary, value)
-      end
-
-      defp next_parameter(<<"UID", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.multi_line(data)
-        record_value(data, calendar, component, :uid, value)
-      end
-
-      defp next_parameter(<<"URL", data::binary>>, calendar, component) do
-        data = ICal.Deserialize.skip_params(data)
-        {data, value} = ICal.Deserialize.multi_line(data)
-        record_value(data, calendar, component, :url, value)
-      end
-
-      # prcomponent losing other non-standard headers
-      defp next_parameter(<<"X-", data::binary>>, calendar, component) do
-        {data, key} = ICal.Deserialize.rest_of_key(data, "X-")
-        {data, params} = ICal.Deserialize.params(data)
-        {data, value} = ICal.Deserialize.rest_of_line(data)
-
-        custom_entry = %{params: params, value: value}
-        custom_properties = Map.put(component.custom_properties, key, custom_entry)
-        next_parameter(data, calendar, %{component | custom_properties: custom_properties})
-      end
-    end
+    ]
+    |> maybe(Enum.find(optional, &(:geo == &1)))
+    |> maybe(Enum.find(optional, &(:location == &1)))
+    |> maybe(Enum.find(optional, &(:resources == &1)))
   end
 
   defmacro trailing_parsers(component_name) do
@@ -331,4 +317,46 @@ defmodule ICal.Deserialize.Component do
       end
     end
   end
+
+  defp maybe(acc, :geo) do
+    acc ++
+      [
+        quote do
+          defp next_parameter(<<"GEO", data::binary>>, calendar, component) do
+            data = ICal.Deserialize.skip_params(data)
+            {data, value} = ICal.Deserialize.rest_of_line(data)
+            geo = ICal.Deserialize.parse_geo(value)
+            record_value(data, calendar, component, :geo, geo)
+          end
+        end
+      ]
+  end
+
+  defp maybe(acc, :location) do
+    acc ++
+      [
+        quote do
+          defp next_parameter(<<"LOCATION", data::binary>>, calendar, component) do
+            data = ICal.Deserialize.skip_params(data)
+            {data, value} = ICal.Deserialize.rest_of_line(data)
+            record_value(data, calendar, component, :location, value)
+          end
+        end
+      ]
+  end
+
+  defp maybe(acc, :resources) do
+    acc ++
+      [
+        quote do
+          defp next_parameter(<<"RESOURCES", data::binary>>, calendar, component) do
+            data = ICal.Deserialize.skip_params(data)
+            {data, value} = ICal.Deserialize.comma_separated_list(data)
+            record_value(data, calendar, component, :resources, value)
+          end
+        end
+      ]
+  end
+
+  defp maybe(acc, _), do: acc
 end
