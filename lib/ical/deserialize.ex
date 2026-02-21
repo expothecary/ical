@@ -412,8 +412,11 @@ defmodule ICal.Deserialize do
     to_date_in_timezone(date_string, timezone)
   end
 
-  def to_date(date_string, %{"VALUE" => "DATE"}, %ICal{default_timezone: default_timezone}) do
-    to_date_in_timezone(date_string <> "T000000Z", default_timezone)
+  def to_date(date_string, %{"VALUE" => "DATE"}, _calendar) do
+    case Timex.parse(date_string, "{YYYY}{0M}{0D}") do
+      {:ok, date} -> NaiveDateTime.to_date(date)
+      _ -> nil
+    end
   end
 
   def to_date(date_string, _params, %ICal{default_timezone: default_timezone}) do
