@@ -5,10 +5,10 @@ defmodule ICal.Event do
 
   # credo:disable-for-next-line
   defstruct uid: nil,
+            dtstamp: nil,
             created: nil,
             dtstart: nil,
             dtend: nil,
-            dtstamp: nil,
             modified: nil,
             recurrence_id: nil,
             exdates: [],
@@ -27,8 +27,8 @@ defmodule ICal.Event do
             priority: nil,
             transparency: nil,
             alarms: [],
-            attendees: [],
             attachments: [],
+            attendees: [],
             categories: [],
             comments: [],
             contacts: [],
@@ -39,10 +39,10 @@ defmodule ICal.Event do
 
   @type t :: %__MODULE__{
           uid: String.t() | nil,
+          dtstamp: DateTime.t() | nil,
           created: DateTime.t() | nil,
           dtstart: Date.t() | DateTime.t() | nil,
           dtend: Date.t() | DateTime.t() | nil,
-          dtstamp: DateTime.t() | nil,
           modified: Date.t() | nil,
           recurrence_id: Date.t() | nil,
           exdates: [Date.t() | DateTime.t()],
