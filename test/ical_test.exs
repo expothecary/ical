@@ -314,41 +314,45 @@ defmodule ICalTest do
     assert events |> List.first() == new_event
   end
 
+  def count_occurance(ics, check_for) do
+    Regex.scan(~r/#{check_for}/, ics) |> Enum.count()
+  end
+
   test "ICalender.to_ics/1 supports bare components and lists of components" do
     assert %ICal{events: [%ICal.Event{}]}
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VEVENT") == 1
+           |> count_occurance("BEGIN:VEVENT") == 1
 
     assert %ICal{events: [%ICal.Event{}]}
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VCALENDAR") == 1
+           |> count_occurance("BEGIN:VCALENDAR") == 1
 
     assert %ICal.Event{}
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VEVENT") == 1
+           |> count_occurance("BEGIN:VEVENT") == 1
 
     assert %ICal.Event{}
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VCALENDAR") == 0
+           |> count_occurance("BEGIN:VCALENDAR") == 0
 
     assert %ICal.Todo{}
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VTODO") == 1
+           |> count_occurance("BEGIN:VTODO") == 1
 
     assert %ICal.Todo{}
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VCALENDAR") == 0
+           |> count_occurance("BEGIN:VCALENDAR") == 0
 
     assert [%ICal.Event{}, %ICal.Event{}]
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VEVENT") == 2
+           |> count_occurance("BEGIN:VEVENT") == 2
 
     assert [%ICal.Event{}, %ICal.Todo{}]
            |> ICal.to_ics()
@@ -357,12 +361,12 @@ defmodule ICalTest do
     assert [%ICal.Event{}, %ICal.Todo{}]
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VEVENT") == 1
+           |> count_occurance("BEGIN:VEVENT") == 1
 
     assert [%ICal.Event{}, %ICal.Todo{}]
            |> ICal.to_ics()
            |> to_string()
-           |> String.count("BEGIN:VTODO") == 1
+           |> count_occurance("BEGIN:VTODO") == 1
   end
 
   test "encode_to_iodata/2" do
