@@ -314,6 +314,57 @@ defmodule ICalTest do
     assert events |> List.first() == new_event
   end
 
+  test "ICalender.to_ics/1 supports bare components and lists of components" do
+    assert %ICal{events: [%ICal.Event{}]}
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VEVENT") == 1
+
+    assert %ICal{events: [%ICal.Event{}]}
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VCALENDAR") == 1
+
+    assert %ICal.Event{}
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VEVENT") == 1
+
+    assert %ICal.Event{}
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VCALENDAR") == 0
+
+    assert %ICal.Todo{}
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VTODO") == 1
+
+    assert %ICal.Todo{}
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VCALENDAR") == 0
+
+    assert [%ICal.Event{}, %ICal.Event{}]
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VEVENT") == 2
+
+    assert [%ICal.Event{}, %ICal.Todo{}]
+           |> ICal.to_ics()
+           |> Enum.count() == 2
+
+    assert [%ICal.Event{}, %ICal.Todo{}]
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VEVENT") == 1
+
+    assert [%ICal.Event{}, %ICal.Todo{}]
+           |> ICal.to_ics()
+           |> to_string()
+           |> String.count("BEGIN:VTODO") == 1
+  end
+
   test "encode_to_iodata/2" do
     expected = Helper.test_data("iodata_calendar")
     assert {:ok, ical} = ICal.encode_to_iodata(Fixtures.iodata_calendar(), [])

@@ -3,6 +3,10 @@ defmodule ICal.Serialize.Calendar do
 
   alias ICal.Serialize
 
+  def to_ics(components) when is_list(components) do
+    Enum.map(components, &to_ics/1)
+  end
+
   def to_ics(%ICal{} = calendar) do
     []
     |> start_calendar(calendar)
@@ -20,6 +24,10 @@ defmodule ICal.Serialize.Calendar do
 
   def to_ics(%ICal.Event{} = event) do
     ICal.Serialize.Event.to_ics(event)
+  end
+
+  def to_ics(%ICal.Todo{} = event) do
+    ICal.Serialize.Todo.to_ics(event)
   end
 
   defp start_calendar(acc, _calendar), do: acc ++ ["BEGIN:VCALENDAR\n"]
