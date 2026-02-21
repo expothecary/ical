@@ -4,7 +4,7 @@ defmodule ICal.Serialize.Alarm do
   alias ICal.Alarm
   alias ICal.Serialize
 
-  def to_ics(%Alarm{} = alarm) do
+  def component(%Alarm{} = alarm) do
     [
       "BEGIN:VALARM\n",
       []
@@ -22,16 +22,16 @@ defmodule ICal.Serialize.Alarm do
   end
 
   defp add_repeat(acc, value) when value < 1, do: acc
-  defp add_repeat(acc, value), do: acc ++ ["REPEAT:", Serialize.to_ics(value), ?\n]
+  defp add_repeat(acc, value), do: acc ++ ["REPEAT:", Serialize.value(value), ?\n]
 
   defp add_when(acc, on, relative_to) do
-    acc ++ ["TRIGGER", on_params(relative_to), ?:, Serialize.to_ics(on), ?\n]
+    acc ++ ["TRIGGER", on_params(relative_to), ?:, Serialize.value(on), ?\n]
   end
 
   defp add_action(acc, %Alarm.Audio{} = audio) do
     (acc ++
        ["ACTION:AUDIO\n"] ++
-       Enum.map(audio.attachments, &Serialize.Attachment.to_ics/1))
+       Enum.map(audio.attachments, &Serialize.Attachment.property/1))
     |> add_duration(audio.duration)
   end
 
@@ -43,8 +43,8 @@ defmodule ICal.Serialize.Alarm do
   defp add_action(acc, %Alarm.Email{} = email) do
     (acc ++
        ["ACTION:EMAIL\n"] ++
-       Enum.map(email.attendees, &Serialize.Attendee.to_ics/1) ++
-       Enum.map(email.attachments, &Serialize.Attachment.to_ics/1))
+       Enum.map(email.attendees, &Serialize.Attendee.property/1) ++
+       Enum.map(email.attachments, &Serialize.Attachment.property/1))
     |> add_description(email.description)
     |> add_summary(email.summary)
   end
@@ -56,15 +56,15 @@ defmodule ICal.Serialize.Alarm do
   defp add_duration(acc, nil), do: acc
 
   defp add_duration(acc, value) do
-    acc ++ ["DURATION:", Serialize.to_ics(value), ?\n]
+    acc ++ ["DURATION:", Serialize.value(value), ?\n]
   end
 
   defp add_description(acc, value) do
-    acc ++ ["DESCRIPTION:", Serialize.to_ics(value), ?\n]
+    acc ++ ["DESCRIPTION:", Serialize.value(value), ?\n]
   end
 
   defp add_summary(acc, value) do
-    acc ++ ["SUMMARY:", Serialize.to_ics(value), ?\n]
+    acc ++ ["SUMMARY:", Serialize.value(value), ?\n]
   end
 
   defp on_params(:start), do: ";RELATED:START"

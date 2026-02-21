@@ -24,7 +24,7 @@ defmodule ICalTest.Alarms do
     assert Fixtures.alarm(:custom) == alarm6
 
     event
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 

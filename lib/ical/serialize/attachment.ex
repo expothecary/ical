@@ -1,6 +1,7 @@
 defmodule ICal.Serialize.Attachment do
   @moduledoc false
-  def to_ics(%ICal.Attachment{} = attachment) do
+
+  def property(%ICal.Attachment{} = attachment) do
     params =
       if attachment.mimetype != nil do
         [";FMTTYPE=", attachment.mimetype]

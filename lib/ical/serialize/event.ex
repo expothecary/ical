@@ -4,11 +4,11 @@ defmodule ICal.Serialize.Event do
   require ICal.Serialize.Component
   alias ICal.Serialize
 
-  def to_ics(event) do
+  def component(event) do
     contents =
       event
       |> Map.from_struct()
-      |> Enum.reduce([], &to_ics/2)
+      |> Enum.reduce([], &serialize/2)
 
     [
       "BEGIN:VEVENT\n",
@@ -19,14 +19,13 @@ defmodule ICal.Serialize.Event do
 
   ICal.Serialize.Component.parameter_serializers()
 
-  defp to_ics({:dtend, value}, acc) do
-    acc ++ [Serialize.date_to_ics("DTEND", value)]
+  defp serialize({:dtend, value}, acc) do
+    acc ++ [Serialize.date("DTEND", value)]
   end
 
-  defp to_ics({:transparency, value}, acc) do
+  defp serialize({:transparency, value}, acc) do
     value = if value == :transparent, do: "TRANSPARENT", else: "OPAQUE"
-
-    acc ++ [Serialize.kv_to_ics("TRANSP", value)]
+    acc ++ [Serialize.kv("TRANSP", value)]
   end
 
   ICal.Serialize.Component.trailing_serializers()

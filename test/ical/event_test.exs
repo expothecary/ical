@@ -12,7 +12,7 @@ defmodule ICal.EventTest do
     """
 
     %Event{dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})}
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -20,7 +20,7 @@ defmodule ICal.EventTest do
     expected = Helper.test_data("serialized_event")
 
     Fixtures.one_event(:serialize)
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -38,7 +38,7 @@ defmodule ICal.EventTest do
       dtend: Timex.to_date({2015, 12, 24}),
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -56,7 +56,7 @@ defmodule ICal.EventTest do
       dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -65,7 +65,7 @@ defmodule ICal.EventTest do
     BEGIN:VEVENT
     DESCRIPTION:Let's go see Star Wars\\, and have fun.
     DTEND:20151224T084500Z
-    DTSTAMP:#{ICal.Serialize.to_ics(DateTime.utc_now())}
+    DTSTAMP:#{ICal.Serialize.value(DateTime.utc_now())}
     DTSTART:20151224T083000Z
     SUMMARY:Film with Amy and Adam
     END:VEVENT
@@ -77,7 +77,7 @@ defmodule ICal.EventTest do
       dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
       description: "Let's go see Star Wars, and have fun."
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -103,7 +103,7 @@ defmodule ICal.EventTest do
       dtend: dtend,
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -123,7 +123,7 @@ defmodule ICal.EventTest do
           "/calendars/jsmith/mytime.ics",
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -139,7 +139,7 @@ defmodule ICal.EventTest do
       url: "http://example.com/pub/calendars/jsmith/mytime.ics",
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -155,7 +155,7 @@ defmodule ICal.EventTest do
       uid: 815,
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -171,7 +171,7 @@ defmodule ICal.EventTest do
       uid: "0815",
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -187,7 +187,7 @@ defmodule ICal.EventTest do
       geo: {43.6978819, -79.3810277},
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -203,7 +203,7 @@ defmodule ICal.EventTest do
       categories: ["Fishing", "Nature", "Sport"],
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -219,7 +219,7 @@ defmodule ICal.EventTest do
       status: :tentative,
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 
@@ -235,7 +235,7 @@ defmodule ICal.EventTest do
       class: :private,
       dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}})
     }
-    |> ICal.Serialize.Event.to_ics()
+    |> ICal.Serialize.Event.component()
     |> assert_fully_contains(expected)
   end
 

@@ -23,11 +23,11 @@ defmodule ICal.Serialize.Calendar do
   end
 
   def to_ics(%ICal.Event{} = event) do
-    ICal.Serialize.Event.to_ics(event)
+    ICal.Serialize.Event.component(event)
   end
 
   def to_ics(%ICal.Todo{} = event) do
-    ICal.Serialize.Todo.to_ics(event)
+    ICal.Serialize.Todo.component(event)
   end
 
   defp start_calendar(acc, _calendar), do: acc ++ ["BEGIN:VCALENDAR\n"]
@@ -46,18 +46,18 @@ defmodule ICal.Serialize.Calendar do
   defp product_id(acc, calendar), do: acc ++ ["PRODID:", calendar.product_id, ?\n]
 
   defp timezones(acc, calendar) do
-    acc ++ Enum.map(calendar.timezones, &ICal.Serialize.Timezone.to_ics/1)
+    acc ++ Enum.map(calendar.timezones, &ICal.Serialize.Timezone.component/1)
   end
 
   defp events(acc, calendar) do
-    acc ++ Enum.map(calendar.events, &ICal.Serialize.Event.to_ics/1)
+    acc ++ Enum.map(calendar.events, &ICal.Serialize.Event.component/1)
   end
 
   defp todos(acc, calendar) do
-    acc ++ Enum.map(calendar.todos, &ICal.Serialize.Todo.to_ics/1)
+    acc ++ Enum.map(calendar.todos, &ICal.Serialize.Todo.component/1)
   end
 
   defp other_components(acc, calendar) do
-    acc ++ Serialize.components_to_ics(calendar.__other_components)
+    acc ++ Serialize.components(calendar.__other_components)
   end
 end

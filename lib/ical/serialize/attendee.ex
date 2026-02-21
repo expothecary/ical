@@ -3,7 +3,7 @@ defmodule ICal.Serialize.Attendee do
 
   alias ICal.Serialize
 
-  def to_ics(%ICal.Attendee{} = attendee) do
+  def property(%ICal.Attendee{} = attendee) do
     ["ATTENDEE"]
     |> serialize_language(attendee)
     |> serialize_type(attendee)

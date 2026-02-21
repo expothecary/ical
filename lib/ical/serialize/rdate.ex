@@ -3,7 +3,7 @@ defmodule ICal.Serialize.Rdate do
 
   alias ICal.Serialize
 
-  def to_ics(dates, acc) do
+  def property(dates, acc) do
     # reduce the rdates by timezone, so the minimal set of entries gets written out
     # this also separateds out periods, dates, and datetimes as the VALUE= needs to be
     # different for each
@@ -12,7 +12,7 @@ defmodule ICal.Serialize.Rdate do
   end
 
   defp by_tz({from, to}, acc) do
-    serialized = [[Serialize.to_ics(from), ?/, Serialize.to_ics(to)]]
+    serialized = [[Serialize.value(from), ?/, Serialize.value(to)]]
 
     Map.update(acc, {:periods, from.time_zone}, serialized, fn periods ->
       periods ++ serialized
@@ -20,13 +20,13 @@ defmodule ICal.Serialize.Rdate do
   end
 
   defp by_tz(%Date{} = date, acc) do
-    serialized = [Serialize.to_ics(date)]
+    serialized = [Serialize.value(date)]
 
     Map.update(acc, :dates, serialized, fn dates -> dates ++ serialized end)
   end
 
   defp by_tz(%DateTime{} = date, acc) do
-    serialized = [Serialize.to_ics(date)]
+    serialized = [Serialize.value(date)]
 
     Map.update(acc, date.time_zone, serialized, fn dates ->
       dates ++ serialized
