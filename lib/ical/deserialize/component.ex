@@ -3,9 +3,9 @@ defmodule ICal.Deserialize.Component do
 
   defmacro rejection_guards do
     quote do
-      def one(<<>> = data, _), do: {data, nil}
-      def one(<<?\r, ?\n>> = data, _), do: {data, nil}
-      def one(<<?\n>> = data, _), do: {data, nil}
+      def one(<<>>, _), do: {<<>>, nil}
+      def one(<<?\r, ?\n>>, _), do: {<<>>, nil}
+      def one(<<?\n>>, _), do: {<<>>, nil}
     end
   end
 
