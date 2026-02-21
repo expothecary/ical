@@ -3,19 +3,19 @@ defmodule ICal.Serialize do
   use Timex
 
   # Escapes backslashes, commas, semicolons and newlines
-  def to_ics(x) when is_binary(x) do
+  def value(x) when is_binary(x) do
     x
     |> String.replace(~r{([\\,;])}, "\\\\\\g{1}")
     |> String.replace("\n", ~S"\n")
   end
 
-  def to_ics(x) when is_integer(x), do: Integer.to_string(x)
-  def to_ics(x) when is_float(x), do: Float.to_string(x)
+  def value(x) when is_integer(x), do: Integer.to_string(x)
+  def value(x) when is_float(x), do: Float.to_string(x)
 
   # Convert DateTimes into ics-format strings
   # Timezones are dropped if they are not in UTC format as
   # those bleong in the TZID parameter
-  def to_ics(%DateTime{} = date_time) do
+  def value(%DateTime{} = date_time) do
     format_string =
       if date_time.time_zone == "Etc/UTC" do
         "{YYYY}{0M}{0D}T{h24}{m}{s}Z"
@@ -29,7 +29,7 @@ defmodule ICal.Serialize do
   end
 
   # Convert Dates to UTC then into ics-format strings
-  def to_ics(%Date{} = timestamp) do
+  def value(%Date{} = timestamp) do
     format_string = "{YYYY}{0M}{0D}"
 
     {:ok, result} =
@@ -40,7 +40,7 @@ defmodule ICal.Serialize do
   end
 
   # Convert NaiveDateTimesinto ics-format strings
-  def to_ics(%NaiveDateTime{} = timestamp) do
+  def value(%NaiveDateTime{} = timestamp) do
     format_string = "{YYYY}{0M}{0D}T{h24}{m}{s}"
 
     {:ok, result} =
@@ -52,7 +52,7 @@ defmodule ICal.Serialize do
 
   # This function converts Erlang timestamp tuples into DateTimes.
   # credo:disable-for-next-line
-  def to_ics({{year, month, day}, {hour, minute, second}} = timestamp)
+  def value({{year, month, day}, {hour, minute, second}} = timestamp)
       when is_integer(year) and
              is_integer(month) and month <= 12 and month >= 1 and
              is_integer(day) and day <= 31 and day >= 1 and
@@ -61,19 +61,19 @@ defmodule ICal.Serialize do
              is_integer(second) and second <= 59 and second >= 0 do
     timestamp
     |> Timex.to_datetime()
-    |> to_ics()
+    |> value()
   end
 
-  def to_ics(%ICal.Duration{} = duration) do
-    ICal.Serialize.Duration.to_ics(duration)
+  def value(%ICal.Duration{} = duration) do
+    ICal.Serialize.Duration.property(duration)
   end
 
-  def to_ics({:geo, {lat, lon}}) do
+  def value({:geo, {lat, lon}}) do
     ["GEO:", to_string(lat), ?;, to_string(lon), ?\n]
   end
 
-  def to_ics(x) when is_atom(x), do: atom_to_value(x)
-  def to_ics(x), do: x
+  def value(x) when is_atom(x), do: atom_to_value(x)
+  def value(x), do: x
 
   @spec add_custom_properties(iolist(), ICal.custom_properties()) :: iolist()
   def add_custom_properties(acc, custom_properties) do
@@ -81,11 +81,11 @@ defmodule ICal.Serialize do
       custom_properties,
       acc,
       fn
-        {key, %{params: params, value: value}}, acc when is_binary(key) ->
+        {key, %{params: params, value: v}}, acc when is_binary(key) ->
           param_string =
-            Enum.map(params, fn {key, value} -> [?;, key, ?=, to_ics(value)] end)
+            Enum.map(params, fn {key, v} -> [?;, key, ?=, value(v)] end)
 
-          acc ++ [key, param_string, ?:, value, ?\n]
+          acc ++ [key, param_string, ?:, v, ?\n]
 
         _, acc ->
           acc
@@ -93,12 +93,12 @@ defmodule ICal.Serialize do
     )
   end
 
-  def components_to_ics(components) do
+  def components(components) do
     components
     |> Enum.map(fn component ->
       Enum.map(component, fn
         {key, params, value} ->
-          param_ics = Enum.map(params, fn {key, value} -> [?;, key, ?=, to_ics(value)] end)
+          param_ics = Enum.map(params, fn {key, value} -> [?;, key, ?=, value(value)] end)
           [key, param_ics, ?:, value, ?\n]
 
         line ->
@@ -107,20 +107,20 @@ defmodule ICal.Serialize do
     end)
   end
 
-  def date_to_ics(key, %Date{} = date) do
-    [key, ";VALUE=DATE:", to_ics(date), ?\n]
+  def date(key, %Date{} = date) do
+    [key, ";VALUE=DATE:", value(date), ?\n]
   end
 
-  def date_to_ics(key, %DateTime{time_zone: "Etc/UTC"} = date) do
-    [key, ?:, to_ics(date), ?\n]
+  def date(key, %DateTime{time_zone: "Etc/UTC"} = date) do
+    [key, ?:, value(date), ?\n]
   end
 
-  def date_to_ics(key, %DateTime{} = date) do
-    [key, ";TZID=", date.time_zone, ?:, to_ics(date), ?\n]
+  def date(key, %DateTime{} = date) do
+    [key, ";TZID=", date.time_zone, ?:, value(date), ?\n]
   end
 
-  def kv_to_ics(key, value) do
-    [key, ?:, to_ics(value), ?\n]
+  def kv(key, value) do
+    [key, ?:, value(value), ?\n]
   end
 
   def escaped_quotes(x) do
@@ -135,7 +135,7 @@ defmodule ICal.Serialize do
   # creates a conformant comma-separated list
   def to_comma_list(values) do
     values
-    |> Enum.map(&to_ics/1)
+    |> Enum.map(&value/1)
     |> Enum.intersperse(",")
   end
 

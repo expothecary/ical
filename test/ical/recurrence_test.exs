@@ -283,7 +283,7 @@ defmodule ICal.RecurrenceTest do
 
     assert recurrence === ICal.Deserialize.Recurrence.from_event(event)
 
-    serialized = ICal.Serialize.Recurrence.to_ics(recurrence) |> to_string()
+    serialized = ICal.Serialize.Recurrence.property(recurrence) |> to_string()
 
     assert String.starts_with?(serialized, "RRULE:FREQ=DAILY")
     assert String.contains?(serialized, ";INTERVAL=1")

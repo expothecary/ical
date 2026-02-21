@@ -3,15 +3,15 @@ defmodule ICal.Serialize.Recurrence do
 
   alias ICal.Serialize
 
-  @spec to_ics(ICal.Recurrence.t()) :: iodata
-  def to_ics(%ICal.Recurrence{} = recurrence) do
+  @spec property(ICal.Recurrence.t()) :: iodata
+  def property(%ICal.Recurrence{} = recurrence) do
     rules =
       Enum.reduce(Map.from_struct(recurrence), [], &to_rrule_entry/2)
 
-    ["RRULE:FREQ=", Serialize.to_ics(recurrence.frequency), rules, ?\n]
+    ["RRULE:FREQ=", Serialize.value(recurrence.frequency), rules, ?\n]
   end
 
-  def to_ics(_, acc), do: acc
+  def value(_, acc), do: acc
 
   # frequency is done "manually" as the first entry
   defp to_rrule_entry({:frequency, _}, acc), do: acc
@@ -25,7 +25,7 @@ defmodule ICal.Serialize.Recurrence do
     acc ++ [?;, string_key, ?=, rrule_value(rrule)]
   end
 
-  #   defp rrule_value({:until, value}), do: Serialize.to_ics(value)
+  #   defp rrule_value({:until, value}), do: Serialize.value(value)
 
   # byday entries have {#, atom} tuples
   defp rrule_value({:by_day, entries}) do
@@ -40,11 +40,11 @@ defmodule ICal.Serialize.Recurrence do
 
   defp rrule_value({_key, values}) when is_list(values) do
     values
-    |> Enum.map(&Serialize.to_ics/1)
+    |> Enum.map(&Serialize.value/1)
     |> Enum.intersperse(?,)
   end
 
-  defp rrule_value({_key, value}), do: Serialize.to_ics(value)
+  defp rrule_value({_key, value}), do: Serialize.value(value)
 
   defp to_weekday(:monday), do: "MO"
   defp to_weekday(:tuesday), do: "TU"

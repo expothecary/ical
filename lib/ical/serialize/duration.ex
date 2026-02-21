@@ -3,7 +3,7 @@ defmodule ICal.Serialize.Duration do
 
   alias ICal.Duration
 
-  def to_ics(%Duration{} = duration) do
+  def property(%Duration{} = duration) do
     duration
     |> starting_string()
     |> add_days(duration)

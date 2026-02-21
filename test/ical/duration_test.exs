@@ -48,7 +48,7 @@ defmodule ICal.DurationTest do
 
   test "ICal.Duration serialization" do
     for {duration, string} <- durations(:internal) do
-      assert Serialize.to_ics(duration) == string
+      assert Serialize.property(duration) == string
     end
   end
 end

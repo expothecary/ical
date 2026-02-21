@@ -4,11 +4,11 @@ defmodule ICal.Serialize.Todo do
   require ICal.Serialize.Component
   alias ICal.Serialize
 
-  def to_ics(event) do
+  def component(event) do
     contents =
       event
       |> Map.from_struct()
-      |> Enum.reduce([], &to_ics/2)
+      |> Enum.reduce([], &serialize/2)
 
     [
       "BEGIN:VTODO\n",
@@ -19,17 +19,17 @@ defmodule ICal.Serialize.Todo do
 
   ICal.Serialize.Component.parameter_serializers()
 
-  defp to_ics({:completed, value}, acc) do
-    acc ++ Serialize.date_to_ics("COMPLETED", value)
+  defp serialize({:completed, value}, acc) do
+    acc ++ Serialize.date("COMPLETED", value)
   end
 
-  defp to_ics({:due, value}, acc) do
-    acc ++ Serialize.date_to_ics("DUE", value)
+  defp serialize({:due, value}, acc) do
+    acc ++ Serialize.date("DUE", value)
   end
 
-  defp to_ics({:percent_completed, value}, acc) do
+  defp serialize({:percent_completed, value}, acc) do
     if value > 0 do
-      acc ++ ["PERCENT-COMPLETE:", Serialize.to_ics(value), ?\n]
+      acc ++ ["PERCENT-COMPLETE:", Serialize.value(value), ?\n]
     else
       acc
     end

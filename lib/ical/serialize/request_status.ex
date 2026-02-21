@@ -3,7 +3,7 @@ defmodule ICal.Serialize.RequestStatus do
 
   alias ICal.Serialize
 
-  def to_ics(%ICal.RequestStatus{} = request_status) do
+  def property(%ICal.RequestStatus{} = request_status) do
     [
       "REQUEST-STATUS",
       params(request_status),
@@ -21,8 +21,8 @@ defmodule ICal.Serialize.RequestStatus do
   defp code(%ICal.RequestStatus{code: {x, y, z}}), do: "#{x}.#{y}.#{z}"
 
   defp description(%ICal.RequestStatus{description: nil}), do: ""
-  defp description(%ICal.RequestStatus{description: desc}), do: [?;, Serialize.to_ics(desc)]
+  defp description(%ICal.RequestStatus{description: desc}), do: [?;, Serialize.value(desc)]
 
   defp exception(%ICal.RequestStatus{exception: nil}), do: ""
-  defp exception(%ICal.RequestStatus{exception: exception}), do: [?;, Serialize.to_ics(exception)]
+  defp exception(%ICal.RequestStatus{exception: exception}), do: [?;, Serialize.value(exception)]
 end

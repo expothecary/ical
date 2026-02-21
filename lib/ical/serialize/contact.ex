@@ -4,9 +4,9 @@ defmodule ICal.Serialize.Contact do
   alias ICal.Contact
   alias ICal.Serialize
 
-  def to_ics(%Contact{} = contact) do
+  def property(%Contact{} = contact) do
     params = [] |> add_alt(contact) |> add_language(contact)
-    ["CONTACT", params, ?:, Serialize.to_ics(contact.value), ?\n]
+    ["CONTACT", params, ?:, Serialize.value(contact.value), ?\n]
   end
 
   defp add_alt(params, %Contact{alternative_representation: nil}), do: params

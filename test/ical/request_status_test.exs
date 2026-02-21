@@ -41,7 +41,6 @@ defmodule ICal.RequestStatusTest do
               language: nil
             }} == Deserialize.RequestStatus.one(":4.1;Event conflict.  Date-time is busy.")
 
-
     assert {"",
             %ICal.RequestStatus{
               code: {4, 1},
@@ -83,7 +82,8 @@ defmodule ICal.RequestStatusTest do
               description: "Invalid property value",
               exception: "DTSTART:96-Apr-01",
               language: nil
-            }} == Deserialize.RequestStatus.one(":3.1.4;Invalid property value;DTSTART:96-Apr-01\r\n")
+            }} ==
+             Deserialize.RequestStatus.one(":3.1.4;Invalid property value;DTSTART:96-Apr-01\r\n")
 
     assert {"Next Line",
             %ICal.RequestStatus{
@@ -105,41 +105,38 @@ defmodule ICal.RequestStatusTest do
                exception: "ATTENDEE:mailto:jsmith@example.com",
                language: "de"
              }
-             |> ICal.Serialize.RequestStatus.to_ics()
+             |> ICal.Serialize.RequestStatus.property()
              |> to_string()
-
 
     assert "REQUEST-STATUS:3.7;Invalid calendar user;ATTENDEE:mailto:jsmith@example.com\n" =
              %ICal.RequestStatus{
                code: {3, 7},
                description: "Invalid calendar user",
-               exception: "ATTENDEE:mailto:jsmith@example.com",
+               exception: "ATTENDEE:mailto:jsmith@example.com"
              }
-             |> ICal.Serialize.RequestStatus.to_ics()
+             |> ICal.Serialize.RequestStatus.property()
              |> to_string()
 
     assert "REQUEST-STATUS:3.7;Invalid calendar user\n" =
              %ICal.RequestStatus{
                code: {3, 7},
-               description: "Invalid calendar user",
+               description: "Invalid calendar user"
              }
-             |> ICal.Serialize.RequestStatus.to_ics()
+             |> ICal.Serialize.RequestStatus.property()
              |> to_string()
-
 
     assert "REQUEST-STATUS:3.7\n" =
              %ICal.RequestStatus{
                code: {3, 7}
              }
-             |> ICal.Serialize.RequestStatus.to_ics()
+             |> ICal.Serialize.RequestStatus.property()
              |> to_string()
-
 
     assert "REQUEST-STATUS:3.1.4\n" =
              %ICal.RequestStatus{
                code: {3, 1, 4}
              }
-             |> ICal.Serialize.RequestStatus.to_ics()
+             |> ICal.Serialize.RequestStatus.property()
              |> to_string()
   end
 end

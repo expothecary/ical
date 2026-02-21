@@ -3,8 +3,8 @@ defmodule ICal.Serialize.Timezone do
 
   alias ICal.Serialize
 
-  @spec to_ics(ICal.Timezone.t()) :: iolist()
-  def to_ics(%ICal.Timezone{} = timezone) do
+  @spec component(ICal.Timezone.t()) :: iolist()
+  def component(%ICal.Timezone{} = timezone) do
     contents =
       []
       |> add_id(timezone)
@@ -26,13 +26,13 @@ defmodule ICal.Serialize.Timezone do
   defp add_modified(acc, %{modified: nil}), do: acc
 
   defp add_modified(acc, %{modified: date}) do
-    acc ++ ["LAST-MODIFIED:", Serialize.to_ics(date), ?\n]
+    acc ++ ["LAST-MODIFIED:", Serialize.value(date), ?\n]
   end
 
   defp add_url(acc, %{url: nil}), do: acc
 
   defp add_url(acc, %{url: url}) do
-    acc ++ ["TZURL:", Serialize.to_ics(url), ?\n]
+    acc ++ ["TZURL:", Serialize.value(url), ?\n]
   end
 
   defp add_properties(acc, type, definitions) do
@@ -42,11 +42,11 @@ defmodule ICal.Serialize.Timezone do
           "BEGIN:",
           type,
           "\nDTSTART:",
-          Serialize.to_ics(definition.dtstart),
+          Serialize.value(definition.dtstart),
           "\nTZOFFSETFROM:",
-          Serialize.to_ics(offsets.from),
+          Serialize.value(offsets.from),
           "\nTZOFFSETTO:",
-          Serialize.to_ics(offsets.to),
+          Serialize.value(offsets.to),
           ?\n
         ]
         |> add_recurrence_rule(definition)
@@ -61,20 +61,20 @@ defmodule ICal.Serialize.Timezone do
   defp add_recurrence_rule(acc, %{rrule: nil}), do: acc
 
   defp add_recurrence_rule(acc, %{rrule: rule}) do
-    acc ++ [Serialize.Recurrence.to_ics(rule)]
+    acc ++ [Serialize.Recurrence.property(rule)]
   end
 
   defp add_rdates(acc, %{rdates: rdates}) do
-    acc ++ Enum.map(rdates, fn rdate -> ["RDATE:", Serialize.to_ics(rdate), ?\n] end)
+    acc ++ Enum.map(rdates, fn rdate -> ["RDATE:", Serialize.value(rdate), ?\n] end)
   end
 
   defp add_names(acc, %{names: names}) do
-    acc ++ Enum.map(names, fn name -> ["TZNAME:", Serialize.to_ics(name), ?\n] end)
+    acc ++ Enum.map(names, fn name -> ["TZNAME:", Serialize.value(name), ?\n] end)
   end
 
   defp add_comments(acc, %{comments: comments}) do
     acc ++
-      Enum.map(comments, fn comment -> ["COMMENT:", Serialize.to_ics(comment), ?\n] end)
+      Enum.map(comments, fn comment -> ["COMMENT:", Serialize.value(comment), ?\n] end)
   end
 
   defp add_property_closing(acc, type) do
