@@ -26,7 +26,7 @@ defmodule ICal.Deserialize.Todo do
   defp next(<<"PERCENT-COMPLETE", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
     {data, value} = Deserialize.rest_of_line(data)
-    record_integer_value(data, calendar, event, :percent, value)
+    record_integer_value(data, calendar, event, :percent_completed, value)
   end
 
   Deserialize.Component.trailing_parsers("VTODO")
