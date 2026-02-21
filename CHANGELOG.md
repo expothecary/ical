@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Fixes
   - `ICal.Deserialize.to_integer` wraps integer parsing for safety in more cases
   - Correct placement of the `:` separator in custom properties with parameters
+  - Preserve `priority` and `sequence` properties
+  - Parse dates in ICS as Elixir `Date`s, rather than "upgrade" them to `DateTime`s
 - Janitorial
   - Improved documentation layout
   - More unit tests
