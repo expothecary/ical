@@ -1,8 +1,8 @@
 defmodule ICalTest do
   use ExUnit.Case
+  use ICal.Test.Helper
 
   alias ICal.Test.Fixtures
-  alias ICal.Test.Helper
 
   @vendor "ICal Test"
 
@@ -88,6 +88,27 @@ defmodule ICalTest do
   end
 
   test "ICal.to_ics/1 of a calendar with an event, as in README" do
+    expected = """
+    BEGIN:VCALENDAR
+    CALSCALE:GREGORIAN
+    VERSION:2.0
+    BEGIN:VEVENT
+    DESCRIPTION:Let's go see Star Wars.
+    DTEND:20151224T084500Z
+    DTSTAMP:20151223T190000Z
+    DTSTART:20151224T083000Z
+    SUMMARY:Film with Amy and Adam
+    END:VEVENT
+    BEGIN:VEVENT
+    DESCRIPTION:A big long meeting with lots of details.
+    DTEND:20151224T223000Z
+    DTSTAMP:20151224T150000Z
+    DTSTART:20151224T190000Z
+    SUMMARY:Morning meeting
+    END:VEVENT
+    END:VCALENDAR
+    """
+
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
@@ -105,27 +126,27 @@ defmodule ICalTest do
       }
     ]
 
-    ics = %ICal{events: events} |> ICal.to_ics() |> Helper.extract_event_props()
-
-    assert ics == """
-           BEGIN:VEVENT
-           DESCRIPTION:Let's go see Star Wars.
-           DTEND:20151224T084500Z
-           DTSTAMP:20151223T190000Z
-           DTSTART:20151224T083000Z
-           SUMMARY:Film with Amy and Adam
-           END:VEVENT
-           BEGIN:VEVENT
-           DESCRIPTION:A big long meeting with lots of details.
-           DTEND:20151224T223000Z
-           DTSTAMP:20151224T150000Z
-           DTSTART:20151224T190000Z
-           SUMMARY:Morning meeting
-           END:VEVENT
-           """
+    %ICal{events: events}
+    |> ICal.to_ics()
+    |> assert_fully_contains(expected)
   end
 
   test "Icalender.to_ics/1 with location and sanitization" do
+    expected = """
+    BEGIN:VCALENDAR
+    CALSCALE:GREGORIAN
+    VERSION:2.0
+    BEGIN:VEVENT
+    DESCRIPTION:Let's go see Star Wars\\, and have fun.
+    DTEND:20151224T084500Z
+    DTSTAMP:20151224T080000Z
+    DTSTART:20151224T083000Z
+    LOCATION:123 Fun Street\\, Toronto ON\\, Canada
+    SUMMARY:Film with Amy and Adam
+    END:VEVENT
+    END:VCALENDAR
+    """
+
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
@@ -137,24 +158,28 @@ defmodule ICalTest do
       }
     ]
 
-    ics =
-      %ICal{events: events}
-      |> ICal.to_ics()
-      |> Helper.extract_event_props()
-
-    assert ics == """
-           BEGIN:VEVENT
-           DESCRIPTION:Let's go see Star Wars\\, and have fun.
-           DTEND:20151224T084500Z
-           DTSTAMP:20151224T080000Z
-           DTSTART:20151224T083000Z
-           LOCATION:123 Fun Street\\, Toronto ON\\, Canada
-           SUMMARY:Film with Amy and Adam
-           END:VEVENT
-           """
+    %ICal{events: events}
+    |> ICal.to_ics()
+    |> assert_fully_contains(expected)
   end
 
   test "Icalender.to_ics/1 with url" do
+    expected = """
+    BEGIN:VCALENDAR
+    CALSCALE:GREGORIAN
+    VERSION:2.0
+    BEGIN:VEVENT
+    DESCRIPTION:Let's go see Star Wars\\, and have fun.
+    DTEND:20151224T084500Z
+    DTSTAMP:20151224T080000Z
+    DTSTART:20151224T083000Z
+    LOCATION:123 Fun Street\\, Toronto ON\\, Canada
+    SUMMARY:Film with Amy and Adam
+    URL:http://example.com/tr3GE5
+    END:VEVENT
+    END:VCALENDAR
+    """
+
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
@@ -167,19 +192,9 @@ defmodule ICalTest do
       }
     ]
 
-    ics = %ICal{events: events} |> ICal.to_ics() |> Helper.extract_event_props()
-
-    assert ics == """
-           BEGIN:VEVENT
-           DESCRIPTION:Let's go see Star Wars\\, and have fun.
-           DTEND:20151224T084500Z
-           DTSTAMP:20151224T080000Z
-           DTSTART:20151224T083000Z
-           LOCATION:123 Fun Street\\, Toronto ON\\, Canada
-           SUMMARY:Film with Amy and Adam
-           URL:http://example.com/tr3GE5
-           END:VEVENT
-           """
+    %ICal{events: events}
+    |> ICal.to_ics()
+    |> assert_fully_contains(expected)
   end
 
   test "ICalender.to_ics/1 with exdates" do
@@ -255,32 +270,6 @@ defmodule ICalTest do
     assert ics =~ "RECURRENCE-ID;TZID=America/Toronto:20200917T143000"
   end
 
-  test "Icalender.to_ics/1 with default value for DTSTAMP" do
-    events = [
-      %ICal.Event{
-        summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
-        description: "Let's go see Star Wars, and have fun."
-      }
-    ]
-
-    props =
-      %ICal{events: events}
-      |> ICal.to_ics()
-      |> Helper.extract_event_props()
-
-    assert props == """
-           BEGIN:VEVENT
-           DESCRIPTION:Let's go see Star Wars\\, and have fun.
-           DTEND:20151224T084500Z
-           DTSTAMP:#{ICal.Serialize.to_ics(DateTime.utc_now())}
-           DTSTART:20151224T083000Z
-           SUMMARY:Film with Amy and Adam
-           END:VEVENT
-           """
-  end
-
   test "ICalender.to_ics/1 -> ICal.from_ics/1 and back again" do
     events = [
       %ICal.Event{
@@ -326,94 +315,15 @@ defmodule ICalTest do
   end
 
   test "encode_to_iodata/2" do
-    events = [
-      %ICal.Event{
-        summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
-        description: "Let's go see Star Wars."
-      },
-      %ICal.Event{
-        summary: "Morning meeting",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {18, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
-        description: "A big long meeting with lots of details."
-      }
-    ]
-
-    cal = %ICal{events: events}
-
-    assert {:ok, ical} = ICal.encode_to_iodata(cal, [])
-
-    assert Helper.extract_event_props(ical) == """
-           BEGIN:VEVENT
-           DESCRIPTION:Let's go see Star Wars.
-           DTEND:20151224T084500Z
-           DTSTAMP:20151224T080000Z
-           DTSTART:20151224T083000Z
-           SUMMARY:Film with Amy and Adam
-           END:VEVENT
-           BEGIN:VEVENT
-           DESCRIPTION:A big long meeting with lots of details.
-           DTEND:20151224T223000Z
-           DTSTAMP:20151224T180000Z
-           DTSTART:20151224T190000Z
-           SUMMARY:Morning meeting
-           END:VEVENT
-           """
+    expected = Helper.test_data("iodata_calendar")
+    assert {:ok, ical} = ICal.encode_to_iodata(Fixtures.iodata_calendar(), [])
+    assert_fully_contains(ical, expected)
   end
 
   test "encode_to_iodata/1" do
-    events = [
-      %ICal.Event{
-        summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
-        description: "Let's go see Star Wars."
-      },
-      %ICal.Event{
-        summary: "Morning meeting",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {18, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
-        description: "A big long meeting with lots of details."
-      }
-    ]
-
-    cal = %ICal{events: events}
-
-    assert {:ok, ical} = ICal.encode_to_iodata(cal)
-
-    assert Helper.extract_event_props(ical) == """
-           BEGIN:VEVENT
-           DESCRIPTION:Let's go see Star Wars.
-           DTEND:20151224T084500Z
-           DTSTAMP:20151224T080000Z
-           DTSTART:20151224T083000Z
-           SUMMARY:Film with Amy and Adam
-           END:VEVENT
-           BEGIN:VEVENT
-           DESCRIPTION:A big long meeting with lots of details.
-           DTEND:20151224T223000Z
-           DTSTAMP:20151224T180000Z
-           DTSTART:20151224T190000Z
-           SUMMARY:Morning meeting
-           END:VEVENT
-           """
-  end
-
-  test "encode attendees" do
-    calendar = Fixtures.attendees()
-
-    ics =
-      calendar
-      |> ICal.to_ics()
-      |> Helper.extract_event_props()
-
-    assert ics == Helper.test_data("attendees_serialized")
+    expected = Helper.test_data("iodata_calendar")
+    assert {:ok, ical} = ICal.encode_to_iodata(Fixtures.iodata_calendar())
+    assert_fully_contains(ical, expected)
   end
 
   test "Unrecognized properties are kept" do

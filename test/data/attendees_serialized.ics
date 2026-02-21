@@ -1,3 +1,6 @@
+BEGIN:VCALENDAR
+CALSCALE:GREGORIAN
+VERSION:2.0
 BEGIN:VEVENT
 ATTENDEE;MEMBER="mailto:projectA@example.com","mailto:projectB@example.com";ROLE=CHAIR;DELEGATED-TO="mailto:jdoe@example.com","mailto:jqpublic@example.com":mailto:janedoe@example.com
 ATTENDEE;RSVP=TRUE;DELEGATED-FROM="mailto:jsmith@example.com":mailto:jdoe@example.com
@@ -6,3 +9,4 @@ DESCRIPTION:An event with attendees
 DTSTAMP:20151224T080000Z
 UID:01
 END:VEVENT
+END:VCALENDAR
