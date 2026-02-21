@@ -127,10 +127,6 @@ defmodule ICal.Serialize do
     [key, ?:, value(value), ?\n]
   end
 
-  def escaped_quotes(x) do
-    String.replace(x, ~S|"|, ~S|\"|)
-  end
-
   # create a key/value pair with a comma-separated list
   def to_comma_list_kv(key, values) do
     [key, ":", to_comma_list(values), "\n"]
@@ -152,5 +148,9 @@ defmodule ICal.Serialize do
     values
     |> Enum.map(&to_quoted_value/1)
     |> Enum.intersperse(",")
+  end
+
+  def escaped_quotes(x) do
+    String.replace(x, ~S|"|, ~S|\"|)
   end
 end
