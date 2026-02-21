@@ -16,17 +16,17 @@ defmodule ICal.Deserialize.Component do
 
         defp next_parameter(<<"ATTACH", data::binary>>, calendar, component) do
           {data, attachment} = ICal.Deserialize.attachment(data)
-          record_value(data, calendar, component, :attachments, [attachment])
+          record_value(data, calendar, component, :attachments, attachment)
         end
 
         defp next_parameter(<<"ATTENDEE", data::binary>>, calendar, component) do
           {data, attendee} = ICal.Deserialize.Attendee.one(data)
-          record_value(data, calendar, component, :attendees, [attendee])
+          record_value(data, calendar, component, :attendees, attendee)
         end
 
         defp next_parameter(<<"BEGIN:VALARM", data::binary>>, calendar, component) do
           {data, alarm} = ICal.Deserialize.Alarm.one(data, calendar)
-          record_value(data, calendar, component, :alarms, [alarm])
+          record_value(data, calendar, component, :alarms, alarm)
         end
 
         defp next_parameter(<<"CATEGORIES", data::binary>>, calendar, component) do
@@ -44,12 +44,12 @@ defmodule ICal.Deserialize.Component do
         defp next_parameter(<<"COMMENT", data::binary>>, calendar, component) do
           data = ICal.Deserialize.skip_params(data)
           {data, value} = ICal.Deserialize.multi_line(data)
-          record_value(data, calendar, component, :comments, [value])
+          record_value(data, calendar, component, :comments, value)
         end
 
         defp next_parameter(<<"CONTACT", data::binary>>, calendar, component) do
           {data, contact} = ICal.Deserialize.Contact.from_ics(data)
-          record_value(data, calendar, component, :contacts, [contact])
+          record_value(data, calendar, component, :contacts, contact)
         end
 
         defp next_parameter(<<"CREATED", data::binary>>, calendar, component) do
@@ -107,7 +107,7 @@ defmodule ICal.Deserialize.Component do
           {data, params} = ICal.Deserialize.params(data)
           {data, value} = ICal.Deserialize.rest_of_line(data)
           date = ICal.Deserialize.to_date(value, params, calendar)
-          record_value(data, calendar, component, :exdates, [date])
+          record_value(data, calendar, component, :exdates, date)
         end
 
         defp next_parameter(<<"LAST-MODIFIED", data::binary>>, calendar, component) do
@@ -152,7 +152,7 @@ defmodule ICal.Deserialize.Component do
         defp next_parameter(<<"RELATED-TO", data::binary>>, calendar, component) do
           data = ICal.Deserialize.skip_params(data)
           {data, value} = ICal.Deserialize.rest_of_line(data)
-          record_value(data, calendar, component, :related_to, [value])
+          record_value(data, calendar, component, :related_to, value)
         end
 
         defp next_parameter(<<"RDATE", data::binary>>, calendar, component) do
@@ -170,7 +170,7 @@ defmodule ICal.Deserialize.Component do
 
         defp next_parameter(<<"REQUEST-STATUS", data::binary>>, calendar, component) do
           {data, status} = ICal.Deserialize.RequestStatus.one(data)
-          record_value(data, calendar, component, :request_status, [status])
+          record_value(data, calendar, component, :request_status, status)
         end
 
         defp next_parameter(<<"RRULE", data::binary>>, calendar, component) do
@@ -248,25 +248,26 @@ defmodule ICal.Deserialize.Component do
   defmacro helpers do
     quote do
       # a helper that skips empty values, concats lists, then moves to the next
-      defp record_value(data, calendar, component, _key, nil),
-        do: next_parameter(data, calendar, component)
+      defp record_value(data, calendar, component, _key, nil) do
+        next_parameter(data, calendar, component)
+      end
 
-      defp record_value(data, calendar, component, _key, []),
-        do: next_parameter(data, calendar, component)
+      defp record_value(data, calendar, component, _key, []) do
+        next_parameter(data, calendar, component)
+      end
 
-      defp record_value(data, calendar, component, _key, [nil]),
-        do: next_parameter(data, calendar, component)
-
-      defp record_value(data, calendar, component, key, value) when is_list(value) do
-        next_parameter(
-          data,
-          calendar,
-          Map.put(component, key, Map.get(component, key, []) ++ value)
-        )
+      defp record_value(data, calendar, component, _key, [nil]) do
+        next_parameter(data, calendar, component)
       end
 
       defp record_value(data, calendar, component, key, value) do
-        next_parameter(data, calendar, Map.put(component, key, value))
+        component =
+          case Map.get(component, key) do
+            values when is_list(values) -> Map.put(component, key, values ++ List.wrap(value))
+            _ -> Map.put(component, key, value)
+          end
+
+        next_parameter(data, calendar, component)
       end
 
       defp record_integer_value(data, calendar, event, key, value) do
