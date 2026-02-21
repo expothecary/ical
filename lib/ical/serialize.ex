@@ -75,6 +75,10 @@ defmodule ICal.Serialize do
   def value(x) when is_atom(x), do: x |> to_string() |> String.upcase()
   def value(x), do: x
 
+  def key(x) when is_atom(x), do: x |> to_string() |> String.upcase()
+  def key(x) when not is_binary(x), do: to_string(x)
+  def key(x), do: x
+
   @spec add_custom_properties(iolist(), ICal.custom_properties()) :: iolist()
   def add_custom_properties(acc, custom_properties) do
     Enum.reduce(
