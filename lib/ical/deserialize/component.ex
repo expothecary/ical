@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule ICal.Deserialize.Component do
   @moduledoc false
 

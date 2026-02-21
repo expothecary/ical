@@ -1,4 +1,7 @@
 defmodule ICal.RequestStatus do
+  @moduledoc """
+  A struct representing an iCalendar request status property
+  """
   defstruct [:code, :description, :exception, :language]
 
   @type maybe :: %__MODULE__{}
