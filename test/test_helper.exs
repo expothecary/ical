@@ -19,34 +19,36 @@ defmodule ICal.Test.Helper do
     "-//Elixir ICal//v#{version}//#{custom_vendor}//EN"
   end
 
-  def extract_event_props(["BEGIN:VEVENT\n", props, "END:VEVENT\n"]) do
-    ["BEGIN:VEVENT\n", Enum.sort(props), "END:VEVENT\n"] |> to_string()
-  end
+  defmacro __using__(_) do
+    quote do
+      alias ICal.Test.Helper
 
-  def extract_event_props(ics) do
-    Enum.reduce(ics, [], fn
-      ["BEGIN:VEVENT\n", props, "END:VEVENT\n"], acc ->
-        acc ++ ["BEGIN:VEVENT\n", Enum.sort(props), "END:VEVENT\n"]
+      def assert_fully_contains(ics, expected) when is_list(ics) do
+        ics
+        |> to_string()
+        |> assert_fully_contains(expected)
+      end
 
-      _, acc ->
-        acc
-    end)
-    |> to_string()
-  end
+      def assert_fully_contains(ics, expected) do
+        # since the PRODID changes between versions, just filter that out of both datasets
+        ics =
+          String.split(ics, "\n", trim: true)
+          |> Enum.reject(fn line -> String.starts_with?(line, "PRODID") end)
 
-  def extract_alarm_props(["BEGIN:VALARM\n", props, "END:VALARM\n"]) do
-    ["BEGIN:VALARM\n", Enum.sort(props), "END:VALARM\n"] |> to_string()
-  end
+        lines =
+          String.split(expected, "\n", trim: true)
+          |> Enum.reject(fn line -> String.starts_with?(line, "PRODID") end)
 
-  def extract_alarm_props(ics) do
-    Enum.reduce(ics, [], fn
-      ["BEGIN:VALARM\n", props, "END:VALARM\n"], acc ->
-        acc ++ ["BEGIN:VALARM\n", Enum.sort(props), "END:VALARM\n"]
+        reduced =
+          Enum.reduce(lines, ics, fn line, ics ->
+            index = Enum.find_index(ics, &(line == &1))
+            assert index != nil, "Could not find: #{line} in \n#{Enum.join(ics, "\n")}"
+            List.delete_at(ics, index)
+          end)
 
-      _, acc ->
-        acc
-    end)
-    |> to_string()
+        assert reduced == [], "Unexpected lines remaining: \n#{Enum.join(reduced, "\n")}"
+      end
+    end
   end
 end
 

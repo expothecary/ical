@@ -1,6 +1,27 @@
 defmodule ICal.Test.Fixtures do
   @moduledoc false
 
+  def iodata_calendar do
+    %ICal{
+      events: [
+        %ICal.Event{
+          summary: "Film with Amy and Adam",
+          dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+          dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+          description: "Let's go see Star Wars."
+        },
+        %ICal.Event{
+          summary: "Morning meeting",
+          dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
+          dtstamp: Timex.to_datetime({{2015, 12, 24}, {18, 00, 00}}),
+          dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
+          description: "A big long meeting with lots of details."
+        }
+      ]
+    }
+  end
+
   def one_event(which \\ :deserialize)
 
   def one_event(:serialize) do
@@ -349,7 +370,6 @@ defmodule ICal.Test.Fixtures do
           description: "An event with attendees",
           duration: nil,
           location: nil,
-          prodid: nil,
           status: nil,
           organizer: nil,
           sequence: nil,
