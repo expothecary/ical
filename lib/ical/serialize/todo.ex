@@ -11,25 +11,25 @@ defmodule ICal.Serialize.Todo do
       |> Enum.reduce([], &to_ics/2)
 
     [
-      "BEGIN:VEVENT\n",
+      "BEGIN:VTODO\n",
       contents,
-      "END:VEVENT\n"
+      "END:VTODO\n"
     ]
   end
 
   ICal.Serialize.Component.parameter_serializers()
 
   defp to_ics({:completed, value}, acc) do
-    acc ++ [Serialize.date_to_ics("COMPLETED", value)]
+    acc ++ Serialize.date_to_ics("COMPLETED", value)
   end
 
   defp to_ics({:due, value}, acc) do
-    acc ++ [Serialize.date_to_ics("DUE", value)]
+    acc ++ Serialize.date_to_ics("DUE", value)
   end
 
   defp to_ics({:percent_completed, value}, acc) do
     if value > 0 do
-      acc ++ ["PERCENT-COMPLETED:", Serialize.to_ics(value)]
+      acc ++ ["PERCENT-COMPLETE:", Serialize.to_ics(value), ?\n]
     else
       acc
     end
