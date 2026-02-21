@@ -147,10 +147,10 @@ defmodule ICal.Test.Fixtures do
           uid: "1",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
-            ~U[1997-01-01 00:00:00Z],
-            ~U[1997-01-20 00:00:00Z],
-            ~U[1997-02-17 00:00:00Z],
-            ~U[1997-04-21 00:00:00Z],
+            ~D[1997-01-01],
+            ~D[1997-01-20],
+            ~D[1997-02-17],
+            ~D[1997-04-21],
             DateTime.from_naive!(~N[2018-05-24 13:26:08], "Europe/Zurich")
           ]
         },
@@ -158,10 +158,10 @@ defmodule ICal.Test.Fixtures do
           uid: "2",
           dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
           rdates: [
-            ~U[1997-01-01 00:00:00Z],
-            ~U[1997-01-20 00:00:00Z],
-            ~U[1997-02-17 00:00:00Z],
-            ~U[1997-04-21 00:00:00Z]
+            ~D[1997-01-01],
+            ~D[1997-01-20],
+            ~D[1997-02-17],
+            ~D[1997-04-21]
           ]
         },
         %ICal.Event{
@@ -620,7 +620,7 @@ defmodule ICal.Test.Fixtures do
       resources: [],
       rrule: nil,
       sequence: 0,
-      status: nil,
+      status: :needs_action,
       summary: "Submit Revised Internet-Draft",
       uid: "20070514T103211Z-123404@example.com",
       url: nil
@@ -642,7 +642,7 @@ defmodule ICal.Test.Fixtures do
       description: nil,
       dtstamp: ~U[2007-03-13 12:34:32Z],
       dtstart: nil,
-      due: ~U[2007-05-01 00:00:00Z],
+      due: ~D[2007-05-01],
       duration: nil,
       exdates: [],
       geo: nil,
@@ -658,7 +658,7 @@ defmodule ICal.Test.Fixtures do
       resources: [],
       rrule: nil,
       sequence: 0,
-      status: nil,
+      status: :in_process,
       summary: "Submit Quebec Income Tax Return for 2006",
       uid: "20070313T123432Z-456553@example.com",
       url: nil

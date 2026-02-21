@@ -216,7 +216,7 @@ defmodule ICal.DeserializeTest do
     test "Event with RECURRENCE-ID as DATE" do
       ics = Helper.test_data("event_with_recurrence_id_date")
       %ICal{events: [event]} = ICal.from_ics(ics)
-      assert event.recurrence_id == ~U[2020-09-17 00:00:00Z]
+      assert event.recurrence_id == ~D[2020-09-17]
     end
 
     test "Event with attachments" do
