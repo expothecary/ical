@@ -2,7 +2,7 @@ defmodule ICal.TodoTest do
   use ExUnit.Case
 
   alias ICal.Test.Fixtures
-  alias ICal.Test.Helper
+  use ICal.Test.Helper
 
   test "Deserializing calendar with todos" do
     calendar =
@@ -24,5 +24,15 @@ defmodule ICal.TodoTest do
   end
 
   test "Serializing a calendar with todos" do
+    expected = Helper.test_data("todos")
+
+    %ICal{
+      todos: [
+        Fixtures.todo("20070514T103211Z-123404@example.com"),
+        Fixtures.todo("20070313T123432Z-456553@example.com")
+      ]
+    }
+    |> ICal.to_ics()
+    |> assert_fully_contains(expected)
   end
 end
