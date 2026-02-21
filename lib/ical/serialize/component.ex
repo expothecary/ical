@@ -122,18 +122,18 @@ defmodule ICal.Serialize.Component do
   defmacro trailing_serializers() do
     quote do
       defp serialize({key, value}, acc) when is_number(value) do
-        name = ICal.Serialize.atom_to_value(key)
+        name = ICal.Serialize.value(key)
         acc ++ [name, ?:, to_string(value), ?\n]
       end
 
       defp serialize({key, value}, acc) when is_atom(value) do
-        name = ICal.Serialize.atom_to_value(key)
-        value = ICal.Serialize.atom_to_value(value)
+        name = ICal.Serialize.value(key)
+        value = ICal.Serialize.value(value)
         acc ++ [name, ?:, to_string(value), ?\n]
       end
 
       defp serialize({key, value}, acc) do
-        name = ICal.Serialize.atom_to_value(key)
+        name = ICal.Serialize.value(key)
         acc ++ [ICal.Serialize.kv(name, value)]
       end
     end
