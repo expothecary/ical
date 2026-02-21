@@ -1,7 +1,8 @@
 defmodule ICal.Serialize.Component do
   @moduledoc false
 
-  defmacro parameter_serializers() do
+  # credo:disable-for-next-line
+  defmacro parameter_serializers do
     quote do
       defp serialize({_key, ""}, acc), do: acc
       defp serialize({key, nil}, acc) when key != :dtstamp, do: acc
@@ -119,7 +120,7 @@ defmodule ICal.Serialize.Component do
     end
   end
 
-  defmacro trailing_serializers() do
+  defmacro trailing_serializers do
     quote do
       defp serialize({key, values}, acc) when is_list(values) do
         name = ICal.Serialize.key(key)
