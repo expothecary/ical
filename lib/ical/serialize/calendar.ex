@@ -18,6 +18,7 @@ defmodule ICal.Serialize.Calendar do
     |> timezones(calendar)
     |> events(calendar)
     |> todos(calendar)
+    |> journals(calendar)
     |> other_components(calendar)
     |> end_calendar(calendar)
   end
@@ -55,6 +56,10 @@ defmodule ICal.Serialize.Calendar do
 
   defp todos(acc, calendar) do
     acc ++ Enum.map(calendar.todos, &ICal.Serialize.Todo.component/1)
+  end
+
+  defp journals(acc, calendar) do
+    acc ++ Enum.map(calendar.journals, &ICal.Serialize.Journal.component/1)
   end
 
   defp other_components(acc, calendar) do

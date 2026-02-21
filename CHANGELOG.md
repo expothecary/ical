@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Improvements
   - `ICal.Timezone`: a struct that represents `VTIMEZONE` calendar components
+  - `ICal.Todo`: a struct that represents `VTODO` calendar components
+  - `ICal.Journal`: a struct that represents `VJOURNAL` calendar components
   - `ICal.RequestStatus`: a struct that represents the `rstatus`, or request status, of a component
     - Added request status support to `ICal.Event`
   - Dates with local times are represented with `NaiveDateTime`s

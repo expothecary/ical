@@ -665,6 +665,42 @@ defmodule ICal.Test.Fixtures do
     }
   end
 
+  def journal("19970901T130000Z-123405@example.com") do
+    %ICal.Journal{
+      alarms: [],
+      attachments: [],
+      attendees: [],
+      categories: [],
+      class: nil,
+      comments: [],
+      completed: nil,
+      contacts: [],
+      created: nil,
+      custom_properties: %{},
+      description: [
+        "1. Staff meeting: Participants include Joe, Lisa, and Bob. Aurora project plans were reviewed. There is currently no budget reserves for this project. Lisa will escalate to management. Next meeting on Tuesday.\n2. Telephone Conference: ABC Corp. sales representative called to discuss new printer. Promised to get us a demo by Friday.\n3. Henry Miller (Handsoff Insurance): Car was totaled by tree. Is looking into a loaner car. 555-2323 (tel)."
+      ],
+      dtstamp: ~U[1997-09-01 13:00:00Z],
+      dtstart: ~D[1997-03-17],
+      due: nil,
+      duration: nil,
+      exdates: [],
+      modified: nil,
+      organizer: nil,
+      priority: 0,
+      rdates: [],
+      recurrance_id: nil,
+      related_to: [],
+      request_status: [],
+      rrule: nil,
+      sequence: 0,
+      status: nil,
+      summary: "Staff meeting minutes",
+      uid: "19970901T130000Z-123405@example.com",
+      url: nil
+    }
+  end
+
   def timezone("America/New_York") do
     %ICal.Timezone{
       custom_properties: %{},

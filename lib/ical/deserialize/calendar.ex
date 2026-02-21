@@ -30,13 +30,13 @@ defmodule ICal.Deserialize.Calendar do
     end
   end
 
-  def next(<<"BEGIN:VTODO", data::binary>>, calendar) do
-    case ICal.Deserialize.Todo.one(data, calendar) do
+  def next(<<"BEGIN:VJOURNAL", data::binary>>, calendar) do
+    case ICal.Deserialize.Journal.one(data, calendar) do
       {data, nil} ->
         next(data, calendar)
 
-      {data, todo} ->
-        calendar = %{calendar | todos: calendar.todos ++ [todo]}
+      {data, journal} ->
+        calendar = %{calendar | journals: calendar.journals ++ [journal]}
         next(data, calendar)
     end
   end
@@ -48,6 +48,17 @@ defmodule ICal.Deserialize.Calendar do
 
       {data, timezone} ->
         calendar = %{calendar | timezones: Map.put(calendar.timezones, timezone.id, timezone)}
+        next(data, calendar)
+    end
+  end
+
+  def next(<<"BEGIN:VTODO", data::binary>>, calendar) do
+    case ICal.Deserialize.Todo.one(data, calendar) do
+      {data, nil} ->
+        next(data, calendar)
+
+      {data, todo} ->
+        calendar = %{calendar | todos: calendar.todos ++ [todo]}
         next(data, calendar)
     end
   end
