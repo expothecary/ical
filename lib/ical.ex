@@ -10,6 +10,7 @@ defmodule ICal do
             version: "2.0",
             events: [],
             todos: [],
+            journals: [],
             timezones: %{},
             default_timezone: "Etc/UTC",
             name: nil,
@@ -27,6 +28,8 @@ defmodule ICal do
   An iCalendar. Event structs are found in `events`, while vendor-specific
   `X-name`-style entries are recorded in `custom_properties`. All other fields
   conform to the iCalendar standard.
+
+  Timezones are stored by their ID for convenient lookup as needed.
   """
   @type t :: %__MODULE__{
           product_id: String.t() | nil,
@@ -35,6 +38,7 @@ defmodule ICal do
           scale: String.t(),
           events: [ICal.Event.t()],
           todos: [ICal.Todo.t()],
+          journals: [ICal.Journal.t()],
           timezones: %{String.t() => ICal.Timezone.t()},
           default_timezone: String.t(),
           name: String.t() | nil,
