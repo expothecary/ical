@@ -63,6 +63,22 @@ defmodule ICal.Serialize.Component do
         acc ++ ICal.Serialize.to_ics(geo)
       end
 
+      defp to_ics({:priority, value}, acc) do
+        if value > 0 do
+          acc ++ [ICal.Serialize.kv_to_ics("PRIORITY", value)]
+        else
+          acc
+        end
+      end
+
+      defp to_ics({:sequence, value}, acc) do
+        if value > 0 do
+          acc ++ [ICal.Serialize.kv_to_ics("SEQUENCE", value)]
+        else
+          acc
+        end
+      end
+
       defp to_ics({:resources, value}, acc) do
         acc ++ [ICal.Serialize.to_comma_list_kv("RESOURCES", value)]
       end
