@@ -4,7 +4,7 @@ defmodule ICal.Deserialize.Event do
   alias ICal.Deserialize
   require ICal.Deserialize.Component
 
-  @spec one(data :: binary, ICal.t()) :: {data :: binary, ICal.Event.t()}
+  @spec one(data :: binary, ICal.t()) :: {data :: binary, nil | ICal.Event.t()}
 
   Deserialize.Component.rejection_guards()
 

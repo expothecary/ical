@@ -457,4 +457,14 @@ defmodule ICal.Deserialize do
   end
 
   def to_integer(_value, default), do: default
+
+  def status(%ICal.Event{}, "TENTATIVE"), do: :tentative
+  def status(%ICal.Event{}, "CONFIRMED"), do: :confirmed
+  def status(%ICal.Todo{}, "NEEDS-ACTION"), do: :needs_action
+  def status(%ICal.Todo{}, "COMPLETED"), do: :completed
+  def status(%ICal.Todo{}, "IN-PROCESS"), do: :in_process
+  def status(%ICal.Journal{}, "DRAFT"), do: :draft
+  def status(%ICal.Journal{}, "FINAL"), do: :final
+  def status(_, "CANCELLED"), do: :cancelled
+  def status(_, _), do: nil
 end

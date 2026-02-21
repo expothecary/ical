@@ -191,7 +191,7 @@ defmodule ICal.Deserialize.Component do
         defp next_parameter(<<"STATUS", data::binary>>, calendar, component) do
           data = ICal.Deserialize.skip_params(data)
           {data, value} = ICal.Deserialize.multi_line(data)
-          status = to_status(component, value)
+          status = ICal.Deserialize.status(component, value)
           record_value(data, calendar, component, :status, status)
         end
 
@@ -277,16 +277,6 @@ defmodule ICal.Deserialize.Component do
           integer -> next_parameter(data, calendar, Map.put(event, key, integer))
         end
       end
-
-      defp to_status(%ICal.Event{}, "TENTATIVE"), do: :tentative
-      defp to_status(%ICal.Event{}, "CONFIRMED"), do: :confirmed
-      defp to_status(%ICal.Todo{}, "NEEDS-ACTION"), do: :needs_action
-      defp to_status(%ICal.Todo{}, "COMPLETED"), do: :completed
-      defp to_status(%ICal.Todo{}, "IN-PROCESS"), do: :in_process
-      #       defp to_status(%ICal.Journal{}, "DRAFT"), do: :draft
-      #       defp to_status(%ICal.Journal{}, "FINAL"), do: :final
-      defp to_status(_, "CANCELLED"), do: :cancelled
-      defp to_status(_, _), do: nil
 
       defp to_rdate("DATE", params, value, calendar, acc) do
         case ICal.Deserialize.to_date(value, params, calendar) do
