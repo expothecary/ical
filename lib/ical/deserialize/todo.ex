@@ -16,19 +16,19 @@ defmodule ICal.Deserialize.Todo do
 
   defp next_parameter(<<"COMPLETED", data::binary>>, calendar, event) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     record_value(data, calendar, event, :completed, Deserialize.to_date(value, params, calendar))
   end
 
   defp next_parameter(<<"DUE", data::binary>>, calendar, event) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     record_value(data, calendar, event, :due, Deserialize.to_date(value, params, calendar))
   end
 
   defp next_parameter(<<"PERCENT-COMPLETE", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     record_integer_value(data, calendar, event, :percent_completed, value)
   end
 

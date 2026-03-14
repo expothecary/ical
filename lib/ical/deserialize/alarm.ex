@@ -19,7 +19,7 @@ defmodule ICal.Deserialize.Alarm do
 
   defp next(<<"ACTION", data::binary>>, calendar, properties, alarm) do
     data = Deserialize.skip_params(data)
-    {data, action_type} = Deserialize.rest_of_line(data)
+    {data, action_type} = Deserialize.value(data)
 
     action =
       case action_type do
@@ -46,7 +46,7 @@ defmodule ICal.Deserialize.Alarm do
 
   defp next(<<"DESCRIPTION", data::binary>>, calendar, properties, alarm) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.multi_line(data)
+    {data, value} = Deserialize.value(data)
     properties = Map.put(properties, :description, value)
     next(data, calendar, properties, alarm)
   end
@@ -59,7 +59,7 @@ defmodule ICal.Deserialize.Alarm do
 
   defp next(<<"REPEAT", data::binary>>, calendar, properties, alarm) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     repeat = Deserialize.to_integer(value, 0)
     trigger = %{alarm.trigger | repeat: repeat}
@@ -68,13 +68,13 @@ defmodule ICal.Deserialize.Alarm do
 
   defp next(<<"SUMMARY", data::binary>>, calendar, properties, alarm) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.multi_line(data)
+    {data, value} = Deserialize.value(data)
     next(data, calendar, Map.put(properties, :summary, value), alarm)
   end
 
   defp next(<<"TRIGGER", data::binary>>, calendar, properties, alarm) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     related =
       case Map.get(params, "RELATED") do
@@ -101,7 +101,7 @@ defmodule ICal.Deserialize.Alarm do
   defp next(<<"X-", data::binary>>, calendar, properties, alarm) do
     {data, key} = Deserialize.rest_of_key(data, "X-")
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     custom_entry = %{params: params, value: value}
     custom_properties = Map.put(alarm.custom_properties, key, custom_entry)

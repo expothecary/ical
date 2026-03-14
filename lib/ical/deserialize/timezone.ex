@@ -25,21 +25,21 @@ defmodule ICal.Deserialize.Timezone do
 
   defp next(<<"TZID", data::binary>>, timezone) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     timezone = %{timezone | id: value}
     next(data, timezone)
   end
 
   defp next(<<"TZURL", data::binary>>, timezone) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     timezone = %{timezone | url: value}
     next(data, timezone)
   end
 
   defp next(<<"LAST-MODIFIED", data::binary>>, timezone) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     date = Deserialize.to_date_in_timezone(value, "Etc/UTC")
     timezone = %{timezone | modified: date}
     next(data, timezone)
@@ -75,7 +75,7 @@ defmodule ICal.Deserialize.Timezone do
   defp next(<<"X-", data::binary>>, timezone) do
     {data, key} = Deserialize.rest_of_key(data, "X-")
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     custom_entry = %{params: params, value: value}
     custom_properties = Map.put(timezone.custom_properties, key, custom_entry)
@@ -109,7 +109,7 @@ defmodule ICal.Deserialize.Timezone do
 
   defp next_property(<<"DTSTART", data::binary>>, properties) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     date = Deserialize.to_local_date(value)
     properties = %{properties | dtstart: date}
     next_property(data, properties)
@@ -125,14 +125,14 @@ defmodule ICal.Deserialize.Timezone do
 
   defp next_property(<<"TZNAME", data::binary>>, properties) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     properties = %{properties | names: properties.names ++ [value]}
     next_property(data, properties)
   end
 
   defp next_property(<<"TZOFFSETFROM", data::binary>>, properties) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     properties =
       case Deserialize.to_integer(value) do
@@ -145,7 +145,7 @@ defmodule ICal.Deserialize.Timezone do
 
   defp next_property(<<"TZOFFSETTO", data::binary>>, properties) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     properties =
       case Deserialize.to_integer(value) do
@@ -158,14 +158,14 @@ defmodule ICal.Deserialize.Timezone do
 
   defp next_property(<<"COMMENT", data::binary>>, properties) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     properties = %{properties | comments: properties.comments ++ [value]}
     next_property(data, properties)
   end
 
   defp next_property(<<"RDATE", data::binary>>, properties) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     date = Deserialize.to_local_date(value)
     properties = %{properties | rdates: properties.rdates ++ [date]}
     next_property(data, properties)
@@ -175,7 +175,7 @@ defmodule ICal.Deserialize.Timezone do
   defp next_property(<<"X-", data::binary>>, properties) do
     {data, key} = Deserialize.rest_of_key(data, "X-")
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     custom_entry = %{params: params, value: value}
     custom_properties = Map.put(properties.custom_properties, key, custom_entry)

@@ -17,13 +17,16 @@ defmodule ICal.DeserializeTest do
     end
 
     test "Multi-line parsing" do
-      assert {"", nil} == ICal.Deserialize.multi_line("")
-      assert {"", nil} == ICal.Deserialize.multi_line("\n")
-      assert {"", nil} == ICal.Deserialize.multi_line("\r\n")
-      assert {"", "ab"} == ICal.Deserialize.multi_line("a\n b")
-      assert {"", "a  b"} == ICal.Deserialize.multi_line("a\r\n   b")
-      assert {"", "ab c"} == ICal.Deserialize.multi_line("a\r\n\tb\n\t c")
-      assert {"MORE", "a b c"} == ICal.Deserialize.multi_line("a\r\n\t b\n\t c\nMORE")
+      assert {"", nil} == ICal.Deserialize.value("")
+      assert {"", nil} == ICal.Deserialize.value("\n")
+      assert {"", nil} == ICal.Deserialize.value("\r\n")
+      assert {"", "ab"} == ICal.Deserialize.value("a\n b")
+      assert {"", "a  b"} == ICal.Deserialize.value("a\r\n   b")
+      assert {"", "ab c"} == ICal.Deserialize.value("a\r\n\tb\n\t c")
+      assert {"MORE", "a b c"} == ICal.Deserialize.value("a\r\n\t b\n\t c\nMORE")
+      assert {"", ["a", "b", "c"]} == ICal.Deserialize.comma_separated_list("a,\n b,c")
+      assert {"", ["ab", "c"]} == ICal.Deserialize.comma_separated_list("a\n b,c")
+      assert {"b,c", ["a"]} == ICal.Deserialize.comma_separated_list("a,\nb,c")
     end
 
     test "Skipping params" do

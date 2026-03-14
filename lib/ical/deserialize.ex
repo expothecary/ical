@@ -16,7 +16,7 @@ defmodule ICal.Deserialize do
 
   def attachment(data) do
     {data, params} = params(data)
-    {data, value} = multi_line(data)
+    {data, value} = value(data)
 
     attachment =
       case params do
@@ -47,7 +47,7 @@ defmodule ICal.Deserialize do
     else
       {data, key} = rest_of_key(data, "")
       {data, params} = params(data)
-      {data, value} = rest_of_line(data)
+      {data, value} = value(data)
       gather_unrecognized_component(data, end_tag, acc ++ [{key, params, value}])
     end
   end
@@ -67,84 +67,56 @@ defmodule ICal.Deserialize do
   # this parses out a comma separated list. they can have \-escaped
   # entries, escaped newlines, ... it should also skip over malformations
   # such as empty entries
-  def comma_separated_list(data), do: comma_separated_list(data, "", [])
-  defp comma_separated_list(<<>> = data, "", acc), do: {data, acc}
-  defp comma_separated_list(<<>> = data, value, acc), do: {data, acc ++ [value]}
-
-  defp comma_separated_list(<<?\r, ?\n, data::binary>>, value, acc) do
-    if value == "", do: {data, acc}, else: {data, acc ++ [value]}
+  def comma_separated_list(data) do
+    comma_separated_list(data, [])
   end
 
-  defp comma_separated_list(<<?\n, data::binary>>, value, acc) do
-    if value == "", do: {data, acc}, else: {data, acc ++ [value]}
-  end
-
-  defp comma_separated_list(<<?\\, ?n, data::binary>>, value, acc) do
-    comma_separated_list(data, append(value, ?\n), acc)
-  end
-
-  defp comma_separated_list(<<?\\, c::utf8, data::binary>>, value, acc) do
-    comma_separated_list(data, append(value, c), acc)
-  end
-
-  defp comma_separated_list(<<?,, data::binary>>, "", acc) do
-    comma_separated_list(data, "", acc)
-  end
-
-  defp comma_separated_list(<<?,, data::binary>>, value, acc) do
-    comma_separated_list(data, "", acc ++ [value])
-  end
-
-  defp comma_separated_list(<<c::utf8, data::binary>>, value, acc) do
-    comma_separated_list(data, append(value, c), acc)
-  end
-
-  # multiline entries can span, well, multiple lines.
-  # the next lines of a multiline entry will start with one character
-  # of whitespace. the first line that does not start with whitespace
-  # signals the end of the entry.
-  def multi_line(data), do: multi_line(data, [])
-
-  defp multi_line(data, acc) do
-    {data, line} = rest_of_line(data)
-    acc = append_if_content(line, acc)
-
-    # peek ahead to see if there is more multi-line data
-    case data do
-      <<?\t, data::binary>> ->
-        multi_line(data, acc)
-
-      <<" ", data::binary>> ->
-        multi_line(data, acc)
-
-      data ->
-        # we succeeded in finding the last line, now bundle it up if we
-        # have any characters with a simple list-to-string join
-        value =
-          case acc do
-            [] -> nil
-            lines -> Enum.join(lines)
-          end
-
-        {data, value}
+  defp comma_separated_list(data, acc) do
+    case comma_separated_list_entry(data, "") do
+      {:more, data, value} -> comma_separated_list(data, accumulate_if_not_empty(acc, value))
+      {data, value} -> {data, accumulate_if_not_empty(acc, value)}
     end
   end
 
-  # since rest_of_line returns `nil` on failure, we only append
-  # to our collection of lines if it is not nil
-  defp append_if_content(nil, acc), do: acc
-  defp append_if_content(line, acc), do: acc ++ [line]
+  defp comma_separated_list_entry(<<>> = data, value), do: {data, value}
 
-  # slurp up all the data until we reach a newline. we must take
-  # care for escaped characters
-  # first check we have any data!
-  def rest_of_line(<<?\r, ?\n, data::binary>>), do: {data, nil}
-  def rest_of_line(<<?\n, data::binary>>), do: {data, nil}
-  def rest_of_line(<<>> = data), do: {data, nil}
+  defp comma_separated_list_entry(<<?\n, data::binary>>, value) do
+    continue_on_line_fold(data, value, &comma_separated_list_entry/2)
+  end
 
-  # we do have data, so start accumulating it
-  def rest_of_line(data) do
-    rest_of_line(data, <<>>)
+  defp comma_separated_list_entry(<<?\r, ?\n, data::binary>>, value) do
+    continue_on_line_fold(data, value, &comma_separated_list_entry/2)
+  end
+
+  defp comma_separated_list_entry(<<?\\, ?n, data::binary>>, value) do
+    comma_separated_list_entry(data, append(value, ?\n))
+  end
+
+  defp comma_separated_list_entry(<<?\\, c::utf8, data::binary>>, value) do
+    comma_separated_list_entry(data, append(value, c))
+  end
+
+  defp comma_separated_list_entry(<<?,, data::binary>>, value) do
+    {:more, data, value}
+  end
+
+  defp comma_separated_list_entry(<<c::utf8, data::binary>>, value) do
+    comma_separated_list_entry(data, append(value, c))
+  end
+
+  defp accumulate_if_not_empty(acc, ""), do: acc
+  defp accumulate_if_not_empty(acc, value), do: acc ++ List.wrap(value)
+
+  def value(data) do
+    case value(data, <<>>) do
+      {data, <<>>} -> {data, nil}
+      value -> value
+    end
+  end
+
+  defp value(data, acc) do
+    {data, acc} = rest_of_line(data, acc)
+    continue_on_line_fold(data, acc, &value/2)
   end
 
   # end of data
@@ -161,8 +133,8 @@ defmodule ICal.Deserialize do
   end
 
   # both kinds of new lines signal we are done
-  defp rest_of_line(<<?\r, ?\n, data::binary>>, acc), do: {data, acc}
   defp rest_of_line(<<?\n, data::binary>>, acc), do: {data, acc}
+  defp rest_of_line(<<?\r, ?\n, data::binary>>, acc), do: {data, acc}
 
   # not done yet, take a character and keep moving
   defp rest_of_line(<<c::utf8, data::binary>>, acc) do
@@ -172,8 +144,15 @@ defmodule ICal.Deserialize do
   # Skipping params allows motoring through the parameters section without
   # complex parsing or allocation of data. e.g. this is an optimization.
   def skip_params(<<>> = data), do: data
-  def skip_params(<<?\n, _::binary>> = data), do: data
-  def skip_params(<<?\r, ?\n, _::binary>> = data), do: data
+
+  def skip_params(<<?\n, _::binary>> = data) do
+    continue_on_line_fold(data, :no_value, &skip_params/1)
+  end
+
+  def skip_params(<<?\r, ?\n, _::binary>> = data) do
+    continue_on_line_fold(data, :no_value, &skip_params/1)
+  end
+
   def skip_params(<<?", data::binary>>), do: skip_param_quoted_section(data)
 
   # escaped characters!
@@ -190,7 +169,10 @@ defmodule ICal.Deserialize do
   end
 
   defp skip_param_quoted_section(<<>> = data), do: data
-  defp skip_param_quoted_section(<<?\n, data::binary>>), do: data
+
+  defp skip_param_quoted_section(<<?\n, data::binary>>) do
+    continue_on_line_fold(data, :no_value, &skip_param_quoted_section/1)
+  end
 
   defp skip_param_quoted_section(<<?\\, _::utf8, data::binary>>) do
     skip_param_quoted_section(data)
@@ -218,10 +200,19 @@ defmodule ICal.Deserialize do
   # we have no params, but also no value .. return anyways!
   def params(data), do: {data, %{}}
 
+  # called on multi-line continuation
+  defp params(data, params), do: params(data, <<>>, params)
+
   # parse the actual list of params, first checking for end of buffer or line
   defp params(<<>> = data, _val, params), do: {data, params}
-  defp params(<<?\n, _::binary>> = data, _val, params), do: {data, params}
-  defp params(<<?r, ?\n, _::binary>> = data, _val, params), do: {data, params}
+
+  defp params(<<?\n, _::binary>> = data, _val, params) do
+    continue_on_line_fold(data, params, &params/2)
+  end
+
+  defp params(<<?r, ?\n, _::binary>> = data, _val, params) do
+    continue_on_line_fold(data, params, &params/2)
+  end
 
   # escaped character!
   defp params(<<?\\, c::utf8, data::binary>>, val, params) do
@@ -239,96 +230,125 @@ defmodule ICal.Deserialize do
 
   # the '=' means we have the key for the entry, and now need to look for value
   # in this case the value is between "s, so parse a *quoted* value
-  defp params(<<?=, ?", data::binary>>, val, params) do
-    param_value_quoted(data, val, <<>>, params)
+  defp params(<<?=, ?", data::binary>>, key, params) do
+    quoted_param(data, key, params)
   end
 
-  # in this case, it's justt a normal value, so start parsing that without looking for "s
-  defp params(<<?=, data::binary>>, val, params), do: param_value(data, val, <<>>, params)
+  # in this case, it's just a normal value, so start parsing that without looking for "s
+  defp params(<<?=, data::binary>>, key, params) do
+    {data, value} = param_value(data, <<>>)
+
+    case value do
+      {:next_param, value} ->
+        params(data, <<>>, Map.put(params, key, value))
+
+      value ->
+        {data, Map.put(params, key, value)}
+    end
+  end
 
   # more data, add it to the accumulator and keep moving
   defp params(<<c::utf8, data::binary>>, val, params), do: params(data, append(val, c), params)
 
   # a param value goes to the end of the data, the line, or until an unescaped `:` character.
   # an unescaped `;` also stops the value, but signals that another parameter is next
-  defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
+  defp param_value(<<>> = data, val), do: {data, val}
 
   # check for end-of-lines
-  defp param_value(<<?\r, ?\n, data::binary>>, key, val, params),
-    do: {data, Map.put(params, key, val)}
+  defp param_value(<<?\n, data::binary>>, val) do
+    continue_on_line_fold(data, val, &param_value/2)
+  end
 
-  defp param_value(<<?\n, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+  defp param_value(<<?\r, ?\n, data::binary>>, val) do
+    continue_on_line_fold(data, val, &param_value/2)
+  end
 
   # convert literal "\n" into a new line
-  defp param_value(<<?\\, ?n, data::binary>>, key, val, params) do
-    param_value(data, key, append(val, ?\n), params)
+  defp param_value(<<?\\, ?n, data::binary>>, val) do
+    param_value(data, append(val, ?\n))
   end
 
   # escape characters...
-  defp param_value(<<?\\, c::utf8, data::binary>>, key, val, params) do
-    param_value(data, key, append(val, c), params)
+  defp param_value(<<?\\, c::utf8, data::binary>>, val) do
+    param_value(data, append(val, c))
   end
 
   # we've hit a value entry, stop here
-  defp param_value(<<?:, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+  defp param_value(<<?:, data::binary>>, val), do: {data, val}
 
   # another param starts, so recurse to params again
-  defp param_value(<<?;, data::binary>>, key, val, params) do
-    params(data, <<>>, Map.put(params, key, val))
+  defp param_value(<<?;, data::binary>>, val) do
+    {data, {:next_param, val}}
   end
 
   # just more data, keep going
-  defp param_value(<<c::utf8, data::binary>>, key, val, params) do
-    param_value(data, key, append(val, c), params)
+  defp param_value(<<c::utf8, data::binary>>, val) do
+    param_value(data, append(val, c))
+  end
+
+  # quote params can also be lists, so this function allows
+  # recursion within lists.
+  defp quoted_param(data, key, params) do
+    {data, value} = param_value_quoted(data, <<>>)
+
+    case value do
+      {:next_list_value, value} ->
+        quoted_param(data, key, add_quoted_value_to_params(params, key, value, []))
+
+      {:next_param, value} ->
+        params(data, <<>>, add_quoted_value_to_params(params, key, value, nil))
+
+      value ->
+        {data, add_quoted_value_to_params(params, key, value, nil)}
+    end
   end
 
   # a quoted param value is the same as a param value, with the added complication
   # that it is quoted, so it does not really end until a matching unquoted `"`.
   # if a `;` is encountered, there is another parameter that follows
-  defp param_value_quoted(<<>> = data, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<>> = data, val) do
+    {data, val}
   end
 
-  defp param_value_quoted(<<?\r, ?\n, data::binary>>, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<?\n, data::binary>>, val) do
+    {data, val}
   end
 
-  defp param_value_quoted(<<?\n, data::binary>>, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<?\r, ?\n, data::binary>>, val) do
+    {data, val}
   end
 
-  defp param_value_quoted(<<?\\, ?n, data::binary>>, key, val, params) do
-    param_value_quoted(data, key, append(val, ?\n), params)
+  defp param_value_quoted(<<?\\, ?n, data::binary>>, val) do
+    param_value_quoted(data, append(val, ?\n))
   end
 
-  defp param_value_quoted(<<?\\, c::utf8, data::binary>>, key, val, params) do
-    param_value_quoted(data, key, append(val, c), params)
+  defp param_value_quoted(<<?\\, c::utf8, data::binary>>, val) do
+    param_value_quoted(data, append(val, c))
   end
 
   # this is not only a quoted parameter, but a LIST of quoted parameters
-  # at this point, call into `param_value_quoted_list` to start building a list
-  defp param_value_quoted(<<?", ?,, ?", data::binary>>, key, val, params) do
-    param_value_quoted_list(data, key, val, params)
+  defp param_value_quoted(<<?", ?,, ?", data::binary>>, val) do
+    {data, {:next_list_value, val}}
   end
 
   # done!
-  defp param_value_quoted(<<?", ?:, data::binary>>, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<?", ?:, data::binary>>, val) do
+    {data, val}
   end
 
   # another param detect, so recurse to params again
-  defp param_value_quoted(<<?", ?;, data::binary>>, key, val, params) do
-    params(data, <<>>, add_quote_value_to_params(params, key, val))
+  defp param_value_quoted(<<?", ?;, data::binary>>, val) do
+    {data, {:next_param, val}}
   end
 
-  defp param_value_quoted(<<c::utf8, data::binary>>, key, val, params) do
-    param_value_quoted(data, key, append(val, c), params)
+  defp param_value_quoted(<<c::utf8, data::binary>>, val) do
+    param_value_quoted(data, append(val, c))
   end
 
   # since it may be a quoted *list*, check to see if there is a list started
   # and if so add the value to the key
-  defp add_quote_value_to_params(params, key, val) do
-    case Map.get(params, key) do
+  defp add_quoted_value_to_params(params, key, val, default) do
+    case Map.get(params, key, default) do
       acc when is_list(acc) ->
         Map.put(params, key, acc ++ [val])
 
@@ -337,19 +357,35 @@ defmodule ICal.Deserialize do
     end
   end
 
-  defp param_value_quoted_list(data, key, val, params) do
-    # this function enters with an entry in acc
-    current_val = Map.get(params, key, [])
-    params = Map.put(params, key, current_val ++ [val])
-    param_value_quoted(data, key, <<>>, params)
-  end
-
   # just completely skip the line, don't even both collecting the data
   @spec skip_line(binary()) :: binary()
   def skip_line(<<>> = data), do: data
-  def skip_line(<<?\r, ?\n, data::binary>>), do: data
-  def skip_line(<<?\n, data::binary>>), do: data
+  def skip_line(<<?\n, data::binary>>), do: continue_on_line_fold(data, :no_value, &skip_line/1)
   def skip_line(<<_::utf8, data::binary>>), do: skip_line(data)
+
+  # continue_on_line_fold checks to see if the first character is a tab or a space
+  # and if so, continues the parsing by calling the continuation `fun`
+  # with the state, otherwise it simply returns the state.
+  #
+  # The state is `{data, value}` unless `:no_value` is passed in as the value,
+  # in which case the state is just `data`. This allows sharing this code between
+  # functions which are simply skipping bytes and not accumulating them, and
+  # functions which are accumulating values to be returned.
+  @spec continue_on_line_fold(data :: binary, :no_value | term, function) ::
+          {data :: binary, value :: term} | (data :: binary)
+  defp continue_on_line_fold(<<?\t, data::binary>>, value, fun) do
+    continue_line(data, value, fun)
+  end
+
+  defp continue_on_line_fold(<<?\s, data::binary>>, value, fun) do
+    continue_line(data, value, fun)
+  end
+
+  defp continue_on_line_fold(data, :no_value, _fun), do: data
+  defp continue_on_line_fold(data, value, _fun), do: {data, value}
+
+  defp continue_line(data, :no_value, fun), do: fun.(data)
+  defp continue_line(data, value, fun), do: fun.(data, value)
 
   # this parses a GEO entry, which is a ;-separated tuple of lat/lon
   def parse_geo(data) do

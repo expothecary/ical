@@ -11,8 +11,6 @@ defmodule ICal.Mixfile do
       version: @version,
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
-      build_embedded: Mix.env() == :prod,
-      start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
       package: package(),
