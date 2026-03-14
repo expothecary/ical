@@ -99,10 +99,6 @@ defmodule ICal.Deserialize do
     comma_separated_list(data, append(value, c), acc)
   end
 
-  # multiline entries can span, well, multiple lines.
-  # the next lines of a multiline entry will start with one character
-  # of whitespace. the first line that does not start with whitespace
-  # signals the end of the entry.
   def value(data) do
     case value(data, <<>>) do
       {data, <<>>} -> {data, nil}
@@ -112,18 +108,7 @@ defmodule ICal.Deserialize do
 
   defp value(data, acc) do
     {data, acc} = rest_of_line(data, acc)
-
-    # peek ahead to see if there is more multi-line data
-    case data do
-      <<?\t, data::binary>> ->
-        value(data, acc)
-
-      <<?\s, data::binary>> ->
-        value(data, acc)
-
-      data ->
-        {data, acc}
-    end
+    check_multi_line(data, acc, &value/2)
   end
 
   # end of data
@@ -151,8 +136,15 @@ defmodule ICal.Deserialize do
   # Skipping params allows motoring through the parameters section without
   # complex parsing or allocation of data. e.g. this is an optimization.
   def skip_params(<<>> = data), do: data
-  def skip_params(<<?\n, _::binary>> = data), do: data
-  def skip_params(<<?\r, ?\n, _::binary>> = data), do: data
+
+  def skip_params(<<?\n, _::binary>> = data) do
+    check_multi_line(data, :no_value, &skip_params/1)
+    end
+
+  def skip_params(<<?\r, ?\n, _::binary>> = data) do
+    check_multi_line(data, :no_value, &skip_params/1)
+end
+
   def skip_params(<<?", data::binary>>), do: skip_param_quoted_section(data)
 
   # escaped characters!
@@ -197,10 +189,19 @@ defmodule ICal.Deserialize do
   # we have no params, but also no value .. return anyways!
   def params(data), do: {data, %{}}
 
+  # called on multi-line continuation
+  defp params(data, params), do: params(data, <<>>, params)
+
   # parse the actual list of params, first checking for end of buffer or line
   defp params(<<>> = data, _val, params), do: {data, params}
-  defp params(<<?\n, _::binary>> = data, _val, params), do: {data, params}
-  defp params(<<?r, ?\n, _::binary>> = data, _val, params), do: {data, params}
+
+  defp params(<<?\n, _::binary>> = data, _val, params) do
+    check_multi_line(data, params, &params/2)
+  end
+
+  defp params(<<?r, ?\n, _::binary>> = data, _val, params) do
+    check_multi_line(data, params, &params/2)
+  end
 
   # escaped character!
   defp params(<<?\\, c::utf8, data::binary>>, val, params) do
@@ -222,7 +223,7 @@ defmodule ICal.Deserialize do
     param_value_quoted(data, val, <<>>, params)
   end
 
-  # in this case, it's justt a normal value, so start parsing that without looking for "s
+  # in this case, it's just a normal value, so start parsing that without looking for "s
   defp params(<<?=, data::binary>>, val, params), do: param_value(data, val, <<>>, params)
 
   # more data, add it to the accumulator and keep moving
@@ -233,10 +234,11 @@ defmodule ICal.Deserialize do
   defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
 
   # check for end-of-lines
-  defp param_value(<<?\r, ?\n, data::binary>>, key, val, params),
-    do: {data, Map.put(params, key, val)}
-
   defp param_value(<<?\n, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+
+  defp param_value(<<?\r, ?\n, data::binary>>, key, val, params) do
+    {data, Map.put(params, key, val)}
+  end
 
   # convert literal "\n" into a new line
   defp param_value(<<?\\, ?n, data::binary>>, key, val, params) do
@@ -326,9 +328,23 @@ defmodule ICal.Deserialize do
   # just completely skip the line, don't even both collecting the data
   @spec skip_line(binary()) :: binary()
   def skip_line(<<>> = data), do: data
-  def skip_line(<<?\r, ?\n, data::binary>>), do: data
-  def skip_line(<<?\n, data::binary>>), do: data
+  def skip_line(<<?\r, ?\n, data::binary>>), do: check_multi_line(data, :no_value, &skip_line/1)
+  def skip_line(<<?\n, data::binary>>), do: check_multi_line(data, :no_value, &skip_line/1)
   def skip_line(<<_::utf8, data::binary>>), do: skip_line(data)
+
+  defp check_multi_line(<<?\t, data::binary>>, done_value, fun) do
+    continue_line(data, done_value, fun)
+  end
+
+  defp check_multi_line(<<?\s, data::binary>>, done_value, fun) do
+    continue_line(data, done_value, fun)
+  end
+
+  defp check_multi_line(data, :no_value, _fun), do: data
+  defp check_multi_line(data, done_value, _fun), do: {data, done_value}
+
+  defp continue_line(data, :no_value, fun), do: fun.(data)
+  defp continue_line(data, value, fun), do: fun.(data, value)
 
   # this parses a GEO entry, which is a ;-separated tuple of lat/lon
   def parse_geo(data) do
