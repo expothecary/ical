@@ -230,45 +230,55 @@ defmodule ICal.Deserialize do
   end
 
   # in this case, it's just a normal value, so start parsing that without looking for "s
-  defp params(<<?=, data::binary>>, val, params), do: param_value(data, val, <<>>, params)
+  defp params(<<?=, data::binary>>, key, params) do
+    {data, value} = param_value(data, <<>>)
+
+    case value do
+      {:next_param, value} ->
+        params(data, <<>>, Map.put(params, key, value))
+
+      value ->
+        {data, Map.put(params, key, value)}
+    end
+  end
 
   # more data, add it to the accumulator and keep moving
   defp params(<<c::utf8, data::binary>>, val, params), do: params(data, append(val, c), params)
 
   # a param value goes to the end of the data, the line, or until an unescaped `:` character.
   # an unescaped `;` also stops the value, but signals that another parameter is next
-  defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
+  defp param_value(<<>> = data, val), do: {data, val}
 
   # check for end-of-lines
-  defp param_value(<<?\n, data::binary>>, key, val, params) do
-    {data, Map.put(params, key, val)}
+  defp param_value(<<?\n, data::binary>>, val) do
+    check_multi_line(data, val, &param_value/2)
   end
 
-  defp param_value(<<?\r, ?\n, data::binary>>, key, val, params) do
-    {data, Map.put(params, key, val)}
+  defp param_value(<<?\r, ?\n, data::binary>>, val) do
+    check_multi_line(data, val, &param_value/2)
   end
 
   # convert literal "\n" into a new line
-  defp param_value(<<?\\, ?n, data::binary>>, key, val, params) do
-    param_value(data, key, append(val, ?\n), params)
+  defp param_value(<<?\\, ?n, data::binary>>, val) do
+    param_value(data, append(val, ?\n))
   end
 
   # escape characters...
-  defp param_value(<<?\\, c::utf8, data::binary>>, key, val, params) do
-    param_value(data, key, append(val, c), params)
+  defp param_value(<<?\\, c::utf8, data::binary>>, val) do
+    param_value(data, append(val, c))
   end
 
   # we've hit a value entry, stop here
-  defp param_value(<<?:, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+  defp param_value(<<?:, data::binary>>, val), do: {data, val}
 
   # another param starts, so recurse to params again
-  defp param_value(<<?;, data::binary>>, key, val, params) do
-    params(data, <<>>, Map.put(params, key, val))
+  defp param_value(<<?;, data::binary>>, val) do
+    {data, {:next_param, val}}
   end
 
   # just more data, keep going
-  defp param_value(<<c::utf8, data::binary>>, key, val, params) do
-    param_value(data, key, append(val, c), params)
+  defp param_value(<<c::utf8, data::binary>>, val) do
+    param_value(data, append(val, c))
   end
 
   # a quoted param value is the same as a param value, with the added complication
