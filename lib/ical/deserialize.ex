@@ -356,10 +356,6 @@ defmodule ICal.Deserialize do
   @spec skip_line(binary()) :: binary()
   def skip_line(<<>> = data), do: data
   def skip_line(<<?\n, data::binary>>), do: continue_on_line_fold(data, :no_value, &skip_line/1)
-
-  def skip_line(<<?\r, ?\n, data::binary>>),
-    do: continue_on_line_fold(data, :no_value, &skip_line/1)
-
   def skip_line(<<_::utf8, data::binary>>), do: skip_line(data)
 
   # continue_on_line_fold checks to see if the first character is a tab or a space
