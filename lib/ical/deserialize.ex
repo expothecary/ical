@@ -103,11 +103,15 @@ defmodule ICal.Deserialize do
   # the next lines of a multiline entry will start with one character
   # of whitespace. the first line that does not start with whitespace
   # signals the end of the entry.
-  def value(data), do: value(data, [])
+  def value(data) do
+    case value(data, <<>>) do
+      {data, <<>>} -> {data, nil}
+      value -> value
+    end
+  end
 
   defp value(data, acc) do
-    {data, line} = rest_of_line(data)
-    acc = append_if_content(line, acc)
+    {data, acc} = rest_of_line(data, acc)
 
     # peek ahead to see if there is more multi-line data
     case data do
@@ -118,33 +122,8 @@ defmodule ICal.Deserialize do
         value(data, acc)
 
       data ->
-        # we succeeded in finding the last line, now bundle it up if we
-        # have any characters with a simple list-to-string join
-        value =
-          case acc do
-            [] -> nil
-            lines -> Enum.join(lines)
-          end
-
-        {data, value}
+        {data, acc}
     end
-  end
-
-  # since rest_of_line returns `nil` on failure, we only append
-  # to our collection of lines if it is not nil
-  defp append_if_content(nil, acc), do: acc
-  defp append_if_content(line, acc), do: acc ++ [line]
-
-  # slurp up all the data until we reach a newline. we must take
-  # care for escaped characters
-  # first check we have any data!
-  defp rest_of_line(<<?\r, ?\n, data::binary>>), do: {data, nil}
-  defp rest_of_line(<<?\n, data::binary>>), do: {data, nil}
-  defp rest_of_line(<<>> = data), do: {data, nil}
-
-  # we do have data, so start accumulating it
-  defp rest_of_line(data) do
-    rest_of_line(data, <<>>)
   end
 
   # end of data
