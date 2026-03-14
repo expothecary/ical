@@ -71,7 +71,7 @@ defmodule ICal.Deserialize do
     comma_separated_list(data, [])
   end
 
-  def comma_separated_list(data, acc) do
+  defp comma_separated_list(data, acc) do
     case comma_separated_list_entry(data, "") do
       {:more, data, value} -> comma_separated_list(data, accumulate_if_not_empty(acc, value))
       {data, value} -> {data, accumulate_if_not_empty(acc, value)}
