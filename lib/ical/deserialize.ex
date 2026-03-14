@@ -118,7 +118,7 @@ defmodule ICal.Deserialize do
       <<?\t, data::binary>> ->
         value(data, acc)
 
-      <<" ", data::binary>> ->
+      <<?\s, data::binary>> ->
         value(data, acc)
 
       data ->
