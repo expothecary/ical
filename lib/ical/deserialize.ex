@@ -71,12 +71,12 @@ defmodule ICal.Deserialize do
   defp comma_separated_list(<<>> = data, "", acc), do: {data, acc}
   defp comma_separated_list(<<>> = data, value, acc), do: {data, acc ++ [value]}
 
-  defp comma_separated_list(<<?\r, ?\n, data::binary>>, value, acc) do
-    if value == "", do: {data, acc}, else: {data, acc ++ [value]}
+  defp comma_separated_list(<<?\n, data::binary>>, value, acc) do
+    check_multi_line(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
   end
 
-  defp comma_separated_list(<<?\n, data::binary>>, value, acc) do
-    if value == "", do: {data, acc}, else: {data, acc ++ [value]}
+  defp comma_separated_list(<<?\r, ?\n, data::binary>>, value, acc) do
+    check_multi_line(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
   end
 
   defp comma_separated_list(<<?\\, ?n, data::binary>>, value, acc) do
@@ -98,6 +98,9 @@ defmodule ICal.Deserialize do
   defp comma_separated_list(<<c::utf8, data::binary>>, value, acc) do
     comma_separated_list(data, append(value, c), acc)
   end
+
+  defp accumulate_if_not_empty(acc, ""), do: acc
+  defp accumulate_if_not_empty(acc, value), do: acc ++ List.wrap(value)
 
   def value(data) do
     case value(data, <<>>) do
@@ -125,8 +128,8 @@ defmodule ICal.Deserialize do
   end
 
   # both kinds of new lines signal we are done
-  defp rest_of_line(<<?\r, ?\n, data::binary>>, acc), do: {data, acc}
   defp rest_of_line(<<?\n, data::binary>>, acc), do: {data, acc}
+  defp rest_of_line(<<?\r, ?\n, data::binary>>, acc), do: {data, acc}
 
   # not done yet, take a character and keep moving
   defp rest_of_line(<<c::utf8, data::binary>>, acc) do
@@ -139,11 +142,11 @@ defmodule ICal.Deserialize do
 
   def skip_params(<<?\n, _::binary>> = data) do
     check_multi_line(data, :no_value, &skip_params/1)
-    end
+  end
 
   def skip_params(<<?\r, ?\n, _::binary>> = data) do
     check_multi_line(data, :no_value, &skip_params/1)
-end
+  end
 
   def skip_params(<<?", data::binary>>), do: skip_param_quoted_section(data)
 
@@ -161,7 +164,10 @@ end
   end
 
   defp skip_param_quoted_section(<<>> = data), do: data
-  defp skip_param_quoted_section(<<?\n, data::binary>>), do: data
+
+  defp skip_param_quoted_section(<<?\n, data::binary>>) do
+    check_multi_line(data, :no_value, &skip_param_quoted_section/1)
+  end
 
   defp skip_param_quoted_section(<<?\\, _::utf8, data::binary>>) do
     skip_param_quoted_section(data)
@@ -234,7 +240,9 @@ end
   defp param_value(<<>> = data, key, val, params), do: {data, Map.put(params, key, val)}
 
   # check for end-of-lines
-  defp param_value(<<?\n, data::binary>>, key, val, params), do: {data, Map.put(params, key, val)}
+  defp param_value(<<?\n, data::binary>>, key, val, params) do
+    {data, Map.put(params, key, val)}
+  end
 
   defp param_value(<<?\r, ?\n, data::binary>>, key, val, params) do
     {data, Map.put(params, key, val)}
@@ -270,11 +278,11 @@ end
     {data, add_quote_value_to_params(params, key, val)}
   end
 
-  defp param_value_quoted(<<?\r, ?\n, data::binary>>, key, val, params) do
+  defp param_value_quoted(<<?\n, data::binary>>, key, val, params) do
     {data, add_quote_value_to_params(params, key, val)}
   end
 
-  defp param_value_quoted(<<?\n, data::binary>>, key, val, params) do
+  defp param_value_quoted(<<?\r, ?\n, data::binary>>, key, val, params) do
     {data, add_quote_value_to_params(params, key, val)}
   end
 
@@ -328,8 +336,8 @@ end
   # just completely skip the line, don't even both collecting the data
   @spec skip_line(binary()) :: binary()
   def skip_line(<<>> = data), do: data
-  def skip_line(<<?\r, ?\n, data::binary>>), do: check_multi_line(data, :no_value, &skip_line/1)
   def skip_line(<<?\n, data::binary>>), do: check_multi_line(data, :no_value, &skip_line/1)
+  def skip_line(<<?\r, ?\n, data::binary>>), do: check_multi_line(data, :no_value, &skip_line/1)
   def skip_line(<<_::utf8, data::binary>>), do: skip_line(data)
 
   defp check_multi_line(<<?\t, data::binary>>, done_value, fun) do
