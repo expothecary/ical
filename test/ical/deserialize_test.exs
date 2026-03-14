@@ -24,6 +24,9 @@ defmodule ICal.DeserializeTest do
       assert {"", "a  b"} == ICal.Deserialize.value("a\r\n   b")
       assert {"", "ab c"} == ICal.Deserialize.value("a\r\n\tb\n\t c")
       assert {"MORE", "a b c"} == ICal.Deserialize.value("a\r\n\t b\n\t c\nMORE")
+      assert {"", ["a", "b", "c"]} == ICal.Deserialize.comma_separated_list("a,\n b,c")
+      assert {"", ["ab", "c"]} == ICal.Deserialize.comma_separated_list("a\n b,c")
+      assert {"b,c", ["a"]} == ICal.Deserialize.comma_separated_list("a,\nb,c")
     end
 
     test "Skipping params" do
