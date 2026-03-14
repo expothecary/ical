@@ -67,36 +67,41 @@ defmodule ICal.Deserialize do
   # this parses out a comma separated list. they can have \-escaped
   # entries, escaped newlines, ... it should also skip over malformations
   # such as empty entries
-  def comma_separated_list(data), do: comma_separated_list(data, "", [])
-  defp comma_separated_list(<<>> = data, "", acc), do: {data, acc}
-  defp comma_separated_list(<<>> = data, value, acc), do: {data, acc ++ [value]}
-
-  defp comma_separated_list(<<?\n, data::binary>>, value, acc) do
-    continue_on_line_fold(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
+  def comma_separated_list(data) do
+    comma_separated_list(data, [])
   end
 
-  defp comma_separated_list(<<?\r, ?\n, data::binary>>, value, acc) do
-    continue_on_line_fold(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
+  def comma_separated_list(data, acc) do
+    case comma_separated_list_entry(data, "") do
+      {:more, data, value} -> comma_separated_list(data, accumulate_if_not_empty(acc, value))
+      {data, value} -> {data, accumulate_if_not_empty(acc, value)}
+    end
   end
 
-  defp comma_separated_list(<<?\\, ?n, data::binary>>, value, acc) do
-    comma_separated_list(data, append(value, ?\n), acc)
+  defp comma_separated_list_entry(<<>> = data, value), do: {data, value}
+
+  defp comma_separated_list_entry(<<?\n, data::binary>>, value) do
+    continue_on_line_fold(data, value, &comma_separated_list_entry/2)
   end
 
-  defp comma_separated_list(<<?\\, c::utf8, data::binary>>, value, acc) do
-    comma_separated_list(data, append(value, c), acc)
+  defp comma_separated_list_entry(<<?\r, ?\n, data::binary>>, value) do
+    continue_on_line_fold(data, value, &comma_separated_list_entry/2)
   end
 
-  defp comma_separated_list(<<?,, data::binary>>, "", acc) do
-    comma_separated_list(data, "", acc)
+  defp comma_separated_list_entry(<<?\\, ?n, data::binary>>, value) do
+    comma_separated_list_entry(data, append(value, ?\n))
   end
 
-  defp comma_separated_list(<<?,, data::binary>>, value, acc) do
-    comma_separated_list(data, "", acc ++ [value])
+  defp comma_separated_list_entry(<<?\\, c::utf8, data::binary>>, value) do
+    comma_separated_list_entry(data, append(value, c))
   end
 
-  defp comma_separated_list(<<c::utf8, data::binary>>, value, acc) do
-    comma_separated_list(data, append(value, c), acc)
+  defp comma_separated_list_entry(<<?,, data::binary>>, value) do
+    {:more, data, value}
+  end
+
+  defp comma_separated_list_entry(<<c::utf8, data::binary>>, value) do
+    comma_separated_list_entry(data, append(value, c))
   end
 
   defp accumulate_if_not_empty(acc, ""), do: acc
@@ -366,8 +371,8 @@ defmodule ICal.Deserialize do
   # in which case the state is just `data`. This allows sharing this code between
   # functions which are simply skipping bytes and not accumulating them, and
   # functions which are accumulating values to be returned.
-  @spec continue_on_line_fold(data :: binary, :no_value | binary, function) ::
-          {data :: binary, value :: binary} | (data :: binary)
+  @spec continue_on_line_fold(data :: binary, :no_value | term, function) ::
+          {data :: binary, value :: term} | (data :: binary)
   defp continue_on_line_fold(<<?\t, data::binary>>, value, fun) do
     continue_line(data, value, fun)
   end
