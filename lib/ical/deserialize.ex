@@ -225,8 +225,8 @@ defmodule ICal.Deserialize do
 
   # the '=' means we have the key for the entry, and now need to look for value
   # in this case the value is between "s, so parse a *quoted* value
-  defp params(<<?=, ?", data::binary>>, val, params) do
-    param_value_quoted(data, val, <<>>, params)
+  defp params(<<?=, ?", data::binary>>, key, params) do
+    quoted_param(data, key, params)
   end
 
   # in this case, it's just a normal value, so start parsing that without looking for "s
@@ -281,66 +281,75 @@ defmodule ICal.Deserialize do
     param_value(data, append(val, c))
   end
 
+  # quote params can also be lists, so this function allows
+  # recursion within lists.
+  defp quoted_param(data, key, params) do
+    {data, value} = param_value_quoted(data, <<>>)
+
+    case value do
+      {:next_list_value, value} ->
+        quoted_param(data, key, add_quoted_value_to_params(params, key, value, []))
+
+      {:next_param, value} ->
+        params(data, <<>>, add_quoted_value_to_params(params, key, value, nil))
+
+      value ->
+        {data, add_quoted_value_to_params(params, key, value, nil)}
+    end
+  end
+
   # a quoted param value is the same as a param value, with the added complication
   # that it is quoted, so it does not really end until a matching unquoted `"`.
   # if a `;` is encountered, there is another parameter that follows
-  defp param_value_quoted(<<>> = data, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<>> = data, val) do
+    {data, val}
   end
 
-  defp param_value_quoted(<<?\n, data::binary>>, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<?\n, data::binary>>, val) do
+    {data, val}
   end
 
-  defp param_value_quoted(<<?\r, ?\n, data::binary>>, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<?\r, ?\n, data::binary>>, val) do
+    {data, val}
   end
 
-  defp param_value_quoted(<<?\\, ?n, data::binary>>, key, val, params) do
-    param_value_quoted(data, key, append(val, ?\n), params)
+  defp param_value_quoted(<<?\\, ?n, data::binary>>, val) do
+    param_value_quoted(data, append(val, ?\n))
   end
 
-  defp param_value_quoted(<<?\\, c::utf8, data::binary>>, key, val, params) do
-    param_value_quoted(data, key, append(val, c), params)
+  defp param_value_quoted(<<?\\, c::utf8, data::binary>>, val) do
+    param_value_quoted(data, append(val, c))
   end
 
   # this is not only a quoted parameter, but a LIST of quoted parameters
-  # at this point, call into `param_value_quoted_list` to start building a list
-  defp param_value_quoted(<<?", ?,, ?", data::binary>>, key, val, params) do
-    param_value_quoted_list(data, key, val, params)
+  defp param_value_quoted(<<?", ?,, ?", data::binary>>, val) do
+    {data, {:next_list_value, val}}
   end
 
   # done!
-  defp param_value_quoted(<<?", ?:, data::binary>>, key, val, params) do
-    {data, add_quote_value_to_params(params, key, val)}
+  defp param_value_quoted(<<?", ?:, data::binary>>, val) do
+    {data, val}
   end
 
   # another param detect, so recurse to params again
-  defp param_value_quoted(<<?", ?;, data::binary>>, key, val, params) do
-    params(data, <<>>, add_quote_value_to_params(params, key, val))
+  defp param_value_quoted(<<?", ?;, data::binary>>, val) do
+    {data, {:next_param, val}}
   end
 
-  defp param_value_quoted(<<c::utf8, data::binary>>, key, val, params) do
-    param_value_quoted(data, key, append(val, c), params)
+  defp param_value_quoted(<<c::utf8, data::binary>>, val) do
+    param_value_quoted(data, append(val, c))
   end
 
   # since it may be a quoted *list*, check to see if there is a list started
   # and if so add the value to the key
-  defp add_quote_value_to_params(params, key, val) do
-    case Map.get(params, key) do
+  defp add_quoted_value_to_params(params, key, val, default) do
+    case Map.get(params, key, default) do
       acc when is_list(acc) ->
         Map.put(params, key, acc ++ [val])
 
       _current ->
         Map.put(params, key, val)
     end
-  end
-
-  defp param_value_quoted_list(data, key, val, params) do
-    # this function enters with an entry in acc
-    current_val = Map.get(params, key, [])
-    params = Map.put(params, key, current_val ++ [val])
-    param_value_quoted(data, key, <<>>, params)
   end
 
   # just completely skip the line, don't even both collecting the data
