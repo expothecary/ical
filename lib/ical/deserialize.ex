@@ -72,11 +72,11 @@ defmodule ICal.Deserialize do
   defp comma_separated_list(<<>> = data, value, acc), do: {data, acc ++ [value]}
 
   defp comma_separated_list(<<?\n, data::binary>>, value, acc) do
-    check_multi_line(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
+    continue_on_line_fold(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
   end
 
   defp comma_separated_list(<<?\r, ?\n, data::binary>>, value, acc) do
-    check_multi_line(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
+    continue_on_line_fold(data, accumulate_if_not_empty(acc, value), :comma_separated_list)
   end
 
   defp comma_separated_list(<<?\\, ?n, data::binary>>, value, acc) do
@@ -111,7 +111,7 @@ defmodule ICal.Deserialize do
 
   defp value(data, acc) do
     {data, acc} = rest_of_line(data, acc)
-    check_multi_line(data, acc, &value/2)
+    continue_on_line_fold(data, acc, &value/2)
   end
 
   # end of data
@@ -141,11 +141,11 @@ defmodule ICal.Deserialize do
   def skip_params(<<>> = data), do: data
 
   def skip_params(<<?\n, _::binary>> = data) do
-    check_multi_line(data, :no_value, &skip_params/1)
+    continue_on_line_fold(data, :no_value, &skip_params/1)
   end
 
   def skip_params(<<?\r, ?\n, _::binary>> = data) do
-    check_multi_line(data, :no_value, &skip_params/1)
+    continue_on_line_fold(data, :no_value, &skip_params/1)
   end
 
   def skip_params(<<?", data::binary>>), do: skip_param_quoted_section(data)
@@ -166,7 +166,7 @@ defmodule ICal.Deserialize do
   defp skip_param_quoted_section(<<>> = data), do: data
 
   defp skip_param_quoted_section(<<?\n, data::binary>>) do
-    check_multi_line(data, :no_value, &skip_param_quoted_section/1)
+    continue_on_line_fold(data, :no_value, &skip_param_quoted_section/1)
   end
 
   defp skip_param_quoted_section(<<?\\, _::utf8, data::binary>>) do
@@ -202,11 +202,11 @@ defmodule ICal.Deserialize do
   defp params(<<>> = data, _val, params), do: {data, params}
 
   defp params(<<?\n, _::binary>> = data, _val, params) do
-    check_multi_line(data, params, &params/2)
+    continue_on_line_fold(data, params, &params/2)
   end
 
   defp params(<<?r, ?\n, _::binary>> = data, _val, params) do
-    check_multi_line(data, params, &params/2)
+    continue_on_line_fold(data, params, &params/2)
   end
 
   # escaped character!
@@ -251,11 +251,11 @@ defmodule ICal.Deserialize do
 
   # check for end-of-lines
   defp param_value(<<?\n, data::binary>>, val) do
-    check_multi_line(data, val, &param_value/2)
+    continue_on_line_fold(data, val, &param_value/2)
   end
 
   defp param_value(<<?\r, ?\n, data::binary>>, val) do
-    check_multi_line(data, val, &param_value/2)
+    continue_on_line_fold(data, val, &param_value/2)
   end
 
   # convert literal "\n" into a new line
@@ -355,20 +355,33 @@ defmodule ICal.Deserialize do
   # just completely skip the line, don't even both collecting the data
   @spec skip_line(binary()) :: binary()
   def skip_line(<<>> = data), do: data
-  def skip_line(<<?\n, data::binary>>), do: check_multi_line(data, :no_value, &skip_line/1)
-  def skip_line(<<?\r, ?\n, data::binary>>), do: check_multi_line(data, :no_value, &skip_line/1)
+  def skip_line(<<?\n, data::binary>>), do: continue_on_line_fold(data, :no_value, &skip_line/1)
+
+  def skip_line(<<?\r, ?\n, data::binary>>),
+    do: continue_on_line_fold(data, :no_value, &skip_line/1)
+
   def skip_line(<<_::utf8, data::binary>>), do: skip_line(data)
 
-  defp check_multi_line(<<?\t, data::binary>>, done_value, fun) do
-    continue_line(data, done_value, fun)
+  # continue_on_line_fold checks to see if the first character is a tab or a space
+  # and if so, continues the parsing by calling the continuation `fun`
+  # with the state, otherwise it simply returns the state.
+  #
+  # The state is `{data, value}` unless `:no_value` is passed in as the value,
+  # in which case the state is just `data`. This allows sharing this code between
+  # functions which are simply skipping bytes and not accumulating them, and
+  # functions which are accumulating values to be returned.
+  @spec continue_on_line_fold(data :: binary, :no_value | binary, function) ::
+          {data :: binary, value :: binary} | (data :: binary)
+  defp continue_on_line_fold(<<?\t, data::binary>>, value, fun) do
+    continue_line(data, value, fun)
   end
 
-  defp check_multi_line(<<?\s, data::binary>>, done_value, fun) do
-    continue_line(data, done_value, fun)
+  defp continue_on_line_fold(<<?\s, data::binary>>, value, fun) do
+    continue_line(data, value, fun)
   end
 
-  defp check_multi_line(data, :no_value, _fun), do: data
-  defp check_multi_line(data, done_value, _fun), do: {data, done_value}
+  defp continue_on_line_fold(data, :no_value, _fun), do: data
+  defp continue_on_line_fold(data, value, _fun), do: {data, value}
 
   defp continue_line(data, :no_value, fun), do: fun.(data)
   defp continue_line(data, value, fun), do: fun.(data, value)
