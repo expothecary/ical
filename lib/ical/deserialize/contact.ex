@@ -6,7 +6,7 @@ defmodule ICal.Deserialize.Contact do
 
   def from_ics(data) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.multi_line(data)
+    {data, value} = Deserialize.value(data)
 
     case value do
       nil ->

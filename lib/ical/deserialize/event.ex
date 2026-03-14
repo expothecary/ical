@@ -16,13 +16,13 @@ defmodule ICal.Deserialize.Event do
 
   defp next_parameter(<<"DTEND", data::binary>>, calendar, event) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     record_value(data, calendar, event, :dtend, Deserialize.to_date(value, params, calendar))
   end
 
   defp next_parameter(<<"TRANSP", data::binary>>, calendar, event) do
     data = Deserialize.skip_params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     case value do
       "OPAQUE" -> next_parameter(data, calendar, %{event | transparency: :opaque})

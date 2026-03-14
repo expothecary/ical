@@ -16,7 +16,7 @@ defmodule ICal.Deserialize do
 
   def attachment(data) do
     {data, params} = params(data)
-    {data, value} = multi_line(data)
+    {data, value} = value(data)
 
     attachment =
       case params do
@@ -47,7 +47,7 @@ defmodule ICal.Deserialize do
     else
       {data, key} = rest_of_key(data, "")
       {data, params} = params(data)
-      {data, value} = rest_of_line(data)
+      {data, value} = value(data)
       gather_unrecognized_component(data, end_tag, acc ++ [{key, params, value}])
     end
   end
@@ -103,19 +103,19 @@ defmodule ICal.Deserialize do
   # the next lines of a multiline entry will start with one character
   # of whitespace. the first line that does not start with whitespace
   # signals the end of the entry.
-  def multi_line(data), do: multi_line(data, [])
+  def value(data), do: value(data, [])
 
-  defp multi_line(data, acc) do
+  defp value(data, acc) do
     {data, line} = rest_of_line(data)
     acc = append_if_content(line, acc)
 
     # peek ahead to see if there is more multi-line data
     case data do
       <<?\t, data::binary>> ->
-        multi_line(data, acc)
+        value(data, acc)
 
       <<" ", data::binary>> ->
-        multi_line(data, acc)
+        value(data, acc)
 
       data ->
         # we succeeded in finding the last line, now bundle it up if we
@@ -138,12 +138,12 @@ defmodule ICal.Deserialize do
   # slurp up all the data until we reach a newline. we must take
   # care for escaped characters
   # first check we have any data!
-  def rest_of_line(<<?\r, ?\n, data::binary>>), do: {data, nil}
-  def rest_of_line(<<?\n, data::binary>>), do: {data, nil}
-  def rest_of_line(<<>> = data), do: {data, nil}
+  defp rest_of_line(<<?\r, ?\n, data::binary>>), do: {data, nil}
+  defp rest_of_line(<<?\n, data::binary>>), do: {data, nil}
+  defp rest_of_line(<<>> = data), do: {data, nil}
 
   # we do have data, so start accumulating it
-  def rest_of_line(data) do
+  defp rest_of_line(data) do
     rest_of_line(data, <<>>)
   end
 

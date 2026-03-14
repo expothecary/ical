@@ -68,7 +68,7 @@ defmodule ICal.Deserialize.Calendar do
   end
 
   def next(<<"BEGIN:", data::binary>>, calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     {data, component} =
       Deserialize.gather_unrecognized_component(data, "END:#{value}\n", ["BEGIN:#{value}\n"])
@@ -77,34 +77,34 @@ defmodule ICal.Deserialize.Calendar do
   end
 
   def next(<<"PRODID:", data::binary>>, calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     next(data, %{calendar | product_id: value})
   end
 
   def next(<<"NAME:", data::binary>>, calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     next(data, %{calendar | name: value})
   end
 
   def next(<<"METHOD:", data::binary>>, calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     next(data, %{calendar | method: value})
   end
 
   def next(<<"CALSCALE:", data::binary>>, calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     next(data, %{calendar | scale: value})
   end
 
   def next(<<"VERSION:", data::binary>>, calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     next(data, %{calendar | version: value})
   end
 
   # X-WR-TIMEZONE is a non-standard, but widely used, field
   # that allows setting the default timezone for the whole calendar
   def next(<<"X-WR-TIMEZONE:", data::binary>>, calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
     tz = Deserialize.to_timezone(value, calendar.default_timezone)
 
     next(
@@ -116,7 +116,7 @@ defmodule ICal.Deserialize.Calendar do
 
   # only use X-WR-CALNAME if a name is not already set
   def next(<<"X-WR-CALNAME:", data::binary>>, %{name: nil} = calendar) do
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     next(
       data,
@@ -128,7 +128,7 @@ defmodule ICal.Deserialize.Calendar do
   def next(<<"X-", data::binary>>, calendar) do
     {data, key} = Deserialize.rest_of_key(data, "X-")
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     next(data, calendar |> add_custom_entry(key, params, value))
   end

@@ -5,7 +5,7 @@ defmodule ICal.Deserialize.Attendee do
 
   def one(data) do
     {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.rest_of_line(data)
+    {data, value} = Deserialize.value(data)
 
     attendee = %ICal.Attendee{
       name: value,
