@@ -194,6 +194,15 @@ defmodule ICal.DeserializeTest do
       assert event.description == "CR+LF line endings"
     end
 
+    test "VCALENDAR:BEGIN with CR+LF line endings" do
+      ics = Helper.test_data("cr_lf_vcal")
+
+      %ICal{events: [event]} = ICal.from_ics(ics)
+      #DEBUG
+      IO.puts inspect(event)
+      assert event.description == "CR+LF line endings"
+    end
+
     test "with URL" do
       ics = Helper.test_data("event_with_url")
       %ICal{events: [event]} = ICal.from_ics(ics)
