@@ -63,7 +63,7 @@ defmodule ICal.Deserialize.Calendar do
     end
   end
 
-  def next(<<"BEGIN:VCALENDAR\n", data::binary>>, calendar) do
+  def next(<<"BEGIN:VCALENDAR", data::binary>>, calendar) do
     next(data, calendar)
   end
 
