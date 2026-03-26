@@ -118,6 +118,15 @@ defmodule ICal.DeserializeTest do
   end
 
   describe "ICal.from_ics/1" do
+    test "Windows line-endings" do
+      ics = Helper.test_data("windows_line_endings")
+      ical = ICal.from_ics(ics)
+
+      assert Enum.count(ical.events) == 2
+      assert Enum.count(ical.timezones) == 1
+      assert ical.product_id == "<snip>"
+    end
+
     test "Single Event" do
       ics = Helper.test_data("one_event")
       %ICal{events: [event]} = ICal.from_ics(ics)
@@ -201,8 +210,8 @@ defmodule ICal.DeserializeTest do
       ics = Helper.test_data("cr_lf_vcal")
 
       %ICal{events: [event]} = ICal.from_ics(ics)
-      #DEBUG
-      IO.puts inspect(event)
+      # DEBUG
+      IO.puts(inspect(event))
       assert event.description == "CR+LF line endings"
     end
 

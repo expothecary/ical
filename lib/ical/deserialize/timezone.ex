@@ -15,7 +15,7 @@ defmodule ICal.Deserialize.Timezone do
     {data, nil}
   end
 
-  defp next(<<"END:VTIMEZONE\n", data::binary>>, timezone) do
+  defp next(<<"END:VTIMEZONE", data::binary>>, timezone) do
     if timezone.id == nil do
       {data, nil}
     else
