@@ -386,10 +386,10 @@ defmodule ICalTest do
     calendar = ICal.from_ics(ics)
 
     expected = [
-      "BEGIN:CUSTOM\n",
+      "BEGIN:CUSTOM",
       {"KEY", %{"PARAM" => "param_value"}, "Value for KEY"},
       {"KEY2", %{"PARAM" => "param_value"}, "Value for KEY2"},
-      "END:CUSTOM\n"
+      "END:CUSTOM"
     ]
 
     assert calendar.__other_components == [expected]

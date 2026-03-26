@@ -71,7 +71,7 @@ defmodule ICal.Deserialize.Calendar do
     {data, value} = Deserialize.value(data)
 
     {data, component} =
-      Deserialize.gather_unrecognized_component(data, "END:#{value}\n", ["BEGIN:#{value}\n"])
+      Deserialize.gather_unrecognized_component(data, "END:#{value}", ["BEGIN:#{value}"])
 
     next(data, %{calendar | __other_components: calendar.__other_components ++ [component]})
   end

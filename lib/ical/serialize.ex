@@ -106,7 +106,7 @@ defmodule ICal.Serialize do
           [key, param_ics, ?:, value, ?\n]
 
         line ->
-          line
+          [line, "\n"]
       end)
     end)
   end
