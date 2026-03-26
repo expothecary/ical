@@ -110,7 +110,7 @@ defmodule ICal.Deserialize.Calendar do
     next(
       data,
       %{calendar | default_timezone: tz}
-      |> add_custom_entry("X-WR-TIMEZONE", %{}, value)
+      |> add_custom_entry_value("X-WR-TIMEZONE", value)
     )
   end
 
@@ -120,17 +120,15 @@ defmodule ICal.Deserialize.Calendar do
 
     next(
       data,
-      %{calendar | name: value} |> add_custom_entry("X-WR-CALNAME", %{}, value)
+      %{calendar | name: value}
+      |> add_custom_entry_value("X-WR-CALNAME", value)
     )
   end
 
   # prevent losing other non-standard headers
   def next(<<"X-", data::binary>>, calendar) do
-    {data, key} = Deserialize.rest_of_key(data, "X-")
-    {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.value(data)
-
-    next(data, calendar |> add_custom_entry(key, params, value))
+    {data, calendar} = ICal.Deserialize.parse_custom_property(data, calendar)
+    next(data, calendar)
   end
 
   def next(<<"END:VCALENDAR", _data::binary>>, calendar) do
@@ -141,8 +139,8 @@ defmodule ICal.Deserialize.Calendar do
     next(Deserialize.skip_line(data), calendar)
   end
 
-  defp add_custom_entry(calendar, key, params, value) do
-    custom_entry = %{params: params, value: value}
+  defp add_custom_entry_value(calendar, key, value) do
+    custom_entry = %{params: %{}, value: value}
     custom_properties = Map.put(calendar.custom_properties, key, custom_entry)
     %{calendar | custom_properties: custom_properties}
   end

@@ -73,13 +73,8 @@ defmodule ICal.Deserialize.Timezone do
 
   # prevent losing other non-standard headers
   defp next(<<"X-", data::binary>>, timezone) do
-    {data, key} = Deserialize.rest_of_key(data, "X-")
-    {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.value(data)
-
-    custom_entry = %{params: params, value: value}
-    custom_properties = Map.put(timezone.custom_properties, key, custom_entry)
-    next(data, %{timezone | custom_properties: custom_properties})
+    {data, timezone} = ICal.Deserialize.parse_custom_property(data, timezone)
+    next(data, timezone)
   end
 
   defp next(data, timezone) do

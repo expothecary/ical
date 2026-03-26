@@ -52,6 +52,20 @@ defmodule ICal.Deserialize do
     end
   end
 
+  # called when an X- property is encountered. parses the remainder of the propertyproperty
+  def parse_custom_property(data) do
+    {data, key} = ICal.Deserialize.rest_of_key(data, "X-")
+    {data, params} = ICal.Deserialize.params(data)
+    {data, value} = ICal.Deserialize.value(data)
+    {data, key, %{params: params, value: value}}
+  end
+
+  def parse_custom_property(data, component) do
+    {data, key, custom_entry} = parse_custom_property(data)
+    custom_properties = Map.put(component.custom_properties, key, custom_entry)
+    {data, %{component | custom_properties: custom_properties}}
+  end
+
   # this fetch the rest of a key, e.g. from some part near the start
   # of a line to the first ; (signalling params) or : (signaling value)
   def rest_of_key(<<?\r, ?\n, data::binary>>, key), do: {data, key}

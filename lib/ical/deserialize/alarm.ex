@@ -99,13 +99,8 @@ defmodule ICal.Deserialize.Alarm do
 
   # prevent losing other non-standard headers
   defp next(<<"X-", data::binary>>, calendar, properties, alarm) do
-    {data, key} = Deserialize.rest_of_key(data, "X-")
-    {data, params} = Deserialize.params(data)
-    {data, value} = Deserialize.value(data)
-
-    custom_entry = %{params: params, value: value}
-    custom_properties = Map.put(alarm.custom_properties, key, custom_entry)
-    next(data, calendar, properties, %{alarm | custom_properties: custom_properties})
+    {data, alarm} = ICal.Deserialize.parse_custom_property(data, alarm)
+    next(data, calendar, properties, alarm)
   end
 
   defp next(data, calendar, properties, alarm) do

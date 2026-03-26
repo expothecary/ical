@@ -215,13 +215,8 @@ defmodule ICal.Deserialize.Component do
 
         # prcomponent losing other non-standard headers
         defp next_parameter(<<"X-", data::binary>>, calendar, component) do
-          {data, key} = ICal.Deserialize.rest_of_key(data, "X-")
-          {data, params} = ICal.Deserialize.params(data)
-          {data, value} = ICal.Deserialize.value(data)
-
-          custom_entry = %{params: params, value: value}
-          custom_properties = Map.put(component.custom_properties, key, custom_entry)
-          next_parameter(data, calendar, %{component | custom_properties: custom_properties})
+          {data, component} = ICal.Deserialize.parse_custom_property(data, component)
+          next_parameter(data, calendar, component)
         end
       end
     ]
