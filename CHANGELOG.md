@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.2
+- Fixes
+  - Fix parsing of Timezones and unknown components with CR/LF line endings
+
 ## v1.1.1
 - Fixes
   - Fix parsing ICal files with CR/LF line endings (@pedrogarrett)
