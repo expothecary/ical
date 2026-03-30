@@ -3,6 +3,8 @@ defmodule ICal.Event do
   An iCalendar Event
   """
 
+  @behaviour Ical.Alarm.AlarmBehaviour
+
   # credo:disable-for-next-line
   defstruct uid: nil,
             dtstamp: nil,
@@ -71,4 +73,12 @@ defmodule ICal.Event do
           resources: [String.t()],
           custom_properties: ICal.custom_properties()
         }
+
+  @doc """
+    Given an event with alarms, list the next alarm(s)
+  """
+  @impl Ical.Alarm.AlarmBehaviour
+  def next_alarms(%__MODULE__{alarms: []}) do
+    Stream.map([nil], fn _ -> [] end)
+  end
 end
