@@ -114,6 +114,62 @@ defmodule ICal.Test.Fixtures do
     }
   end
 
+  def one_event(:deserialize, {:alarm, true}) do
+    %ICal.Event{
+      dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
+      dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
+      dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+      summary: "Going fishing",
+      description: "Escape from the world. Stare at some water.",
+      location: "123 Fun Street, Toronto ON, Canada",
+      status: :tentative,
+      categories: ["Fishing", "Nature"],
+      comments: ["Don't forget to take something to eat !"],
+      contacts: [
+        %ICal.Contact{
+          alternative_representation:
+            "ldap:ldap://example.com:6666/o=ABC% 20Industries,c=US???(cn=Beat%20Fuss)",
+          language: "de",
+          value: "Beat Fuss"
+        },
+        %ICal.Contact{value: "Jill Bar"}
+      ],
+      created: ~U[1996-03-29 13:30:00Z],
+      class: "PRIVATE",
+      duration: %ICal.Duration{
+        days: 15,
+        positive: true,
+        time: {5, 0, 20},
+        weeks: 0
+      },
+      geo: {43.6978819, -79.3810277},
+      modified: ~U[1996-08-17 13:30:00Z],
+      organizer: "mailto:jsmith@example.com",
+      priority: 2,
+      related_to: ["jsmith.part7.19960817T083000.xyzMail@example.com"],
+      resources: ["EASEL", "PROJECTOR", "VCR"],
+      sequence: 1000,
+      uid: "1001",
+      alarms: alarm(:audio),
+      rrule: %ICal.Recurrence{
+        until: nil,
+        count: nil,
+        by_second: nil,
+        by_minute: nil,
+        by_hour: nil,
+        by_day: nil,
+        by_month_day: nil,
+        by_year_day: nil,
+        by_month: nil,
+        by_set_position: nil,
+        by_week_number: nil,
+        weekday: nil,
+        frequency: :daily,
+        interval: 1
+      }
+    }
+  end
+
   def uid_only_event do
     %ICal.Event{
       uid: "YES",

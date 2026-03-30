@@ -81,4 +81,11 @@ defmodule ICal.Event do
   def next_alarms(%__MODULE__{alarms: []}) do
     Stream.map([nil], fn _ -> [] end)
   end
+
+  def next_alarms(%__MODULE__{} = event) do
+    event
+    |> ICal.Recurrence.stream()
+    |> Stream.map( &(&1.alarms))
+    |> Enum.take(1)
+  end
 end
