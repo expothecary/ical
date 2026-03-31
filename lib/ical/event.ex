@@ -3,7 +3,7 @@ defmodule ICal.Event do
   An iCalendar Event
   """
 
-  @behaviour Ical.Alarm.AlarmBehaviour
+  @behaviour ICal.Alarm
 
   # credo:disable-for-next-line
   defstruct uid: nil,
@@ -77,15 +77,33 @@ defmodule ICal.Event do
   @doc """
     Given an event with alarms, list the next alarm(s)
   """
-  @impl Ical.Alarm.AlarmBehaviour
-  def next_alarms(%__MODULE__{alarms: []}) do
-    Stream.map([nil], fn _ -> [] end)
+  @impl ICal.Alarm
+  def next_alarms(%__MODULE__{alarms: []}), do: []
+
+  # when the event has no recurrences, but the event is in the future
+  def next_alarms(%__MODULE__{dtend: dtend, rrule: recurrence} = event) when is_nil(recurrence) do
+    case in_future?(dtend) do
+      false ->
+        []
+
+      true ->
+        event.alarms
+    end
   end
 
-  def next_alarms(%__MODULE__{} = event) do
+  # when the event has recurrences
+  def next_alarms(%__MODULE__{rrule: recurrence} = event) when not is_nil(recurrence) do
     event
     |> ICal.Recurrence.stream()
-    |> Stream.map( &(&1.alarms))
+    |> Stream.map(& &1.alarms)
     |> Enum.take(1)
+  end
+
+  # True when the event is in the future
+  defp in_future?(date) do
+    case Timex.compare(DateTime.now!("Etc/UTC"), date) do
+      -1 -> true
+      _ -> false
+    end
   end
 end

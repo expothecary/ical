@@ -263,19 +263,27 @@ defmodule ICal.EventTest do
     |> assert_fully_contains(expected)
   end
 
-  test "next_alarm/1" do
-    event_with_alarm = Fixtures.one_event(:deserialize, {:alarm, true})
+  test "next_alarm/1 for an event with recurrences" do
+    event_with_alarm = Fixtures.one_event(:one_alarm)
 
-    next_alarms = ICal.Event.next_alarms(event_with_alarm) |> Enum.take(1)
-    expected_next_alarm = %ICal.Alarm{
-                action: %ICal.Alarm.Audio{
-                  duration: %ICal.Duration{positive: true, time: {0, 15, 0}, days: 0, weeks: 0},
-                  attachments: [%ICal.Attachment{data_type: :uri, data: "ftp://example.com/pub/sounds/bell-01.aud", mimetype: "audio/basic"}],
-                  repeat: 0
-                },
-                custom_properties: %{},
-                trigger: %ICal.Alarm.Trigger{on: ~U[1997-03-17 13:30:00Z], relative_to: nil, repeat: 4}
-              }
-    assert [expected_next_alarm] == next_alarms
+    actual_next_alarms = ICal.Event.next_alarms(event_with_alarm)
+    expected_next_alarm = Fixtures.alarm(:audio)
+    assert [expected_next_alarm] == actual_next_alarms
+  end
+
+  test "next_alarm/1 for an event with no alarm" do
+    event_without_alarm = Fixtures.one_event(:deserialize)
+
+    actual_next_alarms = ICal.Event.next_alarms(event_without_alarm)
+    assert [] == actual_next_alarms
+  end
+
+  test "next_alarm/1 for an event with no recurrences, but occurs in future" do
+    event_without_recurrences = Fixtures.one_event(:future_no_recurrences)
+
+    actual_next_alarms = ICal.Event.next_alarms(event_without_recurrences)
+    expected_next_alarms = Fixtures.alarm(:audio)
+
+    assert [expected_next_alarms] == actual_next_alarms
   end
 end
