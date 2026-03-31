@@ -86,7 +86,7 @@ def deps do
 end
 ```
 
-## Participating in develpoment
+## Participating in development
 
 Visit the [issue tracker](https://github.com/expothecary/icalendar/issues) to see what
 tasks are outstanding. You are welcome to file new issues, as well!
