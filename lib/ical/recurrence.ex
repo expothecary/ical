@@ -120,8 +120,10 @@ defmodule ICal.Recurrence do
     create_recurrence_stream(event, end_date, ICal.Deserialize.Recurrence.from_event(event))
   end
 
-  # no occurences, so simply drop out
-  defp create_recurrence_stream(_event, _end_date, nil), do: Stream.map([nil], fn _ -> [] end)
+  # no occurences, so simply drop out, and return the event itself as the only recurrence
+  defp create_recurrence_stream(_event, _end_date, nil) do
+    Stream.transform([], [], fn _, acc -> {:halt, acc} end)
+  end
 
   defp create_recurrence_stream(event, end_date, rule) do
     reference_events =
@@ -134,10 +136,11 @@ defmodule ICal.Recurrence do
     # An interval may be given, which alters the amount the date is shifted by
     case rule do
       %__MODULE__{frequency: frequency, count: count, interval: interval} when count != nil ->
+        # the main event counts as 1 occurance, so look for `count - 1` more
         add_recurring_events_count(
           event,
           reference_events,
-          count,
+          count - 1,
           shift_opts(frequency, interval)
         )
 
@@ -172,68 +175,89 @@ defmodule ICal.Recurrence do
 
   defp add_recurring_events_until(original_event, reference_events, until, shift_opts) do
     Stream.resource(
-      fn -> [reference_events] end,
-      fn acc_events ->
-        # Use the previous batch of the events as the reference for the next batch
-        [prev_event_batch | _] = acc_events
-
-        case prev_event_batch do
-          [] ->
-            {:halt, acc_events}
-
-          prev_event_batch ->
-            new_events =
-              Enum.map(prev_event_batch, fn reference_event ->
-                new_event = shift_event(reference_event, shift_opts)
-
-                case Timex.compare(new_event.dtstart, until) do
-                  1 -> []
-                  _ -> [new_event]
-                end
-              end)
-              |> List.flatten()
-
-            {remove_excluded_dates(new_events, original_event), [new_events | acc_events]}
-        end
+      fn -> reference_events end,
+      fn reference_events ->
+        next_recurring_event_until(
+          reference_events,
+          original_event,
+          until,
+          shift_opts
+        )
       end,
-      fn recurrences ->
-        recurrences
-      end
+      fn recurrences -> recurrences end
     )
+  end
+
+  defp next_recurring_event_until([], _original_event, _until, _shift_opts) do
+    {:halt, []}
+  end
+
+  defp next_recurring_event_until(
+         [reference_event | remaining_reference_events],
+         original_event,
+         until,
+         shift_opts
+       ) do
+    new_event = shift_event(reference_event, shift_opts)
+
+    case Timex.compare(new_event.dtstart, until) do
+      1 ->
+        {:halt, {[], []}}
+
+      _ ->
+        reference_events = remaining_reference_events ++ [new_event]
+
+        if exclude?(new_event, original_event) do
+          next_recurring_event_until(
+            reference_events,
+            original_event,
+            until,
+            shift_opts
+          )
+        else
+          {[new_event], reference_events}
+        end
+    end
   end
 
   defp add_recurring_events_count(original_event, reference_events, count, shift_opts) do
     Stream.resource(
-      fn -> {[reference_events], count} end,
-      fn {acc_events, count} ->
-        # Use the previous batch of the events as the reference for the next batch
-        [prev_event_batch | _] = acc_events
-
-        case prev_event_batch do
-          [] ->
-            {:halt, acc_events}
-
-          prev_event_batch ->
-            new_events =
-              Enum.map(prev_event_batch, fn reference_event ->
-                new_event = shift_event(reference_event, shift_opts)
-
-                if count > 1 do
-                  [new_event]
-                else
-                  []
-                end
-              end)
-              |> List.flatten()
-
-            {remove_excluded_dates(new_events, original_event),
-             {[new_events | acc_events], count - 1}}
-        end
+      fn -> {reference_events, count} end,
+      fn {reference_events, count} ->
+        next_recurring_event(reference_events, count, original_event, shift_opts)
       end,
-      fn recurrences ->
-        recurrences
-      end
+      fn recurrences -> recurrences end
     )
+  end
+
+  defp next_recurring_event(_reference_events, count, _original_event, _shift_opts)
+       when count < 1 do
+    {:halt, {[], 0}}
+  end
+
+  defp next_recurring_event([], _count, _original_event, _shift_opts) do
+    {:halt, {[], 0}}
+  end
+
+  defp next_recurring_event(
+         [reference_event | remaining_reference_events],
+         count,
+         original_event,
+         shift_opts
+       ) do
+    new_event = shift_event(reference_event, shift_opts)
+    reference_events = remaining_reference_events ++ [new_event]
+
+    if exclude?(new_event, original_event) do
+      next_recurring_event(
+        reference_events,
+        count,
+        original_event,
+        shift_opts
+      )
+    else
+      {[new_event], {reference_events, count - 1}}
+    end
   end
 
   defp shift_event(event, shift_opts) do
@@ -300,13 +324,11 @@ defmodule ICal.Recurrence do
     end)
   end
 
-  defp remove_excluded_dates(recurrences, original_event) do
-    Enum.filter(recurrences, fn event ->
-      # 1. The event doesn't fall on an EXDATE
-      # 2. The event is not before the original event (created as a reference)
-      event.dtstart not in event.exdates &&
-        compare_dates(event.dtstart, original_event.dtstart) != :lt
-    end)
+  defp exclude?(recurrence, original_event) do
+    # 1. The event doesn't fall on an EXDATE
+    # 2. The event is not before the original event (created as a reference)
+    recurrence.dtstart in original_event.exdates or
+      compare_dates(recurrence.dtstart, original_event.dtstart) == :lt
   end
 
   defp compare_dates(%Date{} = l, r), do: Date.compare(l, r)

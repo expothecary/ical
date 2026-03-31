@@ -39,6 +39,15 @@ defmodule ICal.RecurrenceTest do
     assert rrule_params == expected_params
   end
 
+  test "event with no recurrences" do
+    recurrences =
+      Fixtures.one_event()
+      |> ICal.Recurrence.stream()
+      |> Enum.to_list()
+
+    assert Enum.empty?(recurrences)
+  end
+
   test "daily reccuring event with until" do
     events =
       Helper.test_data("recurrance_daily_until")
