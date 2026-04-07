@@ -95,9 +95,10 @@ defmodule ICal.Todo do
     end
   end
 
-  # True when the todo is in the future
+  # True when the event is in the future
   defp in_future?(date) do
-    case Timex.compare(DateTime.now!("Etc/UTC"), date) do
+    {:ok, date_zone_shifted} = DateTime.shift_zone(date, DateTime.utc_now().time_zone)
+    case Timex.compare(DateTime.now!("Etc/UTC"), date_zone_shifted) do
       -1 -> true
       _ -> false
     end

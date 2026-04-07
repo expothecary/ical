@@ -126,8 +126,18 @@ defmodule ICal.Test.Fixtures do
     %{
       one_event(:deserialize)
       | rrule: nil,
-        dtend: DateTime.new!(~D[2100-01-01], ~T[00:00:00.000], "Etc/UTC"),
-        alarms: [alarm(:audio)]
+        dtstart: DateTime.new!(~D[2100-01-01], ~T[00:00:00.000], "Etc/UTC"),
+        alarms: [alarm(:trigger_start)]
+    }
+  end
+
+  def one_event(:future_no_recurrences_trigger_end) do
+    %{
+      one_event(:deserialize)
+      | rrule: nil,
+        dtstart: DateTime.new!(~D[2100-01-01], ~T[00:00:00.000], "Etc/UTC"),
+        dtend: DateTime.new!(~D[2100-01-01], ~T[00:30:00.000], "Etc/UTC"),
+        alarms: [alarm(:trigger_end)]
     }
   end
 
@@ -499,6 +509,26 @@ defmodule ICal.Test.Fixtures do
         relative_to: nil,
         repeat: 4,
         on: ~U[1997-03-17 13:30:00Z]
+      }
+    }
+  end
+
+  def alarm(:trigger_end) do
+    %{
+      alarm(:audio) | trigger: %ICal.Alarm.Trigger{
+        relative_to: :end,
+        repeat: 4,
+        on: ~U[2100-03-17 13:30:00Z]
+      }
+    }
+  end
+
+  def alarm(:trigger_start) do
+    %{
+      alarm(:audio) | trigger: %ICal.Alarm.Trigger{
+        relative_to: :start,
+        repeat: 4,
+        on: ~U[2100-03-17 13:30:00Z]
       }
     }
   end
