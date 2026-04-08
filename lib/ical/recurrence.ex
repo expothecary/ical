@@ -263,8 +263,7 @@ defmodule ICal.Recurrence do
   defp shift_event(event, shift_opts) do
     Map.merge(event, %{
       dtstart: shift_date(event.dtstart, shift_opts),
-      dtend: shift_date(event.dtend, shift_opts),
-      rrule: Map.put(event.rrule, :is_recurrence, true)
+      dtend: shift_date(event.dtend, shift_opts)
     })
   end
 
