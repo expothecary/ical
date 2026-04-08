@@ -27,7 +27,7 @@ defmodule ICal.Alarm do
   @spec next_alarms(component_with_alarms()) :: [{trigger_on :: DateTime.t(), t()}]
   def next_alarms(%{alarms: []}), do: []
 
-  # when the event has recurrences
+  # when the component has recurrences
   def next_alarms(%{rrule: rrule} = component) when not is_nil(rrule) do
     recurrences =
       component
@@ -40,7 +40,7 @@ defmodule ICal.Alarm do
     end
   end
 
-  def next_alarms(event), do: calculate_alarms(event)
+  def next_alarms(component), do: calculate_alarms(component)
 
   @doc """
   Given a start and end date, returns when the alarm should be triggered next.
@@ -92,9 +92,9 @@ defmodule ICal.Alarm do
     end
   end
 
-  defp calculate_alarms(event) do
-    Enum.reduce(event.alarms, [], fn alarm, acc ->
-      case ICal.Alarm.next_activation(alarm, event) do
+  defp calculate_alarms(component) do
+    Enum.reduce(component.alarms, [], fn alarm, acc ->
+      case next_activation(alarm, component) do
         nil -> acc
         activate_on -> [{activate_on, alarm} | acc]
       end
