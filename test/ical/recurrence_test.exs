@@ -194,35 +194,19 @@ defmodule ICal.RecurrenceTest do
     assert event.dtstart == ~U[2020-10-15 14:30:00Z]
   end
 
-  test "Recurrence.from_event/1 returns nil when there are no rrules" do
-    assert nil == ICal.Deserialize.Recurrence.from_event(%ICal.Event{})
-  end
-
-  test "Recurrence.from_event/1 returns the recurrence struct when there one already available" do
-    assert %ICal.Recurrence{} ===
-             ICal.Deserialize.Recurrence.from_event(%ICal.Event{rrule: %ICal.Recurrence{}})
-  end
-
-  test "Recurrence.from_event/1 turns a params map into a recurrence struct" do
-    assert %ICal.Recurrence{frequency: :daily} ===
-             ICal.Deserialize.Recurrence.from_event(%ICal.Event{rrule: %{"FREQ" => "DAILY"}})
-  end
-
   test "Recurrence deserialization ignores bad WKST values" do
-    event = %ICal.Event{rrule: %{"FREQ" => "DAILY", "WKST" => "NO"}}
+    rrule = %{"FREQ" => "DAILY", "WKST" => "NO"}
 
     assert %ICal.Recurrence{frequency: :daily, weekday: nil} ===
-             ICal.Deserialize.Recurrence.from_event(event)
+             ICal.Deserialize.Recurrence.from_params(rrule)
   end
 
   test "Recurrence deserialization clamps time values" do
-    event = %ICal.Event{
-      rrule: %{
-        "FREQ" => "DAILY",
-        "BYSECOND" => "-1,-,0,1,10,50,59,60,70",
-        "BYMINUTE" => "-1,-,0,1,10,50,59,60,70",
-        "BYHOUR" => "-1,-,0,1,6,12,23,24"
-      }
+    rrule = %{
+      "FREQ" => "DAILY",
+      "BYSECOND" => "-1,-,0,1,10,50,59,60,70",
+      "BYMINUTE" => "-1,-,0,1,10,50,59,60,70",
+      "BYHOUR" => "-1,-,0,1,6,12,23,24"
     }
 
     assert %ICal.Recurrence{
@@ -230,19 +214,17 @@ defmodule ICal.RecurrenceTest do
              by_second: [0, 1, 10, 50, 59],
              by_minute: [0, 1, 10, 50, 59],
              by_hour: [0, 1, 6, 12, 23]
-           } === ICal.Deserialize.Recurrence.from_event(event)
+           } === ICal.Deserialize.Recurrence.from_params(rrule)
   end
 
   test "Recurrence deserialization clamps day/week/month values" do
-    event = %ICal.Event{
-      rrule: %{
-        "FREQ" => "DAILY",
-        "BYWEEKNO" => "-54,-53,-1,0,a,1,25,2,53,54",
-        "BYMONTHDAY" => "-32,-31,a,-1,1,31,32",
-        "BYMONTH" => "0,1,12,a,13",
-        "BYYEARDAY" => "-367,-366,-1,0,a,,1,366,367,garbage",
-        "BYSETPOS" => "-367,-366,-1,0,a,,1,366,367"
-      }
+    rrule = %{
+      "FREQ" => "DAILY",
+      "BYWEEKNO" => "-54,-53,-1,0,a,1,25,2,53,54",
+      "BYMONTHDAY" => "-32,-31,a,-1,1,31,32",
+      "BYMONTH" => "0,1,12,a,13",
+      "BYYEARDAY" => "-367,-366,-1,0,a,,1,366,367,garbage",
+      "BYSETPOS" => "-367,-366,-1,0,a,,1,366,367"
     }
 
     assert %ICal.Recurrence{
@@ -252,29 +234,25 @@ defmodule ICal.RecurrenceTest do
              by_month: [1, 12],
              by_year_day: [-366, -1, 1, 366],
              by_set_position: [-366, -1, 1, 366]
-           } === ICal.Deserialize.Recurrence.from_event(event)
+           } === ICal.Deserialize.Recurrence.from_params(rrule)
   end
 
   test "Recurrence deserialization ignores garbage in count and interval" do
-    event = %ICal.Event{
-      rrule: %{
-        "FREQ" => "DAILY",
-        "COUNT" => "GARBAGE",
-        "INTERVAL" => ""
-      }
+    rrule = %{
+      "FREQ" => "DAILY",
+      "COUNT" => "GARBAGE",
+      "INTERVAL" => ""
     }
 
     assert %ICal.Recurrence{
              frequency: :daily,
              count: nil,
              interval: 1
-           } === ICal.Deserialize.Recurrence.from_event(event)
+           } === ICal.Deserialize.Recurrence.from_params(rrule)
   end
 
   test "Recurrence de/serializes weekday abbreviations corrrectly" do
-    event = %ICal.Event{
-      rrule: %{"FREQ" => "DAILY", "BYDAY" => "-1SU,SU,1MO,-1TU,+2WE,TH,FR,SA,GA,GARBAGE,,0,-1"}
-    }
+    rrule = %{"FREQ" => "DAILY", "BYDAY" => "-1SU,SU,1MO,-1TU,+2WE,TH,FR,SA,GA,GARBAGE,,0,-1"}
 
     recurrence = %ICal.Recurrence{
       frequency: :daily,
@@ -290,7 +268,7 @@ defmodule ICal.RecurrenceTest do
       ]
     }
 
-    assert recurrence === ICal.Deserialize.Recurrence.from_event(event)
+    assert recurrence === ICal.Deserialize.Recurrence.from_params(rrule)
 
     serialized = ICal.Serialize.Recurrence.property(recurrence) |> to_string()
 
@@ -301,32 +279,34 @@ defmodule ICal.RecurrenceTest do
   end
 
   test "Recurrence deserialization parses values of frequency corrrectly" do
-    event = %ICal.Event{rrule: %{"FREQ" => "DAILY"}}
-    assert %ICal.Recurrence{frequency: :daily} === ICal.Deserialize.Recurrence.from_event(event)
+    rrule = %{"FREQ" => "DAILY"}
+    assert %ICal.Recurrence{frequency: :daily} === ICal.Deserialize.Recurrence.from_params(rrule)
 
-    event = %ICal.Event{rrule: %{"FREQ" => "WEEKLY"}}
-    assert %ICal.Recurrence{frequency: :weekly} === ICal.Deserialize.Recurrence.from_event(event)
+    rrule = %{"FREQ" => "WEEKLY"}
+    assert %ICal.Recurrence{frequency: :weekly} === ICal.Deserialize.Recurrence.from_params(rrule)
 
-    event = %ICal.Event{rrule: %{"FREQ" => "MONTHLY"}}
-    assert %ICal.Recurrence{frequency: :monthly} === ICal.Deserialize.Recurrence.from_event(event)
+    rrule = %{"FREQ" => "MONTHLY"}
 
-    event = %ICal.Event{rrule: %{"FREQ" => "YEARLY"}}
-    assert %ICal.Recurrence{frequency: :yearly} === ICal.Deserialize.Recurrence.from_event(event)
+    assert %ICal.Recurrence{frequency: :monthly} ===
+             ICal.Deserialize.Recurrence.from_params(rrule)
 
-    event = %ICal.Event{rrule: %{"FREQ" => "HOURLY"}}
-    assert %ICal.Recurrence{frequency: :hourly} === ICal.Deserialize.Recurrence.from_event(event)
+    rrule = %{"FREQ" => "YEARLY"}
+    assert %ICal.Recurrence{frequency: :yearly} === ICal.Deserialize.Recurrence.from_params(rrule)
 
-    event = %ICal.Event{rrule: %{"FREQ" => "MINUTELY"}}
+    rrule = %{"FREQ" => "HOURLY"}
+    assert %ICal.Recurrence{frequency: :hourly} === ICal.Deserialize.Recurrence.from_params(rrule)
+
+    rrule = %{"FREQ" => "MINUTELY"}
 
     assert %ICal.Recurrence{frequency: :minutely} ===
-             ICal.Deserialize.Recurrence.from_event(event)
+             ICal.Deserialize.Recurrence.from_params(rrule)
 
-    event = %ICal.Event{rrule: %{"FREQ" => "SECONDLY"}}
+    rrule = %{"FREQ" => "SECONDLY"}
 
     assert %ICal.Recurrence{frequency: :secondly} ===
-             ICal.Deserialize.Recurrence.from_event(event)
+             ICal.Deserialize.Recurrence.from_params(rrule)
 
-    event = %ICal.Event{rrule: %{"FREQ" => "GARBAGE"}}
-    assert nil === ICal.Deserialize.Recurrence.from_event(event)
+    rrule = %{"FREQ" => "GARBAGE"}
+    assert nil === ICal.Deserialize.Recurrence.from_params(rrule)
   end
 end

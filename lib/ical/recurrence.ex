@@ -111,13 +111,13 @@ defmodule ICal.Recurrence do
   """
 
   @spec stream(%Event{}) :: Enumerable.t()
-  def stream(event) do
-    create_recurrence_stream(event, nil, ICal.Deserialize.Recurrence.from_event(event))
+  def stream(component) do
+    create_recurrence_stream(component, nil, component.rrule)
   end
 
   @spec stream(%Event{}, %Date{} | %DateTime{}) :: Enumerable.t()
-  def stream(event, end_date) do
-    create_recurrence_stream(event, end_date, ICal.Deserialize.Recurrence.from_event(event))
+  def stream(component, end_date) do
+    create_recurrence_stream(component, end_date, component.rrule)
   end
 
   # no occurences, so simply drop out, and return the event itself as the only recurrence
