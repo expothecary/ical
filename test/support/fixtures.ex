@@ -118,7 +118,7 @@ defmodule ICal.Test.Fixtures do
     %{
       one_event(:deserialize)
       | rrule: %ICal.Recurrence{frequency: :daily, interval: 1},
-        alarms: alarm(:audio)
+        alarms: [alarm(:audio)]
     }
   end
 
@@ -508,7 +508,7 @@ defmodule ICal.Test.Fixtures do
       trigger: %ICal.Alarm.Trigger{
         relative_to: nil,
         repeat: 4,
-        on: ~U[1997-03-17 13:30:00Z]
+        on: ~U[2080-03-17 13:30:00Z]
       }
     }
   end
@@ -717,14 +717,14 @@ defmodule ICal.Test.Fixtures do
   def todo(:one_alarm) do
     %{
       todo("20070313T123432Z-456553@example.com")
-      | alarms: alarm(:audio)
+      | alarms: [alarm(:audio)]
     }
   end
 
   def todo(:repeating) do
     %{
       todo("20070313T123432Z-456553@example.com")
-      | alarms: alarm(:audio),
+      | alarms: [alarm(:audio)],
         rrule: %ICal.Recurrence{frequency: :daily, interval: 1}
     }
   end

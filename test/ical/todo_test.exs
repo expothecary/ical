@@ -36,28 +36,27 @@ defmodule ICal.TodoTest do
     |> assert_fully_contains(expected)
   end
 
-  @tag :skip
   test "next_alarm/1 for a todo with recurrences" do
     todo_with_alarm = Fixtures.todo(:one_alarm)
 
-    actual_next_alarms = ICal.Todo.next_alarms(todo_with_alarm)
+    actual_next_alarms = ICal.Alarm.next_alarms(todo_with_alarm)
     expected_next_alarm = Fixtures.alarm(:audio)
-    assert [expected_next_alarm] == actual_next_alarms
+    assert [{%DateTime{}, ^expected_next_alarm}] = actual_next_alarms
   end
 
   test "next_alarm/1 for a todo with no alarm" do
     todo_without_alarm = Fixtures.todo("20070313T123432Z-456553@example.com")
 
-    actual_next_alarms = ICal.Todo.next_alarms(todo_without_alarm)
+    actual_next_alarms = ICal.Alarm.next_alarms(todo_without_alarm)
     assert [] == actual_next_alarms
   end
 
   test "next_alarm/1 for a todo with no recurrences, but occurs in future" do
     todo_without_recurrences = Fixtures.todo(:future_no_recurrences)
 
-    actual_next_alarms = ICal.Todo.next_alarms(todo_without_recurrences)
+    actual_next_alarms = ICal.Alarm.next_alarms(todo_without_recurrences)
     expected_next_alarms = Fixtures.alarm(:audio)
 
-    assert [expected_next_alarms] == actual_next_alarms
+    assert [{%DateTime{}, ^expected_next_alarms}] = actual_next_alarms
   end
 end

@@ -265,34 +265,34 @@ defmodule ICal.EventTest do
 
   test "next_alarm/1 for an event with recurrences" do
     event_with_alarm = Fixtures.one_event(:one_alarm)
-
-    actual_next_alarms = ICal.Event.next_alarms(event_with_alarm)
     expected_next_alarm = Fixtures.alarm(:audio)
-    assert [expected_next_alarm] == actual_next_alarms
+
+    actual_next_alarms = ICal.Alarm.next_alarms(event_with_alarm)
+    assert [{%DateTime{}, ^expected_next_alarm}] = actual_next_alarms
   end
 
   test "next_alarm/1 for an event with no alarm" do
     event_without_alarm = Fixtures.one_event(:deserialize)
 
-    actual_next_alarms = ICal.Event.next_alarms(event_without_alarm)
+    actual_next_alarms = ICal.Alarm.next_alarms(event_without_alarm)
     assert [] == actual_next_alarms
   end
 
   test "next_alarm/1 for an event with no recurrences, but occurs in future" do
     event_without_recurrences = Fixtures.one_event(:future_no_recurrences)
 
-    actual_next_alarms = ICal.Event.next_alarms(event_without_recurrences)
+    actual_next_alarms = ICal.Alarm.next_alarms(event_without_recurrences)
     expected_next_alarms = Fixtures.alarm(:trigger_start)
 
-    assert [expected_next_alarms] == actual_next_alarms
+    assert [{%DateTime{}, ^expected_next_alarms}] = actual_next_alarms
   end
 
   test "next_alarm/1 for an event with no recurrences, but trigger for alarm is `:end`, and end is in future" do
     event_without_recurrences = Fixtures.one_event(:future_no_recurrences_trigger_end)
 
-    actual_next_alarms = ICal.Event.next_alarms(event_without_recurrences)
+    actual_next_alarms = ICal.Alarm.next_alarms(event_without_recurrences)
     expected_next_alarms = Fixtures.alarm(:trigger_end)
 
-    assert [expected_next_alarms] == actual_next_alarms
+    assert [{%DateTime{}, ^expected_next_alarms}] = actual_next_alarms
   end
 end
