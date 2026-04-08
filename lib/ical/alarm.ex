@@ -29,10 +29,15 @@ defmodule ICal.Alarm do
 
   # when the event has recurrences
   def next_alarms(%{rrule: rrule} = component) when not is_nil(rrule) do
-    component
-    |> ICal.Recurrence.stream()
-    |> Enum.take(1)
-    |> calculate_alarms()
+    recurrences =
+      component
+      |> ICal.Recurrence.stream()
+      |> Enum.take(1)
+
+    case recurrences do
+      [recurrence] -> calculate_alarms(recurrence)
+      _ -> []
+    end
   end
 
   def next_alarms(event), do: calculate_alarms(event)
