@@ -2,15 +2,13 @@
 # credo:disable-for-this-file
 defmodule ICal.Recurrence do
   @moduledoc """
-  Adds support for recurring events.
+  Adds support for ICal recurring.
 
   Events can recur by frequency, count, interval, and/or start/end date. To
   see the specific rules and examples, see `add_recurring_events/2` below.
   """
 
   require Logger
-
-  alias ICal.Event
 
   defstruct [
     :until,
@@ -52,17 +50,17 @@ defmodule ICal.Recurrence do
   @supported_by_x_rrules [:by_day]
 
   @doc """
-  Given an event, return a stream of recurrences for that event.
+  Given an coponent with a recurrence rule, return a stream of recurrences for it.
 
-  Warning: this may create a very large sequence of event recurrences.
+  Warning: this may create a very large sequence of recurrences.
 
   ## Parameters
 
-    - `event`: The event that may contain an rrule. See `ICal.Event`.
+    - `coponent`: The ICal component (e.g. event or todo) that may contain an rrule. See `ICal.Event`.
 
     - `end_date` *(optional)*: A date time that represents the fallback end date
-      for a recurring event. This value is only used when the options specified
-      in rrule result in an infinite recurrance (ie. when neither `count` nor
+      for recurrence. This value is only used when the options specified
+      in the rrule result in an infinite recurrance (ie. when neither `count` nor
       `until` is set). If no end_date is set, it will default to
       `DateTime.utc_now()`.
 
@@ -71,22 +69,22 @@ defmodule ICal.Recurrence do
     Event recurrance details are specified in the `rrule`. The following options
     are considered:
 
-    - `freq`: Represents how frequently the event recurs. Allowed frequencies
+    - `freq`: Represents how frequently it recurs. Allowed frequencies
       are `DAILY`, `WEEKLY`, and `MONTHLY`. These can be further modified by
       the `interval` option.
 
-    - `count` *(optional)*: Represents the number of times that an event will
+    - `count` *(optional)*: Represents the number of times that it will
       recur. This takes precedence over the `end_date` parameter and the
       `until` option.
 
-    - `interval` *(optional)*: Represents the interval at which events occur.
+    - `interval` *(optional)*: Represents the interval at which it occurs.
       This option works in concert with `freq` above; by using the `interval`
-      option, an event could recur every 5 days or every 3 weeks.
+      option, it could recur every 5 days or every 3 weeks.
 
-    - `until` *(optional)*: Represents the end date for a recurring event.
+    - `until` *(optional)*: Represents the end date for the recurrances.
       This takes precedence over the `end_date` parameter.
 
-    - `by_day` *(optional)*: Represents the days of the week at which events occur.
+    - `by_day` *(optional)*: Represents the days of the week at which recurrences occur.
 
     The `freq` option is required for a valid rrule, but the others are
     optional. They may be used either individually (ex. just `freq`) or in
@@ -94,11 +92,11 @@ defmodule ICal.Recurrence do
 
   ## Future rrule options (not yet supported)
 
-    - `byhour` *(optional)*: Represents the hours of the day at which events occur.
-    - `byweekno` *(optional)*: Represents the week number at which events occur.
-    - `bymonthday` *(optional)*: Represents the days of the month at which events occur.
-    - `bymonth` *(optional)*: Represents the months at which events occur.
-    - `byyearday` *(optional)*: Represents the days of the year at which events occur.
+    - `byhour` *(optional)*: Represents the hours of the day at which it occurs.
+    - `byweekno` *(optional)*: Represents the week number at which it occurs.
+    - `bymonthday` *(optional)*: Represents the days of the month at which it occurs.
+    - `bymonth` *(optional)*: Represents the months at which it occurs.
+    - `byyearday` *(optional)*: Represents the days of the year at which it occurs.
 
   ## Examples
 
@@ -110,51 +108,57 @@ defmodule ICal.Recurrence do
             |> Enum.to_list()
   """
 
-  @spec stream(%Event{}) :: Enumerable.t()
+  @type recurrable_component :: %{
+          required(:rrule) => t() | nil,
+          required(:dtstart) => Date.t() | DateTime.t() | nil,
+          optional(:dtend) => Date.t() | DateTime.t() | nil
+        }
+
+  @spec stream(recurrable_component) :: Enumerable.t()
   def stream(component) do
     create_recurrence_stream(component, nil, component.rrule)
   end
 
-  @spec stream(%Event{}, %Date{} | %DateTime{}) :: Enumerable.t()
+  @spec stream(recurrable_component, %Date{} | %DateTime{}) :: Enumerable.t()
   def stream(component, end_date) do
     create_recurrence_stream(component, end_date, component.rrule)
   end
 
-  # no occurences, so simply drop out, and return the event itself as the only recurrence
-  defp create_recurrence_stream(_event, _end_date, nil) do
+  # no occurences, so simply drop out, and return the component itself as the only recurrence
+  defp create_recurrence_stream(_component, _end_date, nil) do
     Stream.transform([], [], fn _, acc -> {:halt, acc} end)
   end
 
-  defp create_recurrence_stream(event, end_date, rule) do
-    reference_events =
+  defp create_recurrence_stream(component, end_date, rule) do
+    references =
       Map.from_struct(rule)
       |> Map.take(@supported_by_x_rrules)
-      |> build_reference_events_by_x_rules(event)
+      |> build_references_by_x_rules(component)
 
     # Two types of recurrence are supported: by count or until, with until being the default
     # If not until date is specifically provided, then the end_date is used
     # An interval may be given, which alters the amount the date is shifted by
     case rule do
       %__MODULE__{frequency: frequency, count: count, interval: interval} when count != nil ->
-        # the main event counts as 1 occurance, so look for `count - 1` more
-        add_recurring_events_count(
-          event,
-          reference_events,
+        # the main component counts as 1 occurance, so look for `count - 1` more
+        add_recurrences_for_count(
+          component,
+          references,
           count - 1,
           shift_opts(frequency, interval)
         )
 
       %__MODULE__{frequency: frequency, until: until, interval: interval} ->
-        add_recurring_events_until(
-          event,
-          reference_events,
-          until || resolve_end_date(end_date, event),
+        add_recurrences_until(
+          component,
+          references,
+          until || resolve_end_date(end_date, component),
           shift_opts(frequency, interval)
         )
     end
   end
 
-  # The end date and the original event's dtsart must be the same sort of date
+  # The end date and the original's dtsart must be the same sort of date
   # The user *should* take care of this, but let's not expect to much of ourselves
   # and instead ensure that they match!
   defp resolve_end_date(end_date, %{dtstart: match_to}), do: resolve_end_date(end_date, match_to)
@@ -173,12 +177,12 @@ defmodule ICal.Recurrence do
   defp shift_opts(:monthly, interval), do: [months: interval]
   defp shift_opts(:yearly, interval), do: [years: interval]
 
-  defp add_recurring_events_until(original_event, reference_events, until, shift_opts) do
+  defp add_recurrences_until(original_event, references, until, shift_opts) do
     Stream.resource(
-      fn -> reference_events end,
-      fn reference_events ->
+      fn -> references end,
+      fn references ->
         next_recurring_event_until(
-          reference_events,
+          references,
           original_event,
           until,
           shift_opts
@@ -193,44 +197,44 @@ defmodule ICal.Recurrence do
   end
 
   defp next_recurring_event_until(
-         [reference_event | remaining_reference_events],
+         [reference_event | remaining_references],
          original_event,
          until,
          shift_opts
        ) do
-    new_event = shift_event(reference_event, shift_opts)
+    new_event = shift(reference_event, shift_opts)
 
     case Timex.compare(new_event.dtstart, until) do
       1 ->
         {:halt, {[], []}}
 
       _ ->
-        reference_events = remaining_reference_events ++ [new_event]
+        references = remaining_references ++ [new_event]
 
         if exclude?(new_event, original_event) do
           next_recurring_event_until(
-            reference_events,
+            references,
             original_event,
             until,
             shift_opts
           )
         else
-          {[new_event], reference_events}
+          {[new_event], references}
         end
     end
   end
 
-  defp add_recurring_events_count(original_event, reference_events, count, shift_opts) do
+  defp add_recurrences_for_count(original_event, references, count, shift_opts) do
     Stream.resource(
-      fn -> {reference_events, count} end,
-      fn {reference_events, count} ->
-        next_recurring_event(reference_events, count, original_event, shift_opts)
+      fn -> {references, count} end,
+      fn {references, count} ->
+        next_recurring_event(references, count, original_event, shift_opts)
       end,
       fn recurrences -> recurrences end
     )
   end
 
-  defp next_recurring_event(_reference_events, count, _original_event, _shift_opts)
+  defp next_recurring_event(_references, count, _original_event, _shift_opts)
        when count < 1 do
     {:halt, {[], 0}}
   end
@@ -240,30 +244,36 @@ defmodule ICal.Recurrence do
   end
 
   defp next_recurring_event(
-         [reference_event | remaining_reference_events],
+         [reference_event | remaining_references],
          count,
          original_event,
          shift_opts
        ) do
-    new_event = shift_event(reference_event, shift_opts)
-    reference_events = remaining_reference_events ++ [new_event]
+    new_event = shift(reference_event, shift_opts)
+    references = remaining_references ++ [new_event]
 
     if exclude?(new_event, original_event) do
       next_recurring_event(
-        reference_events,
+        references,
         count,
         original_event,
         shift_opts
       )
     else
-      {[new_event], {reference_events, count - 1}}
+      {[new_event], {references, count - 1}}
     end
   end
 
-  defp shift_event(event, shift_opts) do
-    Map.merge(event, %{
-      dtstart: shift_date(event.dtstart, shift_opts),
-      dtend: shift_date(event.dtend, shift_opts)
+  defp shift(%{dtstart: starts, dtend: ends} = component, shift_opts) do
+    Map.merge(component, %{
+      dtstart: shift_date(starts, shift_opts),
+      dtend: shift_date(ends, shift_opts)
+    })
+  end
+
+  defp shift(%{dtstart: starts} = component, shift_opts) do
+    Map.merge(component, %{
+      dtstart: shift_date(starts, shift_opts)
     })
   end
 
@@ -277,21 +287,21 @@ defmodule ICal.Recurrence do
     end
   end
 
-  defp build_reference_events_by_x_rules(by_x_rrules, event) when by_x_rrules == %{} do
-    [event]
+  defp build_references_by_x_rules(by_x_rrules, component) when by_x_rrules == %{} do
+    [component]
   end
 
-  defp build_reference_events_by_x_rules(by_x_rrules, event) do
+  defp build_references_by_x_rules(by_x_rrules, component) do
     by_x_rrules
     |> Enum.map(fn {by_x, entries} ->
-      build_reference_events_by_x_rule(event, by_x, entries)
+      build_references_by_x_rule(component, by_x, entries)
     end)
     |> List.flatten()
   end
 
-  defp build_reference_events_by_x_rule(event, _by_x, nil), do: [event]
+  defp build_references_by_x_rule(component, _by_x, nil), do: [component]
 
-  defp build_reference_events_by_x_rule(event, :by_day, entries) do
+  defp build_references_by_x_rule(component, :by_day, entries) do
     day_values = %{
       monday: 1,
       tuesday: 2,
@@ -312,22 +322,17 @@ defmodule ICal.Recurrence do
     end)
     |> Enum.map(fn {_offset, by_day} ->
       # TODO: support offsets other than the trivial case of 0
-      # determine the difference between the by_day and the event's dtstart
-      day_offset_for_reference = Map.get(day_values, by_day) - Timex.weekday(event.dtstart)
-
-      %{
-        event
-        | dtstart: Timex.shift(event.dtstart, days: day_offset_for_reference),
-          dtend: Timex.shift(event.dtend, days: day_offset_for_reference)
-      }
+      # determine the difference between the by_day and dtstart
+      day_offset_for_reference = Map.get(day_values, by_day) - Timex.weekday(component.dtstart)
+      shift(component, days: day_offset_for_reference)
     end)
   end
 
-  defp exclude?(recurrence, original_event) do
-    # 1. The event doesn't fall on an EXDATE
-    # 2. The event is not before the original event (created as a reference)
-    recurrence.dtstart in original_event.exdates or
-      compare_dates(recurrence.dtstart, original_event.dtstart) == :lt
+  defp exclude?(recurrence, original) do
+    # 1. The component doesn't fall on an EXDATE
+    # 2. The recurrence is not before the original component (created as a reference)
+    recurrence.dtstart in original.exdates or
+      compare_dates(recurrence.dtstart, original.dtstart) == :lt
   end
 
   defp compare_dates(%Date{} = l, r), do: Date.compare(l, r)
