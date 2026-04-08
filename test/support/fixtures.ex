@@ -515,21 +515,23 @@ defmodule ICal.Test.Fixtures do
 
   def alarm(:trigger_end) do
     %{
-      alarm(:audio) | trigger: %ICal.Alarm.Trigger{
-        relative_to: :end,
-        repeat: 4,
-        on: ~U[2100-03-17 13:30:00Z]
-      }
+      alarm(:audio)
+      | trigger: %ICal.Alarm.Trigger{
+          relative_to: :end,
+          repeat: 4,
+          on: ~U[2100-03-17 13:30:00Z]
+        }
     }
   end
 
   def alarm(:trigger_start) do
     %{
-      alarm(:audio) | trigger: %ICal.Alarm.Trigger{
-        relative_to: :start,
-        repeat: 4,
-        on: ~U[2100-03-17 13:30:00Z]
-      }
+      alarm(:audio)
+      | trigger: %ICal.Alarm.Trigger{
+          relative_to: :start,
+          repeat: 4,
+          on: ~U[2100-03-17 13:30:00Z]
+        }
     }
   end
 

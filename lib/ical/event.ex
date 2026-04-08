@@ -81,7 +81,15 @@ defmodule ICal.Event do
   def next_alarms(%__MODULE__{alarms: []}), do: []
 
   # when the event has no recurrences, but the event is in the future
-  def next_alarms(%__MODULE__{dtstart: dtstart, dtend: dtend, rrule: recurrence, alarms: [%ICal.Alarm{trigger: %ICal.Alarm.Trigger{relative_to: alarm_relative_to}} | _]} = event) when is_nil(recurrence) do
+  def next_alarms(
+        %__MODULE__{
+          dtstart: dtstart,
+          dtend: dtend,
+          rrule: recurrence,
+          alarms: [%ICal.Alarm{trigger: %ICal.Alarm.Trigger{relative_to: alarm_relative_to}} | _]
+        } = event
+      )
+      when is_nil(recurrence) do
     case alarm_relative_to do
       :end ->
         case in_future?(dtend) do
@@ -91,17 +99,16 @@ defmodule ICal.Event do
           true ->
             event.alarms
         end
-    _ ->
-      case in_future?(dtstart) do
+
+      _ ->
+        case in_future?(dtstart) do
           false ->
             []
 
           true ->
             event.alarms
         end
-
     end
-
   end
 
   # when the event has recurrences
@@ -115,6 +122,7 @@ defmodule ICal.Event do
   # True when the event is in the future
   defp in_future?(date) do
     {:ok, date_zone_shifted} = DateTime.shift_zone(date, DateTime.utc_now().time_zone)
+
     case Timex.compare(DateTime.now!("Etc/UTC"), date_zone_shifted) do
       -1 -> true
       _ -> false
