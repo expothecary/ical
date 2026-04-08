@@ -3,8 +3,6 @@ defmodule ICal.Event do
   An iCalendar Event
   """
 
-  @behaviour ICal.Alarm
-
   # credo:disable-for-next-line
   defstruct uid: nil,
             dtstamp: nil,
@@ -49,7 +47,7 @@ defmodule ICal.Event do
           recurrence_id: Date.t() | nil,
           exdates: [Date.t() | DateTime.t()],
           rdates: [Date.t() | DateTime.t() | ICal.period()],
-          rrule: map() | nil,
+          rrule: ICal.Recurrence.t() | nil,
           class: String.t() | nil,
           description: String.t() | nil,
           duration: ICal.Duration.t() | nil,
@@ -73,59 +71,4 @@ defmodule ICal.Event do
           resources: [String.t()],
           custom_properties: ICal.custom_properties()
         }
-
-  @doc """
-    Given an event with alarms, list the next alarm(s)
-  """
-  @impl ICal.Alarm
-  def next_alarms(%__MODULE__{alarms: []}), do: []
-
-  # when the event has no recurrences, but the event is in the future
-  def next_alarms(
-        %__MODULE__{
-          dtstart: dtstart,
-          dtend: dtend,
-          rrule: recurrence,
-          alarms: [%ICal.Alarm{trigger: %ICal.Alarm.Trigger{relative_to: alarm_relative_to}} | _]
-        } = event
-      )
-      when is_nil(recurrence) do
-    case alarm_relative_to do
-      :end ->
-        case in_future?(dtend) do
-          false ->
-            []
-
-          true ->
-            event.alarms
-        end
-
-      _ ->
-        case in_future?(dtstart) do
-          false ->
-            []
-
-          true ->
-            event.alarms
-        end
-    end
-  end
-
-  # when the event has recurrences
-  def next_alarms(%__MODULE__{rrule: recurrence} = event) when not is_nil(recurrence) do
-    event
-    |> ICal.Recurrence.stream()
-    |> Stream.map(& &1.alarms)
-    |> Enum.take(1)
-  end
-
-  # True when the event is in the future
-  defp in_future?(date) do
-    {:ok, date_zone_shifted} = DateTime.shift_zone(date, DateTime.utc_now().time_zone)
-
-    case Timex.compare(DateTime.now!("Etc/UTC"), date_zone_shifted) do
-      -1 -> true
-      _ -> false
-    end
-  end
 end

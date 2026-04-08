@@ -2,7 +2,6 @@ defmodule ICal.Todo do
   @moduledoc """
   An iCalendar TODO component.
   """
-  @behaviour ICal.Alarm
 
   # credo:disable-for-next-line
   defstruct [
@@ -78,30 +77,4 @@ defmodule ICal.Todo do
           resources: [String.t()],
           custom_properties: ICal.custom_properties()
         }
-
-  @impl ICal.Alarm
-  @spec next_alarms(ICal.Todo.t()) :: Enumerable.t(ICal.Alarm.t())
-  def next_alarms(%__MODULE__{alarms: []}), do: []
-
-  # when the todo has no recurrences, but the todo is in the future
-  def next_alarms(%__MODULE__{dtstart: dtstart, rrule: recurrence} = todo)
-      when is_nil(recurrence) do
-    case in_future?(dtstart) do
-      false ->
-        []
-
-      true ->
-        todo.alarms
-    end
-  end
-
-  # True when the event is in the future
-  defp in_future?(date) do
-    {:ok, date_zone_shifted} = DateTime.shift_zone(date, DateTime.utc_now().time_zone)
-
-    case Timex.compare(DateTime.now!("Etc/UTC"), date_zone_shifted) do
-      -1 -> true
-      _ -> false
-    end
-  end
 end
