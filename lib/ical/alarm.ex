@@ -51,7 +51,7 @@ defmodule ICal.Alarm do
         %__MODULE__{trigger: %Trigger{on: %DateTime{} = trigger_date}},
         _component
       ) do
-    if_in_future(trigger_date)
+    if in_future?(trigger_date), do: trigger_date, else: nil
   end
 
   def next_activation(%__MODULE__{trigger: trigger} = alarm, component) do
@@ -82,14 +82,13 @@ defmodule ICal.Alarm do
       day: sign * trigger.days,
       week: sign * trigger.weeks
     )
-    |> if_in_future()
+    |> then(fn date ->
+      if in_future?(date), do: date, else: nil
+    end)
   end
 
-  defp if_in_future(date) do
-    case DateTime.compare(date, DateTime.utc_now()) do
-      :lt -> nil
-      _ -> date
-    end
+  defp in_future?(date) do
+    DateTime.compare(date, DateTime.utc_now()) != :lt
   end
 
   defp calculate_alarms(component) do
