@@ -25,6 +25,7 @@ defmodule ICal.Mixfile do
   defp deps do
     [
       {:timex, "~> 3.4"},
+      {:gettext, "~> 0.26 or ~> 1.0", override: true},
       {:mix_test_watch, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14", only: :test, runtime: false},
