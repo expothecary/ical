@@ -50,13 +50,13 @@ defmodule ICal.Recurrence do
   @supported_by_x_rrules [:by_day]
 
   @doc """
-  Given an coponent with a recurrence rule, return a stream of recurrences for it.
+  Given a component with a recurrence rule, return a stream of recurrences for it.
 
   Warning: this may create a very large sequence of recurrences.
 
   ## Parameters
 
-    - `coponent`: The ICal component (e.g. event or todo) that may contain an rrule. See `ICal.Event`.
+    - `component`: The ICal component (e.g. event or todo) that may contain an rrule. See `ICal.Event`.
 
     - `end_date` *(optional)*: A date time that represents the fallback end date
       for recurrence. This value is only used when the options specified
