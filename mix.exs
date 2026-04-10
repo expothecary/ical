@@ -25,6 +25,13 @@ defmodule ICal.Mixfile do
   defp deps do
     [
       {:timex, "~> 3.4"},
+
+      # saxy is used to generate the windows tz -> olson names code
+      # see priv/generate_win32_tz_mapping.exs
+      {:saxy, "~>1.6", only: :dev},
+      {:sourceror, "~>1.11", only: :dev},
+
+      # general dev and testing dependencies
       {:mix_test_watch, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14", only: :test, runtime: false},
