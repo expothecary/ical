@@ -40,12 +40,10 @@ defmodule ICal.RecurrenceTest do
   end
 
   test "event with no recurrences" do
-    recurrences =
-      Fixtures.one_event()
-      |> ICal.Recurrence.stream()
-      |> Enum.to_list()
-
-    assert Enum.empty?(recurrences)
+    assert [] ==
+             Fixtures.one_event()
+             |> ICal.Recurrence.stream()
+             |> Enum.to_list()
   end
 
   test "daily reccuring event with until" do

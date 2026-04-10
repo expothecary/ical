@@ -158,7 +158,7 @@ defmodule ICal.Recurrence do
     end
   end
 
-  # The end date and the original's dtsart must be the same sort of date
+  # The end date and the original's dtstart must be the same sort of date
   # The user *should* take care of this, but let's not expect to much of ourselves
   # and instead ensure that they match!
   defp resolve_end_date(end_date, %{dtstart: match_to}), do: resolve_end_date(end_date, match_to)
