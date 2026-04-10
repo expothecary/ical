@@ -327,5 +327,10 @@ defmodule ICal.DeserializeTest do
       assert "Foo/Bar" == ICal.Deserialize.to_timezone(nil, "Foo/Bar")
       assert "Etc/UTC" == ICal.Deserialize.to_timezone(nil)
     end
+
+    test "to_timezone/2 handles 'windows' timezones" do
+      assert "Atlantic/Azores" == ICal.Deserialize.to_timezone("Azores Standard Time")
+      assert "America/Denver" == ICal.Deserialize.to_timezone("Mountain Standard Time")
+    end
   end
 end

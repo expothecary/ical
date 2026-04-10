@@ -420,9 +420,14 @@ defmodule ICal.Deserialize do
 
   def to_timezone(timezone, default) do
     cond do
-      String.contains?(timezone, "/") -> timezone
-      Timex.Timezone.Utils.to_olson(timezone) != nil -> Timex.Timezone.Utils.to_olson(timezone)
-      true -> default
+      String.contains?(timezone, "/") ->
+        timezone
+
+      ICal.Deserialize.Timezone.windows_to_olson(timezone) != nil ->
+        ICal.Deserialize.Timezone.windows_to_olson(timezone)
+
+      true ->
+        default
     end
   end
 
