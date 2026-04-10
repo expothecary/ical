@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## vNEXT
+
+NOTE: This release drops support for Elixir 1.15 and 1.16 in order to gain
+access to the improved date and calendaring APIs introduced in 1.17.
+
+- Improvements
+  - New functions in `ICal.Alarm`
+    - `next_activation/2`: calculates when an alarm should next activate (if ever)
+    - `next_alarms/1`: returns all next alarms with activation times for a compoonent with
+      alarms (`ICal.Event`, `ICal.Todo`)
+  - Recurrence now supports `ICal.Todo`
+- Fixes
+  -
+- Janitorial
+  - Documentation improvements
+
+Contributors to this release included:
+- [Matthew Lehner](https://github.com/matthewlehner)
+- [Patrick Wendo](https://github.com/W3NDO)
+
 ## v1.1.2
 - Fixes
   - Fix parsing of Timezones and unknown components with CR/LF line endings
