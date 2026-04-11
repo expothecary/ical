@@ -204,8 +204,8 @@ defmodule ICal.Recurrence do
        ) do
     new_event = shift(reference_event, shift_opts)
 
-    case Timex.compare(new_event.dtstart, until) do
-      1 ->
+    case compare(new_event.dtstart, until) do
+      :gt ->
         {:halt, {[], []}}
 
       _ ->
@@ -327,6 +327,9 @@ defmodule ICal.Recurrence do
       shift(component, days: day_offset_for_reference)
     end)
   end
+
+  defp compare(%Date{} = l, r), do: Date.compare(l, r)
+  defp compare(%DateTime{} = l, r), do: DateTime.compare(l, r)
 
   defp exclude?(recurrence, original) do
     # 1. The component doesn't fall on an EXDATE
