@@ -323,7 +323,7 @@ defmodule ICal.Recurrence do
     |> Enum.map(fn {_offset, by_day} ->
       # TODO: support offsets other than the trivial case of 0
       # determine the difference between the by_day and dtstart
-      day_offset_for_reference = Map.get(day_values, by_day) - Timex.weekday(component.dtstart)
+      day_offset_for_reference = Map.get(day_values, by_day) - Date.day_of_week(component.dtstart)
       shift(component, days: day_offset_for_reference)
     end)
   end
