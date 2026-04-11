@@ -75,16 +75,44 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
 
 ## Installation
 
-The package can be installed by adding `:ical` to your list of dependencies
-in `mix.exs`:
+- Add `:ical` to your list of dependencies in `mix.exs`:
 
-```elixir
-def deps do
-  [
-    {:ical, "~> 1.0"}
-  ]
-end
-```
+  ```elixir
+  def deps do
+    [{:ical, "~> 1.0"}]
+  end
+  ```
+
+- ICal needs a timezone database for timezone-aware operations (parsing events
+  with `TZID`, recurrence calculations, etc.). Add a package that implements the
+  `Calendar.TimeZoneDatabase` behaviour to your dependencies:
+
+  ```elixir
+  def deps do
+    [
+      {:ical, "~> 1.0"},
+      {:tzdata, "~> 1.1"}
+    ]
+  end
+  ```
+
+  Then configure it in your `config/config.exs`:
+
+  ```elixir
+  config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+  ```
+
+  The following timezone database packages are known to be compatible:
+
+  | Package | Module |
+  |---|---|
+  | [`tzdata`](https://hex.pm/packages/tzdata) | `Tzdata.TimeZoneDatabase` |
+  | [`tz`](https://hex.pm/packages/tz) | `Tz.TimeZoneDatabase` |
+  | [`time_zone_info`](https://hex.pm/packages/time_zone_info) | `TimeZoneInfo.TimeZoneDatabase` |
+  | [`zoneinfo`](https://hex.pm/packages/zoneinfo) | `Zoneinfo.TimeZoneDatabase` |
+
+  See [tzdb_test](https://github.com/mathieuprog/tzdb_test) for more
+  information on the available timezone database libraries.
 
 ## Participating in development
 
