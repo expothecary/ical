@@ -18,36 +18,22 @@ defmodule ICal.Serialize do
   def value(%DateTime{} = date_time) do
     format_string =
       if date_time.time_zone == "Etc/UTC" do
-        "{YYYY}{0M}{0D}T{h24}{m}{s}Z"
+        "%Y%m%dT%H%M%SZ"
       else
-        "{YYYY}{0M}{0D}T{h24}{m}{s}"
+        "%Y%m%dT%H%M%S"
       end
 
-    {:ok, result} = Timex.format(date_time, format_string)
-
-    result
+    Calendar.strftime(date_time, format_string)
   end
 
   # Convert Dates to UTC then into ics-format strings
   def value(%Date{} = timestamp) do
-    format_string = "{YYYY}{0M}{0D}"
-
-    {:ok, result} =
-      timestamp
-      |> Timex.format(format_string)
-
-    result
+    Calendar.strftime(timestamp, "%Y%m%d")
   end
 
   # Convert NaiveDateTimesinto ics-format strings
   def value(%NaiveDateTime{} = timestamp) do
-    format_string = "{YYYY}{0M}{0D}T{h24}{m}{s}"
-
-    {:ok, result} =
-      timestamp
-      |> Timex.format(format_string)
-
-    result
+    Calendar.strftime(timestamp, "%Y%m%dT%H%M%S")
   end
 
   # This function converts Erlang timestamp tuples into DateTimes.
