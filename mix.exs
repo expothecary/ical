@@ -25,6 +25,7 @@ defmodule ICal.Mixfile do
   defp deps do
     [
       {:timex, "~> 3.4"},
+      {:tzdata, "~> 1.1", optional: true},
 
       # saxy is used to generate the windows tz -> olson names code
       # see priv/generate_win32_tz_mapping.exs
