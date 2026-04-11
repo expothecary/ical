@@ -45,7 +45,8 @@ defmodule ICal.Serialize do
              is_integer(minute) and minute <= 59 and minute >= 0 and
              is_integer(second) and second <= 59 and second >= 0 do
     timestamp
-    |> Timex.to_datetime()
+    |> NaiveDateTime.from_erl!()
+    |> DateTime.from_naive!("Etc/UTC")
     |> value()
   end
 
