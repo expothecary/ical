@@ -100,8 +100,8 @@ defmodule ICal.Recurrence do
 
   ## Examples
 
-      iex> dt = Timex.to_date({2016,8,13})
-      iex> dt_end = Timex.to_date({2016, 8, 23})
+      iex> dt = ~D[2016-08-13]
+      iex> dt_end = ~D[2016-08-23]
       iex> event = %ICal.Event{rrule: %ICal.Recurrence{frequency: :daily}, dtstart: dt, dtend: dt}
       iex> recurrences =
             ICal.Recurrence.stream(event)
