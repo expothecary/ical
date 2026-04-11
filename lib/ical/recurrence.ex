@@ -172,10 +172,10 @@ defmodule ICal.Recurrence do
 
   defp resolve_end_date(%DateTime{} = end_date, %Date{}), do: DateTime.to_date(end_date)
 
-  defp shift_opts(:daily, interval), do: [days: interval]
-  defp shift_opts(:weekly, interval), do: [days: interval * 7]
-  defp shift_opts(:monthly, interval), do: [months: interval]
-  defp shift_opts(:yearly, interval), do: [years: interval]
+  defp shift_opts(:daily, interval), do: [day: interval]
+  defp shift_opts(:weekly, interval), do: [week: interval]
+  defp shift_opts(:monthly, interval), do: [month: interval]
+  defp shift_opts(:yearly, interval), do: [year: interval]
 
   defp add_recurrences_until(original_event, references, until, shift_opts) do
     Stream.resource(
@@ -277,15 +277,8 @@ defmodule ICal.Recurrence do
     })
   end
 
-  defp shift_date(date, shift_opts) do
-    case Timex.shift(date, shift_opts) do
-      %Timex.AmbiguousDateTime{} = new_date ->
-        new_date.after
-
-      new_date ->
-        new_date
-    end
-  end
+  defp shift_date(%Date{} = date, shift_opts), do: Date.shift(date, shift_opts)
+  defp shift_date(%DateTime{} = date, shift_opts), do: DateTime.shift(date, shift_opts)
 
   defp build_references_by_x_rules(by_x_rrules, component) when by_x_rrules == %{} do
     [component]
@@ -324,7 +317,7 @@ defmodule ICal.Recurrence do
       # TODO: support offsets other than the trivial case of 0
       # determine the difference between the by_day and dtstart
       day_offset_for_reference = Map.get(day_values, by_day) - Date.day_of_week(component.dtstart)
-      shift(component, days: day_offset_for_reference)
+      shift(component, day: day_offset_for_reference)
     end)
   end
 
