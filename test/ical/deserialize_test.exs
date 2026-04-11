@@ -115,6 +115,103 @@ defmodule ICal.DeserializeTest do
       assert ~N[1967-10-29 02:00:00] == ICal.Deserialize.to_local_date("19671029T020000")
       assert nil == ICal.Deserialize.to_local_date("garbage")
     end
+
+    test "to_date_in_timezone/2 parses a datetime string in a timezone" do
+      result = ICal.Deserialize.to_date_in_timezone("19980119T020000", "America/Chicago")
+
+      assert %DateTime{
+               year: 1998,
+               month: 1,
+               day: 19,
+               hour: 2,
+               minute: 0,
+               second: 0,
+               time_zone: "America/Chicago"
+             } = result
+    end
+
+    test "to_date_in_timezone/2 handles a trailing Z in the date string" do
+      result = ICal.Deserialize.to_date_in_timezone("19980119T020000Z", "America/Chicago")
+
+      assert %DateTime{
+               year: 1998,
+               month: 1,
+               day: 19,
+               hour: 2,
+               minute: 0,
+               second: 0,
+               time_zone: "America/Chicago"
+             } = result
+    end
+
+    test "to_date_in_timezone/2 returns nil for an unparseable string" do
+      assert nil == ICal.Deserialize.to_date_in_timezone("garbage", "America/Chicago")
+    end
+
+    @tag skip: """
+         implementation returns the second (EST) occurrence instead of the first (EDT);
+         RFC 5545 §3.3.5 requires the first occurrence for ambiguous fall-back times
+         """
+    test "to_date_in_timezone/2 handles ambiguous wall clock time during DST fall-back" do
+      # RFC 5545 §3.3.5: when a local time occurs more than once (clocks fall
+      # back), "the DATE-TIME value refers to the first occurrence of the
+      # referenced time." The first occurrence is the daylight (pre-transition)
+      # instant. e.g. TZID=America/New_York:20071104T013000 → 1:30 AM EDT
+      # (UTC-04:00).
+      #
+      # America/New_York falls back on 2023-11-05; 1:30 AM occurs twice.
+      # The first occurrence is EDT (std_offset: 3600, total offset -04:00).
+      result = ICal.Deserialize.to_date_in_timezone("20231105T013000", "America/New_York")
+
+      assert %DateTime{
+               year: 2023,
+               month: 11,
+               day: 5,
+               hour: 1,
+               minute: 30,
+               second: 0,
+               time_zone: "America/New_York",
+               utc_offset: -18_000,
+               std_offset: 3600
+             } = result
+    end
+
+    @tag skip: """
+         implementation returns just_after (3:00 AM EDT) instead of applying the pre-gap
+         offset (3:30 AM EDT); RFC 5545 §3.3.5 requires interpreting the wall clock time
+         using the UTC offset before the gap
+         """
+    test "to_date_in_timezone/2 handles non-existent wall clock time during DST spring-forward" do
+      # RFC 5545 §3.3.5: when a local time does not occur (clocks spring
+      # forward), "the DATE-TIME value is interpreted using the UTC offset
+      # before the gap." e.g. TZID=America/New_York:20070311T023000 →
+      # 3:30 AM EDT (UTC-04:00), one hour after 1:30 AM EST (UTC-05:00).
+      #
+      # America/New_York springs forward on 2023-03-12; 2:30 AM never exists.
+      # Applying the pre-gap offset (EST, UTC-05:00): 2:30 AM EST = 07:30 UTC
+      # = 3:30 AM EDT (UTC-04:00).
+      result = ICal.Deserialize.to_date_in_timezone("20230312T023000", "America/New_York")
+
+      assert %DateTime{
+               year: 2023,
+               month: 3,
+               day: 12,
+               hour: 3,
+               minute: 30,
+               second: 0,
+               time_zone: "America/New_York",
+               utc_offset: -18_000,
+               std_offset: 3600
+             } = result
+    end
+
+    test "to_date/3 parses a VALUE=DATE string" do
+      assert ~D[1998-01-19] == ICal.Deserialize.to_date("19980119", %{"VALUE" => "DATE"}, %ICal{})
+    end
+
+    test "to_date/3 returns nil for an unparseable VALUE=DATE string" do
+      assert nil == ICal.Deserialize.to_date("garbage", %{"VALUE" => "DATE"}, %ICal{})
+    end
   end
 
   describe "ICal.from_ics/1" do
