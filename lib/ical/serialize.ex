@@ -1,6 +1,5 @@
 defmodule ICal.Serialize do
   @moduledoc false
-  use Timex
 
   # Escapes backslashes, commas, semicolons and newlines
   def value(x) when is_binary(x) do
