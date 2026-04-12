@@ -148,10 +148,6 @@ defmodule ICal.DeserializeTest do
       assert nil == ICal.Deserialize.to_date_in_timezone("garbage", "America/Chicago")
     end
 
-    @tag skip: """
-         implementation returns the second (EST) occurrence instead of the first (EDT);
-         RFC 5545 §3.3.5 requires the first occurrence for ambiguous fall-back times
-         """
     test "to_date_in_timezone/2 handles ambiguous wall clock time during DST fall-back" do
       # RFC 5545 §3.3.5: when a local time occurs more than once (clocks fall
       # back), "the DATE-TIME value refers to the first occurrence of the
@@ -162,6 +158,7 @@ defmodule ICal.DeserializeTest do
       # America/New_York falls back on 2023-11-05; 1:30 AM occurs twice.
       # The first occurrence is EDT (std_offset: 3600, total offset -04:00).
       result = ICal.Deserialize.to_date_in_timezone("20231105T013000", "America/New_York")
+      #       result = ICal.Deserialize.to_date_in_timezone("20070311T023000", "America/New_York")
 
       assert %DateTime{
                year: 2023,

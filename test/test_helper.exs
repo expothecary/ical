@@ -52,4 +52,5 @@ defmodule ICal.Test.Helper do
   end
 end
 
+Calendar.put_time_zone_database(Tz.TimeZoneDatabase)
 ExUnit.start()
