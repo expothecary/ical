@@ -505,8 +505,18 @@ defmodule ICal.Deserialize do
   end
 
   def to_local_date(date_string) do
-    case Timex.parse(date_string, "{YYYY}{0M}{0D}T{h24}{m}{s}") do
-      {:ok, date} -> date
+    # datetime in the form "{YYYY}{0M}{0D}T{h24}{m}{s}"
+    with <<y::binary-size(4), m::binary-size(2), d::binary-size(2), ?T, t_h::binary-size(2),
+           t_m::binary-size(2), t_s::binary-size(2)>> <- date_string,
+         {year, ""} <- Integer.parse(y),
+         {month, ""} <- Integer.parse(m),
+         {day, ""} <- Integer.parse(d),
+         {hour, ""} <- Integer.parse(t_h),
+         {minute, ""} <- Integer.parse(t_m),
+         {second, ""} <- Integer.parse(t_s),
+         {:ok, datetime} <- NaiveDateTime.new(year, month, day, hour, minute, second) do
+      datetime
+    else
       _ -> nil
     end
   end
