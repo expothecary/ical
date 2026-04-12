@@ -485,15 +485,21 @@ defmodule ICal.Deserialize do
   end
 
   def to_date_in_timezone(date_string, timezone) do
-    with_timezone =
-      if String.ends_with?(date_string, "Z") do
-        date_string <> timezone
-      else
-        date_string <> "Z" <> timezone
-      end
-
-    case Timex.parse(with_timezone, "{YYYY}{0M}{0D}T{h24}{m}{s}Z{Zname}") do
-      {:ok, date} -> date
+    # datetime in the form "{YYYY}{0M}{0D}T{h24}{m}{s}Z{Zname}"
+    with <<y::binary-size(4), m::binary-size(2), d::binary-size(2), ?T, t_h::binary-size(2),
+           t_m::binary-size(2), t_s::binary-size(2), rest::binary>>
+         when rest == "" or rest == "Z" <- date_string,
+         {year, ""} <- Integer.parse(y),
+         {month, ""} <- Integer.parse(m),
+         {day, ""} <- Integer.parse(d),
+         {hour, ""} <- Integer.parse(t_h),
+         {minute, ""} <- Integer.parse(t_m),
+         {second, ""} <- Integer.parse(t_s),
+         {:ok, date} <- Date.new(year, month, day),
+         {:ok, time} <- Time.new(hour, minute, second),
+         {:ok, datetime} <- DateTime.new(date, time, timezone) do
+      datetime
+    else
       _ -> nil
     end
   end
