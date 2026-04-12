@@ -491,7 +491,7 @@ defmodule ICal.Deserialize do
       # get UTC, then express in the post-gap offset (EDT) → 3:30 AM EDT.
       case DateTime.new(date, time, timezone) do
         {:ok, dt} -> dt
-        {:ambiguous, _first, second} -> second
+        {:ambiguous, first, _second} -> first
         {:gap, _just_before, just_after} -> just_after
         _ -> nil
       end
