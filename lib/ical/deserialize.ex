@@ -468,8 +468,14 @@ defmodule ICal.Deserialize do
   end
 
   def to_date(date_string, %{"VALUE" => "DATE"}, _calendar) do
-    case Timex.parse(date_string, "{YYYY}{0M}{0D}") do
-      {:ok, date} -> NaiveDateTime.to_date(date)
+    # of the form {YYYY}{MM}{DD}
+    with <<y::binary-size(4), m::binary-size(2), d::binary-size(2)>> <- date_string,
+         {year, ""} <- Integer.parse(y),
+         {month, ""} <- Integer.parse(m),
+         {day, ""} <- Integer.parse(d),
+         {:ok, date} <- Date.new(year, month, day) do
+      date
+    else
       _ -> nil
     end
   end
