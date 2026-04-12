@@ -432,32 +432,14 @@ defmodule ICal.Deserialize do
   end
 
   @doc """
-  This function is designed to parse iCal datetime strings into erlang dates.
+  This function is designed to parse iCal datetime strings into date/times.
 
-  It should be able to handle dates from the past:
+  It respects TZID and VALUE parameters for properties, which can control the type and
+  location of the resulting date/time.
 
-      iex> {:ok, date} = ICal.Deserialize.to_date("19930407T153022Z")
-      ...> Timex.to_erl(date)
-      {{1993, 4, 7}, {15, 30, 22}}
-
-  As well as the future:
-
-      iex> {:ok, date} = ICal.Deserialize.to_date("39930407T153022Z")
-      ...> Timex.to_erl(date)
-      {{3993, 4, 7}, {15, 30, 22}}
-
-  And should return error for incorrect dates:
-
-      iex> ICal.Util.Deserialize.to_date("1993/04/07")
-      {:error, "Expected `2 digit month` at line 1, column 5."}
-
-  It should handle timezones from  the Olson Database:
-
-      iex> {:ok, date} = ICal.Deserialize.to_date("19980119T020000",
-      ...> %{"TZID" => "America/Chicago"})
-      ...> [Timex.to_erl(date), date.time_zone]
-      [{{1998, 1, 19}, {2, 0, 0}}, "America/Chicago"]
+  It returns `nil` for ill-formed dates or datetime strings.
   """
+  @spec to_date(String.t() | nil, map, ICal.t()) :: Date.t() | DateTime.t() | nil
   def to_date(nil, _params, _calendar), do: nil
 
   def to_date(date_string, %{"TZID" => timezone}, %ICal{default_timezone: default_timezone}) do
@@ -504,6 +486,8 @@ defmodule ICal.Deserialize do
     end
   end
 
+  @doc "Parses a local date string as a NaiveDatetime, returning `nil` on failure"
+  @spec to_local_date(String.t()) :: NaiveDateTime.t() | nil
   def to_local_date(date_string) do
     # datetime in the form "{YYYY}{0M}{0D}T{h24}{m}{s}"
     with <<y::binary-size(4), m::binary-size(2), d::binary-size(2), ?T, t_h::binary-size(2),
