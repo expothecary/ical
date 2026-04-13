@@ -173,11 +173,6 @@ defmodule ICal.DeserializeTest do
              } = result
     end
 
-    @tag skip: """
-         implementation returns just_after (3:00 AM EDT) instead of applying the pre-gap
-         offset (3:30 AM EDT); RFC 5545 §3.3.5 requires interpreting the wall clock time
-         using the UTC offset before the gap
-         """
     test "to_date_in_timezone/2 handles non-existent wall clock time during DST spring-forward" do
       # RFC 5545 §3.3.5: when a local time does not occur (clocks spring
       # forward), "the DATE-TIME value is interpreted using the UTC offset
