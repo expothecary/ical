@@ -24,7 +24,6 @@ defmodule ICal.Mixfile do
 
   defp deps do
     [
-      {:timex, "~> 3.4"},
       {:tz, "~> 0.28", optional: true},
       {:mint, "~>1.7", optional: true},
 
