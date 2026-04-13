@@ -6,16 +6,16 @@ defmodule ICal.Test.Fixtures do
       events: [
         %ICal.Event{
           summary: "Film with Amy and Adam",
-          dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
-          dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+          dtstart: ~U[2015-12-24 08:30:00Z],
+          dtstamp: ~U[2015-12-24 08:00:00Z],
+          dtend: ~U[2015-12-24 08:45:00Z],
           description: "Let's go see Star Wars."
         },
         %ICal.Event{
           summary: "Morning meeting",
-          dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {18, 00, 00}}),
-          dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
+          dtstart: ~U[2015-12-24 19:00:00Z],
+          dtstamp: ~U[2015-12-24 18:00:00Z],
+          dtend: ~U[2015-12-24 22:30:00Z],
           description: "A big long meeting with lots of details."
         }
       ]
@@ -29,8 +29,8 @@ defmodule ICal.Test.Fixtures do
       summary: "Going fishing",
       description: "Escape from the world. Stare at some water.",
       comments: ["Don't forget to take something to eat !"],
-      dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
-      created: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+      dtstamp: ~U[2015-12-24 08:45:00Z],
+      created: ~U[2015-12-24 08:45:00Z],
       contacts: [
         %ICal.Contact{
           alternative_representation:
@@ -77,9 +77,9 @@ defmodule ICal.Test.Fixtures do
 
   def one_event(:deserialize) do
     %ICal.Event{
-      dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
-      dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
-      dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+      dtstart: ~U[2015-12-24 08:30:00Z],
+      dtend: ~U[2015-12-24 08:45:00Z],
+      dtstamp: ~U[2015-12-24 08:00:00Z],
       summary: "Going fishing",
       description: "Escape from the world. Stare at some water.",
       location: "123 Fun Street, Toronto ON, Canada",
@@ -172,7 +172,7 @@ defmodule ICal.Test.Fixtures do
       events: [
         %ICal.Event{
           uid: "1",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+          dtstamp: ~U[2015-12-24 08:00:00Z],
           rdates: [
             ~D[1997-01-01],
             ~D[1997-01-20],
@@ -183,7 +183,7 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Event{
           uid: "2",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+          dtstamp: ~U[2015-12-24 08:00:00Z],
           rdates: [
             ~D[1997-01-01],
             ~D[1997-01-20],
@@ -193,7 +193,7 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Event{
           uid: "3",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+          dtstamp: ~U[2015-12-24 08:00:00Z],
           rdates: [
             {~U[1997-01-01 18:00:00Z], ~U[1997-01-02 07:00:00Z]},
             {~U[1998-01-01 18:00:00Z], ~U[1998-01-02 07:00:00Z]},
@@ -203,19 +203,19 @@ defmodule ICal.Test.Fixtures do
         },
         %ICal.Event{
           uid: "4",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "5",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "6",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "7",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         }
       ]
     }
@@ -226,7 +226,7 @@ defmodule ICal.Test.Fixtures do
       events: [
         %ICal.Event{
           uid: "1",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+          dtstamp: ~U[2015-12-24 08:00:00Z],
           contacts: [
             %ICal.Contact{
               alternative_representation: "CID:part3.msg970930T083000SILVER@example.com",
@@ -257,22 +257,22 @@ defmodule ICal.Test.Fixtures do
         %ICal.Event{
           uid: "1",
           status: :tentative,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "2",
           status: :confirmed,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "3",
           status: :cancelled,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "4",
           status: nil,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         }
       ]
     }
@@ -284,27 +284,27 @@ defmodule ICal.Test.Fixtures do
         %ICal.Event{
           uid: "1",
           status: :tentative,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "2",
           status: :confirmed,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "3",
           status: :cancelled,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "4",
           status: nil,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         },
         %ICal.Event{
           uid: "5",
           status: "CUSTOM",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}})
+          dtstamp: ~U[2015-12-24 08:00:00Z]
         }
       ]
     }
@@ -312,9 +312,9 @@ defmodule ICal.Test.Fixtures do
 
   def one_truncated_event do
     %ICal.Event{
-      dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
-      dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
-      dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 0}}),
+      dtstart: ~U[2015-12-24 08:30:00Z],
+      dtend: ~U[2015-12-24 08:45:00Z],
+      dtstamp: ~U[2015-12-24 08:00:00Z],
       summary: "Going fishing",
       description: "Escape from the world. Stare at some water.",
       location: "123 Fun Street, Toronto ON, Canada",
@@ -387,7 +387,7 @@ defmodule ICal.Test.Fixtures do
           created: nil,
           dtstart: nil,
           dtend: nil,
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
+          dtstamp: ~U[2015-12-24 08:00:00Z],
           modified: nil,
           recurrence_id: nil,
           exdates: [],
@@ -466,11 +466,11 @@ defmodule ICal.Test.Fixtures do
       events: [
         %ICal.Event{
           uid: "1",
-          dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
-          dtend: Timex.to_datetime({{2015, 12, 24}, {12, 45, 00}}),
-          created: Timex.to_datetime({{2015, 11, 24}, {8, 45, 00}}),
+          dtstamp: ~U[2015-12-24 08:45:00Z],
+          dtend: ~U[2015-12-24 12:45:00Z],
+          created: ~U[2015-11-24 08:45:00Z],
           rrule: %ICal.Recurrence{
-            until: Timex.to_datetime({{2019, 11, 24}, {8, 45, 00}}),
+            until: ~U[2019-11-24 08:45:00Z],
             count: 3,
             by_second: [1],
             by_minute: [2],

@@ -4,12 +4,12 @@ defmodule ICal.ValueTest do
   alias ICal.Serialize
 
   test "value of a date" do
-    result = Serialize.value(Timex.to_date({2016, 1, 4}))
+    result = Serialize.value(~D[2016-01-04])
     assert result == "20160104"
   end
 
   test "value of a datetime" do
-    result = Serialize.value(Timex.to_datetime({{2016, 1, 4}, {0, 42, 23}}))
+    result = Serialize.value(~U[2016-01-04 00:42:23Z])
     assert result == "20160104T004223Z"
   end
 

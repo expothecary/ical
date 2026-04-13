@@ -267,8 +267,8 @@ defmodule ICal.DeserializeTest do
       %ICal{events: [event]} = ICal.from_ics(ics)
 
       assert event == %Event{
-               dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 0}}),
-               dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 0}}),
+               dtstart: ~U[2015-12-24 08:30:00Z],
+               dtend: ~U[2015-12-24 08:45:00Z],
                summary:
                  "Going fishing at the lake that happens to be in the middle of fun street.",
                description:
@@ -323,7 +323,7 @@ defmodule ICal.DeserializeTest do
     test "Event with RECURRENCE-ID with TZID" do
       ics = Helper.test_data("event_with_recurrence_id_tz")
       %ICal{events: [event]} = ICal.from_ics(ics)
-      expected = Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
+      expected = DateTime.shift_zone!(~U[2020-09-17 18:30:00Z], "America/Toronto")
       assert event.recurrence_id == expected
     end
 

@@ -78,7 +78,7 @@ defmodule ICalTest do
   end
 
   test "ICal with custom tz alter dates" do
-    dtstamp = Timex.to_datetime({{2015, 12, 24}, {8, 0, 00}})
+    dtstamp = ~U[2015-12-24 08:00:00Z]
 
     %ICal{events: [%ICal.Event{dtstamp: parsed_date}]} =
       Helper.test_data("custom_calendar_tz") |> ICal.from_ics()
@@ -112,16 +112,16 @@ defmodule ICalTest do
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 23}, {19, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        dtstart: ~U[2015-12-24 08:30:00Z],
+        dtstamp: ~U[2015-12-23 19:00:00Z],
+        dtend: ~U[2015-12-24 08:45:00Z],
         description: "Let's go see Star Wars."
       },
       %ICal.Event{
         summary: "Morning meeting",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {19, 00, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {15, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {22, 30, 00}}),
+        dtstart: ~U[2015-12-24 19:00:00Z],
+        dtstamp: ~U[2015-12-24 15:00:00Z],
+        dtend: ~U[2015-12-24 22:30:00Z],
         description: "A big long meeting with lots of details."
       }
     ]
@@ -150,9 +150,9 @@ defmodule ICalTest do
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        dtstart: ~U[2015-12-24 08:30:00Z],
+        dtstamp: ~U[2015-12-24 08:00:00Z],
+        dtend: ~U[2015-12-24 08:45:00Z],
         description: "Let's go see Star Wars, and have fun.",
         location: "123 Fun Street, Toronto ON, Canada"
       }
@@ -183,9 +183,9 @@ defmodule ICalTest do
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        dtstart: ~U[2015-12-24 08:30:00Z],
+        dtstamp: ~U[2015-12-24 08:00:00Z],
+        dtend: ~U[2015-12-24 08:45:00Z],
         description: "Let's go see Star Wars, and have fun.",
         location: "123 Fun Street, Toronto ON, Canada",
         url: "http://example.com/tr3GE5"
@@ -201,8 +201,8 @@ defmodule ICalTest do
     events = [
       %ICal.Event{
         exdates: [
-          Timex.Timezone.convert(~U[2020-09-16 18:30:00Z], "America/Toronto"),
-          Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
+          DateTime.shift_zone!(~U[2020-09-16 18:30:00Z], "America/Toronto"),
+          DateTime.shift_zone!(~U[2020-09-17 18:30:00Z], "America/Toronto")
         ]
       }
     ]
@@ -253,7 +253,7 @@ defmodule ICalTest do
   end
 
   test "ICalender.to_ics/1 with RECURRENCE-ID with timezone" do
-    recurrence_id = Timex.Timezone.convert(~U[2020-09-17 18:30:00Z], "America/Toronto")
+    recurrence_id = DateTime.shift_zone!(~U[2020-09-17 18:30:00Z], "America/Toronto")
 
     events = [
       %ICal.Event{
@@ -274,9 +274,9 @@ defmodule ICalTest do
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtstamp: Timex.to_datetime({{2015, 12, 24}, {8, 00, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
+        dtstart: ~U[2015-12-24 08:30:00Z],
+        dtstamp: ~U[2015-12-24 08:00:00Z],
+        dtend: ~U[2015-12-24 08:45:00Z],
         description: "Let's go see Star Wars, and have fun.",
         location: "123 Fun Street, Toronto ON, Canada",
         url: "http://www.example.com"
@@ -296,9 +296,9 @@ defmodule ICalTest do
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
-        dtstart: Timex.to_datetime({{2015, 12, 24}, {8, 30, 00}}),
-        dtend: Timex.to_datetime({{2015, 12, 24}, {8, 45, 00}}),
-        dtstamp: Timex.to_datetime({{2017, 12, 24}, {8, 00, 00}}),
+        dtstart: ~U[2015-12-24 08:30:00Z],
+        dtend: ~U[2015-12-24 08:45:00Z],
+        dtstamp: ~U[2017-12-24 08:00:00Z],
         description: "First line\nThis is a new line\n\nDouble newline",
         location: "123 Fun Street, Toronto ON, Canada",
         url: "http://www.example.com"
