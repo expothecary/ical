@@ -6,8 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## vNEXT
 
-NOTE: This release drops support for Elixir 1.15 and 1.16 in order to gain
-access to the improved date and calendaring APIs introduced in 1.17.
+This release drops support for Elixir 1.15 and 1.16 in order to gain
+access to the improved date and calendaring APIs introduced in 1.17. 
+
+Timex was also removed as a dependency, along with its transitive dependencies
+such as gettext. 
+
+It is recommended to add a timezone database such as `tz` to applications that use 
+ICal in order to benefit fully from these changes.
 
 - Improvements
   - New functions in `ICal.Alarm`
@@ -16,7 +22,7 @@ access to the improved date and calendaring APIs introduced in 1.17.
       alarms (`ICal.Event`, `ICal.Todo`)
   - Recurrence now supports `ICal.Todo`
 - Fixes
-  -
+  - Gap and ambiguous times are properly handled when a datetime lands in a timezone shift period
 - Janitorial
   - Documentation improvements
 
