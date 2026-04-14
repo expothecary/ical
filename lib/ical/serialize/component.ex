@@ -112,7 +112,7 @@ defmodule ICal.Serialize.Component do
             :cancelled -> ["STATUS:CANCELLED\n"]
             :needs_action -> ["STATUS:NEEDS-ACTION\n"]
             :in_process -> ["STATUS:IN-PROCESS\n"]
-            :draft -> ["STATUS:DRAFT\̣n"]
+            :draft -> ["STATUS:DRAFT\n"]
             :final -> ["STATUS:FINAL\n"]
             value -> [ICal.Serialize.kv("STATUS", to_string(value))]
           end
