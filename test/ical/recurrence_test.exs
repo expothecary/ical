@@ -46,14 +46,14 @@ defmodule ICal.RecurrenceTest do
       recurrence = %ICal.Recurrence{
         frequency: :daily,
         by_day: [
-          {-1, :sunday},
-          {nil, :sunday},
+          {0, :thursday},
+          {0, :friday},
+          {0, :saturday},
+          {0, :sunday},
           {1, :monday},
-          {-1, :tuesday},
           {2, :wednesday},
-          {nil, :thursday},
-          {nil, :friday},
-          {nil, :saturday}
+          {-1, :tuesday},
+          {-1, :sunday}
         ]
       }
 
@@ -63,7 +63,7 @@ defmodule ICal.RecurrenceTest do
 
       assert String.starts_with?(serialized, "RRULE:FREQ=DAILY")
       assert String.contains?(serialized, ";INTERVAL=1")
-      assert String.contains?(serialized, ";BYDAY=-1SUSU1MO-1TU2WETHFRSA")
+      assert String.contains?(serialized, ";BYDAY=THFRSASU1MO2WE-1TU-1SU")
       assert String.ends_with?(serialized, "\n")
     end
   end

@@ -9,14 +9,6 @@ defmodule ICal.Deserialize.Recurrence do
     add_frequency(%ICal.Recurrence{}, params)
   end
 
-  @spec from_event(map | ICal.Event.t()) :: ICal.Recurrence.t() | nil
-  def from_event(%ICal.Event{rrule: %ICal.Recurrence{} = rule}), do: rule
-  def from_event(%ICal.Event{rrule: nil}), do: nil
-
-  def from_event(%ICal.Event{} = event) do
-    add_frequency(%ICal.Recurrence{}, event.rrule)
-  end
-
   defp add_frequency(recurrence, params) do
     with freq when not is_nil(freq) <- Map.get(params, "FREQ"),
          {:ok, frequency} <- to_frequency_atom(freq) do
@@ -25,6 +17,7 @@ defmodule ICal.Deserialize.Recurrence do
         %{recurrence | frequency: frequency},
         &add_to_recurrence/2
       )
+      |> ICal.Recurrence.normalize()
     else
       _ -> nil
     end
@@ -61,17 +54,17 @@ defmodule ICal.Deserialize.Recurrence do
   # sets of numbres, except BYDAY which is extra complicated.
   # see to_weekdays for more on that.
   defp add_by_list_to_recurrence("SECOND", value, recurrence) do
-    number_list = to_clamped_numbers(value, 0, 59)
+    number_list = parse_number_list(value)
     %{recurrence | by_second: number_list}
   end
 
   defp add_by_list_to_recurrence("MINUTE", value, recurrence) do
-    number_list = to_clamped_numbers(value, 0, 59)
+    number_list = parse_number_list(value)
     %{recurrence | by_minute: number_list}
   end
 
   defp add_by_list_to_recurrence("HOUR", value, recurrence) do
-    number_list = to_clamped_numbers(value, 0, 23)
+    number_list = parse_number_list(value)
     %{recurrence | by_hour: number_list}
   end
 
@@ -81,27 +74,27 @@ defmodule ICal.Deserialize.Recurrence do
   end
 
   defp add_by_list_to_recurrence("MONTH", value, recurrence) do
-    number_list = to_clamped_numbers(value, 1, 12)
+    number_list = parse_number_list(value)
     %{recurrence | by_month: number_list}
   end
 
   defp add_by_list_to_recurrence("MONTHDAY", value, recurrence) do
-    number_list = to_clamped_numbers(value, -31, 31)
+    number_list = parse_number_list(value)
     %{recurrence | by_month_day: number_list}
   end
 
   defp add_by_list_to_recurrence("YEARDAY", value, recurrence) do
-    number_list = to_clamped_numbers(value, -366, 366)
+    number_list = parse_number_list(value)
     %{recurrence | by_year_day: number_list}
   end
 
   defp add_by_list_to_recurrence("WEEKNO", value, recurrence) do
-    number_list = to_clamped_numbers(value, -53, 53)
+    number_list = parse_number_list(value)
     %{recurrence | by_week_number: number_list}
   end
 
   defp add_by_list_to_recurrence("SETPOS", value, recurrence) do
-    number_list = to_clamped_numbers(value, -366, 366)
+    number_list = parse_number_list(value)
     %{recurrence | by_set_position: number_list}
   end
 
@@ -112,36 +105,33 @@ defmodule ICal.Deserialize.Recurrence do
     end
   end
 
-  defp to_clamped_numbers(string, min, max) do
+  def parse_number_list(string) do
     string
-    |> to_clamped_numbers(min, max, "", [])
+    |> accumulate_numbers("", [])
     |> Enum.sort()
     |> Enum.uniq()
   end
 
-  defp to_clamped_numbers(<<>>, min, max, value, acc) do
-    clamp_number(value, min, max, acc)
+  defp accumulate_numbers(<<>>, value, acc) do
+    accumulate_if_number(value, acc)
   end
 
-  defp to_clamped_numbers(<<?,, string::binary>>, min, max, value, acc) do
-    acc = clamp_number(value, min, max, acc)
-    to_clamped_numbers(string, min, max, "", acc)
+  defp accumulate_numbers(<<?,, string::binary>>, value, acc) do
+    acc = accumulate_if_number(value, acc)
+    accumulate_numbers(string, "", acc)
   end
 
-  defp to_clamped_numbers(<<c, string::binary>>, min, max, value, acc) do
-    to_clamped_numbers(string, min, max, <<value::binary, c>>, acc)
+  defp accumulate_numbers(<<c, string::binary>>, value, acc) do
+    accumulate_numbers(string, <<value::binary, c>>, acc)
   end
 
-  defp clamp_number(value, min, max, acc) do
+  defp accumulate_if_number(value, acc) do
     # zeros are only allowed when the min value is also zero:
     # a negative min means no zeros, and if the min is above zero, obviously
     # zero is not ok
     case Deserialize.to_integer(value) do
-      0 when min == 0 ->
-        acc ++ [0]
-
-      number when is_number(number) and number != 0 and number <= max and number >= min ->
-        acc ++ [number]
+      number when is_number(number) ->
+        [number | acc]
 
       _ ->
         acc
