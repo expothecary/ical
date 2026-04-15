@@ -10,6 +10,7 @@ defmodule ICal.Recurrence do
 
   require Logger
 
+  # TODO: weekday should be renamed to week_start_day
   defstruct [
     :until,
     :count,
