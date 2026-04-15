@@ -57,9 +57,17 @@ defmodule ICal.Recurrence do
         by_year_day: clamped_numbers(recurrence.by_year_day, -366, 366),
         by_month: clamped_numbers(recurrence.by_month, 1, 12),
         by_set_position: clamped_numbers(recurrence.by_set_position, -366, 366),
-        by_week_number: clamped_numbers(recurrence.by_week_number, -53, 53)
+        by_week_number: clamped_numbers(recurrence.by_week_number, -53, 53),
+        count: nil_or_positive(recurrence.count),
+        interval: positive(recurrence.interval, 1)
     }
   end
+
+  defp nil_or_positive(value) when is_integer(value) and value > 0, do: value
+  defp nil_or_positive(_), do: nil
+
+  defp positive(value, _default) when is_integer(value) and value > 0, do: value
+  defp positive(_, default), do: default
 
   defp clamped_numbers(nil, _min, __max), do: nil
 
@@ -103,7 +111,6 @@ defmodule ICal.Recurrence do
       |> Enum.into(%{})
 
     weekdays
-    |> Enum.filter(fn {_, weekday} -> Enum.member?(valid_weekdays, weekday) end)
     |> Enum.uniq()
     |> Enum.sort(fn {loffset, l}, {roffset, r} ->
       if loffset == roffset do
