@@ -19,6 +19,14 @@ defmodule ICal.Test.Helper do
     "-//Elixir ICal//v#{version}//#{custom_vendor}//EN"
   end
 
+  @doc "Times a function"
+  @spec time(fun, label :: String.t()) :: term
+  def time(function, label \\ "") do
+    {time, value} = :timer.tc(function, :microsecond)
+    IO.puts("TIME #{label} => #{time} microseconds / #{time / 1000} ms")
+    value
+  end
+
   defmacro __using__(_) do
     quote do
       alias ICal.Test.Helper
