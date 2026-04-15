@@ -32,8 +32,8 @@ defmodule ICal.Recurrence do
   @type t :: %__MODULE__{
           frequency: frequency,
           until: DateTime.t() | nil,
-          count: integer,
-          interval: integer,
+          count: non_neg_integer,
+          interval: non_neg_integer,
           by_second: [non_neg_integer] | nil,
           by_minute: [non_neg_integer] | nil,
           by_hour: [non_neg_integer] | nil,
