@@ -113,7 +113,10 @@ defmodule ICal.Deserialize.Recurrence do
   end
 
   defp to_clamped_numbers(string, min, max) do
-    to_clamped_numbers(string, min, max, "", [])
+    string
+    |> to_clamped_numbers(min, max, "", [])
+    |> Enum.sort()
+    |> Enum.uniq()
   end
 
   defp to_clamped_numbers(<<>>, min, max, value, acc) do
