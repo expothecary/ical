@@ -34,17 +34,92 @@ defmodule ICal.Recurrence do
           until: DateTime.t() | nil,
           count: integer,
           interval: integer,
-          by_second: [non_neg_integer],
-          by_minute: [non_neg_integer],
-          by_hour: [non_neg_integer],
-          by_day: [{offset :: integer, byday :: weekday}],
-          by_month_day: [non_neg_integer],
-          by_year_day: [non_neg_integer],
-          by_month: [non_neg_integer],
-          by_week_number: [non_neg_integer],
-          by_set_position: [non_neg_integer],
-          weekday: weekday
+          by_second: [non_neg_integer] | nil,
+          by_minute: [non_neg_integer] | nil,
+          by_hour: [non_neg_integer] | nil,
+          by_day: [{offset :: integer, byday :: weekday}] | nil,
+          by_month_day: [non_neg_integer] | nil,
+          by_year_day: [non_neg_integer] | nil,
+          by_month: [non_neg_integer] | nil,
+          by_week_number: [non_neg_integer] | nil,
+          by_set_position: [non_neg_integer] | nil,
+          weekday: weekday | nil
         }
+
+  def normalize(%__MODULE__{} = recurrence) do
+    %{
+      recurrence
+      | by_second: clamped_numbers(recurrence.by_second, 0, 59),
+        by_minute: clamped_numbers(recurrence.by_minute, 0, 59),
+        by_hour: clamped_numbers(recurrence.by_hour, 0, 23),
+        by_day: normalize_weekdays(recurrence.by_day, recurrence.weekday),
+        by_month_day: clamped_numbers(recurrence.by_month_day, -31, 31),
+        by_year_day: clamped_numbers(recurrence.by_year_day, -366, 366),
+        by_month: clamped_numbers(recurrence.by_month, 1, 12),
+        by_set_position: clamped_numbers(recurrence.by_set_position, -366, 366),
+        by_week_number: clamped_numbers(recurrence.by_week_number, -53, 53)
+    }
+  end
+
+  defp clamped_numbers(nil, _min, __max), do: nil
+
+  defp clamped_numbers(numbers, min, max) do
+    numbers
+    |> Enum.sort()
+    |> Enum.uniq()
+    |> Enum.reduce(
+      [],
+      fn number, acc ->
+        case number do
+          0 when min == 0 ->
+            acc ++ [0]
+
+          number when is_number(number) and number != 0 and number <= max and number >= min ->
+            acc ++ [number]
+
+          _ ->
+            acc
+        end
+      end
+    )
+  end
+
+  def normalize_weekdays(nil, _week_start) do
+    nil
+  end
+
+  def normalize_weekdays(weekdays, week_start) do
+    valid_weekdays = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
+
+    weekday_order =
+      if week_start == nil do
+        valid_weekdays
+      else
+        index = Enum.find_index(valid_weekdays, fn wk -> wk == week_start end) || 0
+        {l, r} = Enum.split(valid_weekdays, max(0, index))
+        r ++ l
+      end
+      |> Enum.with_index()
+      |> Enum.into(%{})
+
+    weekdays
+    |> Enum.filter(fn {_, weekday} -> Enum.member?(valid_weekdays, weekday) end)
+    |> Enum.uniq()
+    |> Enum.sort(fn {loffset, l}, {roffset, r} ->
+      if loffset == roffset do
+        Map.get(weekday_order, l) < Map.get(weekday_order, r)
+      else
+        l_is_neg = loffset < 0
+        r_is_neg = roffset < 0
+
+        if l_is_neg == r_is_neg do
+          loffset < roffset
+        else
+          r_is_neg
+        end
+      end
+    end)
+  end
 
   # ignore :byhour, :monthday, :byyearday, :byweekno, :bymonth for now
   @supported_by_x_rrules [:by_day]
