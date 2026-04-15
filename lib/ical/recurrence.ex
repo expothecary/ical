@@ -63,6 +63,12 @@ defmodule ICal.Recurrence do
     }
   end
 
+  def from_ics(<<"RRULE", data::binary>>) do
+    data = ICal.Deserialize.skip_params(data)
+    {_data, values} = ICal.Deserialize.param_list(data)
+    ICal.Deserialize.Recurrence.from_params(values)
+  end
+
   defp nil_or_positive(value) when is_integer(value) and value > 0, do: value
   defp nil_or_positive(_), do: nil
 
