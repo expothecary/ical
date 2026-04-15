@@ -171,7 +171,7 @@ defmodule ICal.Deserialize.Recurrence do
   # no offset, so just send it in with a 0 for the offset, which the user will ignore
   # in a {0, someweekday} tuple
   defp to_weekdays(string, acc) do
-    to_weekday_with_offset(string, nil, acc)
+    to_weekday_with_offset(string, 0, acc)
   end
 
   # doing an entry with an offset, and we have more numbers,  so keep going
