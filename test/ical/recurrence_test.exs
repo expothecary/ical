@@ -321,4 +321,191 @@ defmodule ICal.RecurrenceTest do
       assert event.dtstart == ~U[2020-10-15 14:30:00Z]
     end
   end
+
+  describe "RRULE: generate with yearly frequence" do
+    test "simple" do
+      count = 5
+      rule = %ICal.Recurrence{frequency: :yearly, count: count}
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+    end
+
+    test "by month" do
+      count = 5
+      rule = %ICal.Recurrence{frequency: :yearly, count: count, by_month: [1, 4, 6]}
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+      [recurrence | _] = recurrences
+      assert recurrence.month == 4
+    end
+
+    test "positive set position" do
+      count = 5
+
+      rule = %ICal.Recurrence{
+        frequency: :yearly,
+        count: count,
+        by_month: [1, 4, 6],
+        by_set_position: 1
+      }
+
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+    end
+
+    test "negative set position" do
+      count = 5
+
+      rule = %ICal.Recurrence{
+        frequency: :yearly,
+        count: count,
+        by_month: [1, 4, 6],
+        by_set_position: -1
+      }
+
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+      [recurrence | _] = recurrences
+      assert recurrence.month == 6
+    end
+
+    test "by week number" do
+      count = 22
+      rule = %ICal.Recurrence{frequency: :yearly, count: count, by_week_number: [3, 17]}
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+
+      assert [
+               ~U[2026-04-20 13:00:00Z],
+               ~U[2026-04-21 13:00:00Z],
+               ~U[2026-04-22 13:00:00Z],
+               ~U[2026-04-23 13:00:00Z],
+               ~U[2026-04-24 13:00:00Z],
+               ~U[2026-04-25 13:00:00Z],
+               ~U[2026-04-26 13:00:00Z],
+               ~U[2027-01-11 13:00:00Z],
+               ~U[2027-01-12 13:00:00Z],
+               ~U[2027-01-13 13:00:00Z],
+               ~U[2027-01-14 13:00:00Z],
+               ~U[2027-01-15 13:00:00Z],
+               ~U[2027-01-16 13:00:00Z],
+               ~U[2027-01-17 13:00:00Z],
+               ~U[2027-04-19 13:00:00Z],
+               ~U[2027-04-20 13:00:00Z],
+               ~U[2027-04-21 13:00:00Z],
+               ~U[2027-04-22 13:00:00Z],
+               ~U[2027-04-23 13:00:00Z],
+               ~U[2027-04-24 13:00:00Z],
+               ~U[2027-04-25 13:00:00Z],
+               ~U[2028-01-10 13:00:00Z]
+             ] == recurrences
+    end
+
+    test "by week number applied to by month " do
+      count = 5
+
+      rule = %ICal.Recurrence{
+        frequency: :yearly,
+        count: count,
+        by_month: [1, 4, 6],
+        by_week_number: [3, 17]
+      }
+
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+
+      assert [
+               ~U[2027-01-15 13:00:00Z],
+               ~U[2028-01-15 13:00:00Z],
+               ~U[2029-01-15 13:00:00Z],
+               ~U[2030-01-15 13:00:00Z],
+               ~U[2031-01-15 13:00:00Z]
+             ] == recurrences
+    end
+
+    test "by year day" do
+      count = 5
+      rule = %ICal.Recurrence{frequency: :yearly, count: count, by_year_day: [15, 50]}
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+
+      assert [
+               ~U[2027-01-16 13:00:00Z],
+               ~U[2027-02-20 13:00:00Z],
+               ~U[2028-01-16 13:00:00Z],
+               ~U[2028-02-20 13:00:00Z],
+               ~U[2029-01-16 13:00:00Z]
+             ] == recurrences
+    end
+
+    test "by year day applied to by month" do
+      count = 5
+
+      rule = %ICal.Recurrence{
+        frequency: :yearly,
+        count: count,
+        by_month: [1, 4, 6],
+        by_year_day: [15, 50]
+      }
+
+      dtstart = ~U[2026-04-15 13:00:00Z]
+
+      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+
+      assert Enum.count(recurrences) == count
+
+      assert [
+               ~U[2027-01-15 13:00:00Z],
+               ~U[2028-01-15 13:00:00Z],
+               ~U[2029-01-15 13:00:00Z],
+               ~U[2030-01-15 13:00:00Z],
+               ~U[2031-01-15 13:00:00Z]
+             ] == recurrences
+    end
+  end
+
+ describe("RRULE: generate with daily frequence") do
+    test "every day in january for 3 years" do
+      dtstart = DateTime.new!(~D[1998-01-31], ~T[09:00:00], "America/New_York")
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1")
+
+      Helper.time(fn -> ICal.Recurrence.Generate.all(rule, dtstart) end, "every day in january for 3 years")
+    end
+
+    test "every january 10th and 31st for 3 years" do
+      dtstart = DateTime.new!(~D[1998-01-31], ~T[09:00:00], "America/New_York")
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1;BYMONTHDAY=10,31")
+
+      Helper.time(fn -> ICal.Recurrence.Generate.all(rule, dtstart) end, "every 10th and 31st in january for 3 years")
+    end
+
+    test "every Tuesday and Thursday in january for 3 years" do
+      dtstart = DateTime.new!(~D[2026-01-31], ~T[09:00:00], "America/New_York")
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20280131T140000Z;BYMONTH=1;BYDAY=TH,TU")
+
+      Helper.time(fn -> ICal.Recurrence.Generate.all(rule, dtstart) end, "every 10th and 31st in january for 3 years")
+#       |> IO.inspect()
+    end
+  end
 end
