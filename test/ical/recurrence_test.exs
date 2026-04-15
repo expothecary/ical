@@ -104,7 +104,7 @@ defmodule ICal.RecurrenceTest do
 
       assert %ICal.Recurrence{
                frequency: :daily,
-               by_week_number: [-53, -1, 1, 25, 2, 53],
+               by_week_number: [-53, -1, 1, 2, 25, 53],
                by_month_day: [-31, -1, 1, 31],
                by_month: [1, 12],
                by_year_day: [-366, -1, 1, 366],
