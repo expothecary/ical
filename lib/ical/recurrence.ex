@@ -23,7 +23,7 @@ defmodule ICal.Recurrence do
     :by_month,
     :by_set_position,
     :by_week_number,
-    :weekday,
+    weekday: :default,
     frequency: :daily,
     interval: 1
   ]
@@ -44,7 +44,7 @@ defmodule ICal.Recurrence do
           by_month: [non_neg_integer] | nil,
           by_week_number: [non_neg_integer] | nil,
           by_set_position: [non_neg_integer] | nil,
-          weekday: weekday | nil
+          weekday: weekday | :default
         }
 
   def normalize(%__MODULE__{} = recurrence) do
