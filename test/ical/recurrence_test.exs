@@ -485,7 +485,7 @@ defmodule ICal.RecurrenceTest do
     end
   end
 
- describe("RRULE: generate with daily frequence") do
+ describe "RRULE: generate with daily frequence" do
     test "every day in january for 3 years" do
       dtstart = DateTime.new!(~D[1998-01-31], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1")
@@ -506,6 +506,17 @@ defmodule ICal.RecurrenceTest do
 
       Helper.time(fn -> ICal.Recurrence.Generate.all(rule, dtstart) end, "every 10th and 31st in january for 3 years")
 #       |> IO.inspect()
+    end
+  end
+
+  describe "RRULE: generate with weekly frequency" do
+     test "weekly for 10 weeks" do
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+       rule = ICal.Recurrence.from_ics("RRULE:FREQ=WEEKLY;COUNT=10")
+
+      Helper.time(fn -> ICal.Recurrence.Generate.all(rule, dtstart) end, "weekly for 10 weeks")
+#        ==> (1997 9:00 AM EDT) September 2,9,16,23,30;October 7,14,21
+#            (1997 9:00 AM EST) October 28;November 4
     end
   end
 end
