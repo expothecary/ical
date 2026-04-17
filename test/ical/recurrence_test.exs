@@ -72,7 +72,7 @@ defmodule ICal.RecurrenceTest do
     test "ignores bad WKST values" do
       rrule = %{"FREQ" => "DAILY", "WKST" => "NO"}
 
-      assert %ICal.Recurrence{frequency: :daily, weekday: :default} ===
+      assert %ICal.Recurrence{frequency: :daily, week_start_day: :default} ===
                ICal.Deserialize.Recurrence.from_params(rrule)
     end
 

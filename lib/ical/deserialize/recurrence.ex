@@ -43,7 +43,7 @@ defmodule ICal.Deserialize.Recurrence do
   defp add_to_recurrence({"WKST", value}, recurrence) do
     case to_weekday(value) do
       :error -> recurrence
-      {weekday_atom, _} -> %{recurrence | weekday: weekday_atom}
+      {weekday_atom, _} -> %{recurrence | week_start_day: weekday_atom}
     end
   end
 
