@@ -481,7 +481,7 @@ defmodule ICal.Test.Fixtures do
             by_month: [10],
             by_set_position: [20],
             by_week_number: [-1],
-            weekday: :monday,
+            week_start_day: :monday,
             frequency: :daily,
             interval: 1
           }
@@ -798,7 +798,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: ~U[1973-04-29 07:00:00Z],
-            weekday: nil
+            week_start_day: :default
           }
         },
         %ICal.Timezone.Properties{
@@ -831,7 +831,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: ~U[1986-04-27 07:00:00Z],
-            weekday: nil
+            week_start_day: :default
           }
         },
         %ICal.Timezone.Properties{
@@ -855,7 +855,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: ~U[2006-04-02 07:00:00Z],
-            weekday: nil
+            week_start_day: :default
           }
         },
         %ICal.Timezone.Properties{
@@ -879,7 +879,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: nil,
-            weekday: nil
+            week_start_day: :default
           }
         }
       ],
@@ -906,7 +906,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: ~U[2006-10-29 06:00:00Z],
-            weekday: nil
+            week_start_day: :default
           }
         },
         %ICal.Timezone.Properties{
@@ -930,7 +930,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: nil,
-            weekday: nil
+            week_start_day: :default
           }
         }
       ],
@@ -995,7 +995,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: nil,
-            weekday: nil
+            week_start_day: :default
           }
         }
       ],
@@ -1022,7 +1022,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: nil,
-            weekday: nil
+            week_start_day: :default
           }
         }
       ],
@@ -1056,7 +1056,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: ~U[1998-04-04 07:00:00Z],
-            weekday: nil
+            week_start_day: :default
           }
         }
       ],
@@ -1083,7 +1083,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: nil,
-            weekday: nil
+            week_start_day: :default
           }
         }
       ],
@@ -1117,7 +1117,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: ~U[1998-04-04 07:00:00Z],
-            weekday: nil
+            week_start_day: :default
           }
         },
         %ICal.Timezone.Properties{
@@ -1157,7 +1157,7 @@ defmodule ICal.Test.Fixtures do
             frequency: :yearly,
             interval: 1,
             until: nil,
-            weekday: nil
+            week_start_day: :default
           }
         }
       ],

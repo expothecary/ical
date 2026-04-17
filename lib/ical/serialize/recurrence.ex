@@ -18,6 +18,7 @@ defmodule ICal.Serialize.Recurrence do
 
   # skip empty entries
   defp to_rrule_entry({_, nil}, acc), do: acc
+  defp to_rrule_entry({:week_start_day, :default}, acc), do: acc
 
   # everything else!
   defp to_rrule_entry({key, _} = rrule, acc) do
@@ -65,7 +66,7 @@ defmodule ICal.Serialize.Recurrence do
   defp key_to_string(:by_month), do: "BYMONTH"
   defp key_to_string(:by_set_position), do: "BYSETPOS"
   defp key_to_string(:by_week_number), do: "BYWEEKNO"
-  defp key_to_string(:weekday), do: "WKST"
+  defp key_to_string(:week_start_day), do: "WKST"
   # :frequency is handled manually in `to_ics`
   #   defp key_to_string(:frequency), do: "FREQ"
   defp key_to_string(:interval), do: "INTERVAL"

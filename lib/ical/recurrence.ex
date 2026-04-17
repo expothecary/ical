@@ -10,7 +10,6 @@ defmodule ICal.Recurrence do
 
   require Logger
 
-  # TODO: weekday should be renamed to week_start_day
   defstruct [
     :until,
     :count,
@@ -23,7 +22,7 @@ defmodule ICal.Recurrence do
     :by_month,
     :by_set_position,
     :by_week_number,
-    weekday: :default,
+    week_start_day: :default,
     frequency: :daily,
     interval: 1
   ]
@@ -44,7 +43,7 @@ defmodule ICal.Recurrence do
           by_month: [non_neg_integer] | nil,
           by_week_number: [non_neg_integer] | nil,
           by_set_position: [non_neg_integer] | nil,
-          weekday: weekday | :default
+          week_start_day: weekday | :default
         }
 
   def normalize(%__MODULE__{} = recurrence) do
@@ -53,7 +52,7 @@ defmodule ICal.Recurrence do
       | by_second: clamped_numbers(recurrence.by_second, 0, 59),
         by_minute: clamped_numbers(recurrence.by_minute, 0, 59),
         by_hour: clamped_numbers(recurrence.by_hour, 0, 23),
-        by_day: normalize_weekdays(recurrence.by_day, recurrence.weekday),
+        by_day: normalize_weekdays(recurrence.by_day, recurrence.week_start_day),
         by_month_day: clamped_numbers(recurrence.by_month_day, -31, 31),
         by_year_day: clamped_numbers(recurrence.by_year_day, -366, 366),
         by_month: clamped_numbers(recurrence.by_month, 1, 12),
