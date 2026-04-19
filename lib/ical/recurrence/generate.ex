@@ -285,7 +285,7 @@ defmodule ICal.Recurrence.Generate do
     Enum.filter(acc, fn recurrence ->
       Enum.find(weeks, fn week ->
         {week_start, week_end} = week_number_bookends(recurrence, week)
-        is_between(week_start, recurrence, week_end)
+        is_between_inclusive(week_start, recurrence, week_end)
       end) != nil
     end)
   end
@@ -374,10 +374,10 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp update_limit(limit, recurrences, _fruitless_searches) do
-    index = Enum.find_index(recurrences, fn recurrence -> is_not_after(limit, recurrence) end)
+    index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit) end)
 
     if index != nil do
-      {nil, Enum.slice(recurrences, 0, index + 1), @fruitless_search_start_count}
+      {nil, Enum.slice(recurrences, 0, index), @fruitless_search_start_count}
     else
       {limit, recurrences, @fruitless_search_start_count}
     end
@@ -457,7 +457,7 @@ defmodule ICal.Recurrence.Generate do
   defp day_of_year(%NaiveDateTime{} = datetime), do: day_of_year(NaiveDateTime.to_date(datetime))
   defp day_of_year(%Date{} = date), do: Date.day_of_year(date)
 
-  defp is_between(earliest, middle, latest) do
+  defp is_between_inclusive(earliest, middle, latest) do
     is_not_after(earliest, middle) and is_not_after(middle, latest)
   end
 
@@ -465,6 +465,11 @@ defmodule ICal.Recurrence.Generate do
   defp is_not_before(%DateTime{} = dt, %Date{} = d), do: is_not_before(DateTime.to_date(dt), d)
   defp is_not_before(%Date{} = l, r), do: Date.compare(l, r) != :lt
   defp is_not_before(%DateTime{} = l, r), do: DateTime.compare(l, r) != :lt
+
+  defp is_after(%Date{} = d, %DateTime{} = dt), do: is_after(d, DateTime.to_date(dt))
+  defp is_after(%DateTime{} = dt, %Date{} = d), do: is_after(DateTime.to_date(dt), d)
+  defp is_after(%Date{} = l, r), do: Date.compare(l, r) == :gt
+  defp is_after(%DateTime{} = l, r), do: DateTime.compare(l, r) == :gt
 
   defp is_not_after(%Date{} = d, %DateTime{} = dt), do: is_not_after(d, DateTime.to_date(dt))
   defp is_not_after(%DateTime{} = dt, %Date{} = d), do: is_not_after(DateTime.to_date(dt), d)

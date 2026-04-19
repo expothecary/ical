@@ -521,6 +521,26 @@ defmodule ICal.RecurrenceTest do
         "every 10th and 31st in january for 3 years"
       )
     end
+
+    test "daily until December 24, 1997" do
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=19971224T000000Z")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          "daily until December 24, 1997"
+        )
+
+      assert Enum.at(recurrences, 0) ==
+               DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+
+      # DST hits, and it is one hour earlier!
+      assert Enum.at(recurrences, -1) ==
+               DateTime.new!(~D[1997-12-23], ~T[08:00:00], "America/New_York")
+
+      assert Enum.count(recurrences) == 113
+    end
   end
 
   describe "RRULE: generate with weekly frequency" do
