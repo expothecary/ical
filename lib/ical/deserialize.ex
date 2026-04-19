@@ -489,12 +489,7 @@ defmodule ICal.Deserialize do
       # DATE-TIME value is interpreted using the UTC offset before the gap."
       # e.g. 2:30 AM in a spring-forward gap → apply pre-gap offset (EST) to
       # get UTC, then express in the post-gap offset (EDT) → 3:30 AM EDT.
-      case DateTime.new(date, time, timezone) do
-        {:ok, dt} -> dt
-        {:ambiguous, first, _second} -> first
-        {:gap, just_before, just_after} -> adjust_to_gap(time, just_before, just_after)
-        _ -> nil
-      end
+      ICal.as_valid_datetime(date, time, timezone)
     else
       _ -> nil
     end
@@ -542,28 +537,4 @@ defmodule ICal.Deserialize do
   def status(%ICal.Journal{}, "FINAL"), do: :final
   def status(_, "CANCELLED"), do: :cancelled
   def status(_, _), do: nil
-
-  defp adjust_to_gap(original_time, before_gap, after_gap) do
-    before_gap =
-      before_gap
-      |> DateTime.to_time()
-      |> round_off_micros()
-
-    diff = Time.diff(original_time, before_gap)
-
-    time = Time.shift(DateTime.to_time(after_gap), second: diff)
-
-    DateTime.new!(DateTime.to_date(after_gap), time, after_gap.time_zone)
-  end
-
-  defp round_off_micros(time) do
-    # gap times are often 59.9999 seconds, the moment RIGHT before.
-    # snug those times up to the minute
-    {ms, precision} = time.microsecond
-    offset = round(ms / Integer.pow(10, precision))
-
-    time
-    |> Time.truncate(:second)
-    |> Time.shift(second: offset)
-  end
 end

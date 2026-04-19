@@ -119,4 +119,39 @@ defmodule ICal do
   def encode_to_iodata!(calendar, _options \\ []) do
     to_ics(calendar)
   end
+
+  @doc false
+  @spec as_valid_datetime(Date.t(), Time.t(), timezone :: String.t()) :: DateTime.t() | nil
+  def as_valid_datetime(date, time, timezone) do
+    case DateTime.new(date, time, timezone) do
+      {:ok, dt} -> dt
+      {:ambiguous, first, _second} -> first
+      {:gap, just_before, just_after} -> adjust_to_gap(time, just_before, just_after)
+      _ -> nil
+    end
+  end
+
+  defp adjust_to_gap(original_time, before_gap, after_gap) do
+    before_gap =
+      before_gap
+      |> DateTime.to_time()
+      |> round_off_micros()
+
+    diff = Time.diff(original_time, before_gap)
+
+    time = Time.shift(DateTime.to_time(after_gap), second: diff)
+
+    DateTime.new!(DateTime.to_date(after_gap), time, after_gap.time_zone)
+  end
+
+  defp round_off_micros(time) do
+    # gap times are often 59.9999 seconds, the moment RIGHT before.
+    # snug those times up to the minute
+    {ms, precision} = time.microsecond
+    offset = round(ms / Integer.pow(10, precision))
+
+    time
+    |> Time.truncate(:second)
+    |> Time.shift(second: offset)
+  end
 end
