@@ -1,6 +1,11 @@
 defmodule ICal.Recurrence.Generate do
   @moduledoc false
 
+  require Logger
+
+  @fruitless_search_start_count 0
+  @max_fruitless_search_depth 1000
+
   defguard has_some(x) when is_list(x) and x != []
   defguard has_none(x) when not has_some(x)
 
@@ -159,20 +164,28 @@ defmodule ICal.Recurrence.Generate do
       offset,
       by,
       rule,
+      0,
       []
     )
   end
 
-  defp generate(limit, _dtstart, _offset, _by, _rule, acc)
+  defp generate(limit, _dtstart, _offset, _by, _rule, _fruitless_searches, acc)
        when is_integer(limit) and limit < 1, do: acc
 
-  defp generate(limit, dtstart, offset, by, rule, acc) do
+  defp generate(_limit, _dtstart, _offset, _by, rule, fruitless_searches, acc)
+       when fruitless_searches > @max_fruitless_search_depth do
+    Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
+    acc
+  end
+
+  defp generate(limit, dtstart, offset, by, rule, fruitless_searches, acc) do
     recurrences =
       [dtstart]
       |> apply_all_by(by, rule)
       |> exclude(dtstart)
 
-    {limit, recurrences} = update_limit(limit, recurrences)
+    {limit, recurrences, fruitless_searches} =
+      update_limit(limit, recurrences, fruitless_searches)
 
     if limit == nil do
       acc ++ recurrences
@@ -185,6 +198,7 @@ defmodule ICal.Recurrence.Generate do
         offset,
         by,
         rule,
+        fruitless_searches,
         acc ++ recurrences
       )
     end
@@ -344,27 +358,28 @@ defmodule ICal.Recurrence.Generate do
 
   def weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
 
-  # when no more recurrences are generated, then stop even if it could in theory
-  # go further? hmmm... there should be a search limit
-  #   defp update_limit(_limit, []), do: {nil, []}
+  # when no more recurrences are generated for too long, then stop even if it could in theory
+  # go further.
+  defp update_limit(limit, [], fruitless_searches), do: {limit, [], fruitless_searches + 1}
 
-  defp update_limit(limit, recurrences) when is_integer(limit) do
+  # TODO: recurrence search depth limit
+  defp update_limit(limit, recurrences, _fruitless_searches) when is_integer(limit) do
     updated_limit = limit - Enum.count(recurrences)
 
     if updated_limit < 1 do
-      {nil, Enum.slice(recurrences, 0, limit)}
+      {nil, Enum.slice(recurrences, 0, limit), @fruitless_search_start_count}
     else
-      {updated_limit, recurrences}
+      {updated_limit, recurrences, @fruitless_search_start_count}
     end
   end
 
-  defp update_limit(limit, recurrences) do
+  defp update_limit(limit, recurrences, _fruitless_searches) do
     index = Enum.find_index(recurrences, fn recurrence -> is_not_after(limit, recurrence) end)
 
     if index != nil do
-      {nil, Enum.slice(recurrences, 0, index + 1)}
+      {nil, Enum.slice(recurrences, 0, index + 1), @fruitless_search_start_count}
     else
-      {limit, recurrences}
+      {limit, recurrences, @fruitless_search_start_count}
     end
   end
 
