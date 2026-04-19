@@ -10,7 +10,33 @@ defmodule ICal.Recurrence.Generate do
   defguard has_none(x) when not has_some(x)
 
   def all(%ICal.Recurrence{frequency: :yearly, interval: interval} = rule, dtstart) do
-    modifiers = by_year_modifiers(rule)
+    week_number_application =
+      if has_some(rule.by_month), do: :limit, else: :expand
+
+    year_day_appliaction =
+      if has_some(rule.by_month) or has_some(rule.by_week_number), do: :limit, else: :expand
+
+    by_day_application =
+      cond do
+        has_some(rule.by_year_day) -> :limit
+        has_some(rule.by_month_day) -> :limit
+        has_some(rule.by_week_number) -> :expand_week
+        has_some(rule.by_month) -> :expand_month
+        true -> :expand_year
+      end
+
+    modifiers =
+      [
+        {:by_month, :expand},
+        {:by_week_number, week_number_application},
+        {:by_year_day, year_day_appliaction},
+        {:by_month_day, :expand},
+        {:by_day, by_day_application},
+        {:by_hour, :expand},
+        {:by_minute, :expand},
+        {:by_second, :expand},
+        {:by_set_position, :limit}
+      ]
 
     generate(
       ends_by(rule),
@@ -22,6 +48,8 @@ defmodule ICal.Recurrence.Generate do
   end
 
   def all(%ICal.Recurrence{frequency: :monthly, interval: interval} = rule, dtstart) do
+    by_day_application = if has_some(rule.by_month_day), do: :limit, else: :expand
+
     generate(
       ends_by(rule),
       dtstart,
@@ -29,7 +57,7 @@ defmodule ICal.Recurrence.Generate do
       [
         {:by_month, :limit},
         {:by_month_day, :expand},
-        {:by_day, :expand},
+        {:by_day, by_day_application},
         {:by_hour, :expand},
         {:by_minute, :expand},
         {:by_second, :expand},
@@ -127,34 +155,6 @@ defmodule ICal.Recurrence.Generate do
       ],
       rule
     )
-  end
-
-  defp by_year_modifiers(%{by_month: months})
-       when has_some(months) do
-    [{:by_month, :expand}, {:by_week_number, :limit}, {:by_year_day, :limit}] ++
-      yearly_always_modifiers()
-  end
-
-  defp by_year_modifiers(%{by_week_number: weeks})
-       when has_some(weeks) do
-    [{:by_month, :expand}, {:by_week_number, :expand}, {:by_year_day, :limit}] ++
-      yearly_always_modifiers()
-  end
-
-  defp by_year_modifiers(_rule) do
-    [{:by_month, :expand}, {:by_week_number, :expand}, {:by_year_day, :expand}] ++
-      yearly_always_modifiers()
-  end
-
-  defp yearly_always_modifiers do
-    [
-      {:by_month_day, :expand},
-      {:by_day, :expand},
-      {:by_hour, :expand},
-      {:by_minute, :expand},
-      {:by_second, :expand},
-      {:by_set_position, :limit}
-    ]
   end
 
   defp generate(limit, dtstart, offset, by, rule) do
@@ -332,7 +332,15 @@ defmodule ICal.Recurrence.Generate do
   end
 
   # TODO
-  defp apply_by({:by_day, :expand}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_by({:by_day, :expand_year}, %{by_day: days}, acc) when has_some(days) do
+    acc
+  end
+
+  defp apply_by({:by_day, :expand_month}, %{by_day: days}, acc) when has_some(days) do
+    acc
+  end
+
+  defp apply_by({:by_day, :expand_week}, %{by_day: days}, acc) when has_some(days) do
     acc
   end
 
@@ -385,8 +393,7 @@ defmodule ICal.Recurrence.Generate do
     recurrences
   end
 
-  defp apply_by({_, :expand}, _rule, acc), do: acc
-  defp apply_by({_, :limit}, _rule, acc), do: acc
+  defp apply_by(_, _rule, acc), do: acc
 
   defp exclude(recurrences, dtstart) do
     Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, dtstart) end)
