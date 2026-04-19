@@ -5,221 +5,269 @@ defmodule ICal.Recurrence.Generate do
   defguard has_none(x) when not has_some(x)
 
   def all(%ICal.Recurrence{frequency: :yearly, interval: interval} = rule, dtstart) do
+    modifiers = by_year_modifiers(rule)
+
     generate(
-      limiter(rule),
+      ends_by(rule),
       dtstart,
       [year: interval],
-      [
-        :by_month,
-        :by_week_number,
-        :by_year_day,
-        :by_month_day,
-        :by_day,
-        :by_hour,
-        :by_minute,
-        :by_second
-      ],
-      [:by_set_position],
+      modifiers,
       rule
     )
   end
 
   def all(%ICal.Recurrence{frequency: :monthly, interval: interval} = rule, dtstart) do
     generate(
-      limiter(rule),
+      ends_by(rule),
       dtstart,
       [month: interval],
-      [:by_month_day, :by_day, :by_hour, :by_minute, :by_second],
-      [:by_month, :by_set_position],
+      [
+        {:by_month, :limit},
+        {:by_month_day, :expand},
+        {:by_day, :expand},
+        {:by_hour, :expand},
+        {:by_minute, :expand},
+        {:by_second, :expand},
+        {:by_set_position, :limit}
+      ],
       rule
     )
   end
 
   def all(%ICal.Recurrence{frequency: :weekly, interval: interval} = rule, dtstart) do
     generate(
-      limiter(rule),
+      ends_by(rule),
       dtstart,
       [week: interval],
-      [:by_day, :by_hour, :by_minute, :by_second],
-      [:by_month, :by_set_position],
+      [
+        {:by_month, :limit},
+        {:by_day, :expand},
+        {:by_hour, :expand},
+        {:by_minute, :expand},
+        {:by_second, :expand},
+        {:by_set_position, :limit}
+      ],
       rule
     )
   end
 
   def all(%ICal.Recurrence{frequency: :daily, interval: interval} = rule, dtstart) do
     generate(
-      limiter(rule),
+      ends_by(rule),
       dtstart,
       [day: interval],
-      [:by_hour, :by_minute, :by_second],
-      [:by_month, :by_day, :by_set_position],
+      [
+        {:by_month, :limit},
+        {:by_month_day, :limit},
+        {:by_day, :limit},
+        {:by_hour, :expand},
+        {:by_minute, :expand},
+        {:by_second, :expand},
+        {:by_set_position, :limit}
+      ],
       rule
     )
   end
 
   def all(%ICal.Recurrence{frequency: :hourly, interval: interval} = rule, dtstart) do
     generate(
-      limiter(rule),
+      ends_by(rule),
       dtstart,
       [hour: interval],
-      [:by_minute, :by_second],
-      [:by_month, :by_year_day, :by_month_day, :by_day, :by_hour, :by_set_position],
+      [
+        {:by_month, :limit},
+        {:by_year_day, :limit},
+        {:by_month_day, :limit},
+        {:by_day, :limit},
+        {:by_hour, :limit},
+        {:by_minute, :expand},
+        {:by_set_position, :limit}
+      ],
       rule
     )
   end
 
   def all(%ICal.Recurrence{frequency: :minutely, interval: interval} = rule, dtstart) do
     generate(
-      limiter(rule),
+      ends_by(rule),
       dtstart,
       [minute: interval],
-      [:by_second],
-      [:by_month, :by_year_day, :by_month_day, :by_day, :by_hour, :by_minute, :by_set_position],
+      [
+        {:by_month, :limit},
+        {:by_year_day, :limit},
+        {:by_month_day, :limit},
+        {:by_day, :limit},
+        {:by_hour, :limit},
+        {:by_minute, :limit},
+        {:by_second, :expand},
+        {:by_set_position, :limit}
+      ],
       rule
     )
   end
 
   def all(%ICal.Recurrence{frequency: :secondly, interval: interval} = rule, dtstart) do
     generate(
-      limiter(rule),
+      ends_by(rule),
       dtstart,
       [second: interval],
-      [],
       [
-        :by_month,
-        :by_year_day,
-        :by_month_day,
-        :by_day,
-        :by_hour,
-        :by_minute,
-        :by_second,
-        :by_set_position
+        {:by_month, :limit},
+        {:by_year_day, :limit},
+        {:by_month_day, :limit},
+        {:by_day, :limit},
+        {:by_hour, :limit},
+        {:by_minute, :limit},
+        {:by_set_position, :limit}
       ],
       rule
     )
   end
 
-  defp generate(limit, dtstart, offset, expanders, limiters, rule) do
-    recurrences =
-      [dtstart]
-      |> expand(expanders, rule)
-      |> limit(limiters, rule)
-      |> Enum.filter(fn date -> is_not_before(date, dtstart) end)
+  defp by_year_modifiers(%{by_month: months})
+       when has_some(months) do
+    [{:by_month, :expand}, {:by_week_number, :limit}, {:by_year_day, :limit}] ++
+      yearly_always_modifiers()
+  end
 
-    {limit, recurrences} = update_limit(limit, recurrences)
+  defp by_year_modifiers(%{by_week_number: weeks})
+       when has_some(weeks) do
+    [{:by_month, :expand}, {:by_week_number, :expand}, {:by_year_day, :limit}] ++
+      yearly_always_modifiers()
+  end
 
+  defp by_year_modifiers(_rule) do
+    [{:by_month, :expand}, {:by_week_number, :expand}, {:by_year_day, :expand}] ++
+      yearly_always_modifiers()
+  end
+
+  defp yearly_always_modifiers do
+    [
+      {:by_month_day, :expand},
+      {:by_day, :expand},
+      {:by_hour, :expand},
+      {:by_minute, :expand},
+      {:by_second, :expand},
+      {:by_set_position, :limit}
+    ]
+  end
+
+  defp generate(limit, dtstart, offset, by, rule) do
     generate(
       limit,
       dtstart,
       offset,
-      expanders,
-      limiters,
+      by,
       rule,
-      recurrences
+      []
     )
   end
 
-  defp generate(limit, _dtstart, _offset, _expanders, _limiters, _rule, acc)
+  defp generate(limit, _dtstart, _offset, _by, _rule, acc)
        when is_integer(limit) and limit < 1, do: acc
 
-  defp generate(limit, dtstart, offset, expanders, limiters, rule, acc) do
-    dtnext = shift(dtstart, offset)
-
+  defp generate(limit, dtstart, offset, by, rule, acc) do
     recurrences =
-      [dtnext]
-      |> expand(expanders, rule)
-      |> limit(limiters, rule)
+      [dtstart]
+      |> apply_all_by(by, rule)
+      |> exclude(dtstart)
 
     {limit, recurrences} = update_limit(limit, recurrences)
 
     if limit == nil do
       acc ++ recurrences
     else
+      dtnext = shift(dtstart, offset)
+
       generate(
         limit,
         dtnext,
         offset,
-        expanders,
-        limiters,
+        by,
         rule,
         acc ++ recurrences
       )
     end
   end
 
-  defp expand(recurrences, expanders, rule) do
-    Enum.reduce(expanders, recurrences, fn expand_by, acc -> expand_by(expand_by, rule, acc) end)
-  end
-
-  defp limit(recurrences, limiters, rule) do
-    Enum.reduce(limiters, recurrences, fn limit_by, acc -> limit_by(limit_by, rule, acc) end)
-  end
-
-  defp expand_by(:by_month, %{by_month: months}, acc) when has_some(months) do
-    Enum.reduce(acc, [], fn dtstart, acc ->
-      acc ++ Enum.map(months, fn month -> %{dtstart | month: month} end)
+  defp apply_all_by(recurrences, by, rule) do
+    Enum.reduce(by, recurrences, fn by, acc ->
+      apply_by(by, rule, acc)
+      |> Enum.reduce([], &only_valid_dates/2)
+      |> Enum.sort(&compare_recurrences/2)
     end)
   end
 
-  defp expand_by(:by_week_number, %{by_week_number: weeks}, acc) when has_none(weeks), do: acc
-
-  defp expand_by(:by_week_number, %{by_month: months} = rule, acc) when has_some(months) do
-    # it was expanded by months, so limit the occurances by week number
-    limit_by(:by_week_number, rule, acc)
+  defp only_valid_dates(%NaiveDateTime{} = date, acc) do
+    case NaiveDateTime.new(NaiveDateTime.to_date(date), NaiveDateTime.to_time(date)) do
+      {:ok, date} -> acc ++ [date]
+      _ -> acc
+    end
   end
 
-  defp expand_by(:by_week_number, %{by_week_number: weeks}, acc) do
+  defp only_valid_dates(%Date{} = date, acc) do
+    case Date.new(date.year, date.month, date.day) do
+      {:ok, date} -> acc ++ [date]
+      _ -> acc
+    end
+  end
+
+  defp only_valid_dates(%DateTime{} = datetime, acc) do
+    case ICal.as_valid_datetime(
+           DateTime.to_date(datetime),
+           DateTime.to_time(datetime),
+           datetime.time_zone
+         ) do
+      nil -> acc
+      datetime -> acc ++ [datetime]
+    end
+  end
+
+  defp compare_recurrences(%DateTime{} = l, r), do: DateTime.compare(l, r) == :lt
+  defp compare_recurrences(%NaiveDateTime{} = l, r), do: NaiveDateTime.compare(l, r) == :lt
+  defp compare_recurrences(%Date{} = l, r), do: Date.compare(l, r) == :lt
+
+  defp apply_by({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
+    Enum.reduce(acc, [], fn dtstart, acc ->
+      acc ++
+        Enum.map(months, fn month ->
+          if month > dtstart.month do
+            %{dtstart | month: month}
+          else
+            %{dtstart | year: dtstart.year + 1, month: month}
+          end
+        end)
+    end)
+  end
+
+  defp apply_by({:by_month, :limit}, %{by_month: months}, acc) when has_some(months) do
+    Enum.filter(acc, fn recurrence ->
+      Enum.member?(months, recurrence.month)
+    end)
+  end
+
+  defp apply_by({:by_week_number, :expand}, %{by_week_number: weeks}, acc) when has_some(weeks) do
     Enum.reduce(acc, [], fn recurrence, acc ->
+      recurrence_week = week_of_year(recurrence)
+
       acc ++
         Enum.flat_map(weeks, fn week ->
+          reference_date =
+            if week > recurrence_week do
+              recurrence
+            else
+              %{recurrence | year: recurrence.year + 1}
+            end
+
           {first, last} =
-            week_number_bookends(recurrence, week)
+            week_number_bookends(reference_date, week)
 
           range(first, last, recurrence)
         end)
     end)
   end
 
-  defp expand_by(:by_year_day, %{by_year_day: days}, acc) when has_none(days) do
-    acc
-  end
-
-  defp expand_by(:by_year_day, %{by_month: months, by_week_number: weeks} = rule, acc)
-       when has_some(months) or has_some(weeks) do
-    # we are limiting rather than expanding
-    limit_by(:by_year_day, rule, acc)
-  end
-
-  defp expand_by(:by_year_day, %{by_year_day: year_days}, acc) do
-    Enum.uniq_by(acc, fn recurrence -> recurrence.year end)
-    |> Enum.flat_map(fn recurrence ->
-      first_of_jan = %{recurrence | month: 1, day: 1}
-
-      Enum.map(year_days, fn day_of_year ->
-        shift(first_of_jan, day: day_of_year)
-      end)
-    end)
-  end
-
-  defp expand_by(_by, _rule, acc), do: acc
-
-  defp limit_by(:by_set_position, %{by_set_position: index}, recurrences)
-       when is_integer(index) and index != 0 do
-    index = if index > 0, do: index - 1, else: index
-
-    case Enum.at(recurrences, index) do
-      nil -> []
-      recurrence -> [recurrence]
-    end
-  end
-
-  defp limit_by(:by_year_day, %{by_year_day: year_days}, acc) when has_some(year_days) do
-    Enum.filter(acc, fn recurrence ->
-      Enum.member?(year_days, Date.day_of_year(recurrence))
-    end)
-  end
-
-  defp limit_by(:by_week_number, %{by_week_number: weeks}, acc) when has_some(weeks) do
+  defp apply_by({:by_week_number, :limit}, %{by_week_number: weeks}, acc) when has_some(weeks) do
     Enum.filter(acc, fn recurrence ->
       Enum.find(weeks, fn week ->
         {week_start, week_end} = week_number_bookends(recurrence, week)
@@ -228,29 +276,64 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp limit_by(:by_month, %{by_month: months}, acc) when has_some(months) do
-    Enum.filter(acc, fn recurrence ->
-      Enum.member?(months, recurrence.month)
+  defp apply_by({:by_year_day, :expand}, %{by_year_day: year_days}, acc)
+       when has_some(year_days) do
+    Enum.uniq_by(acc, fn recurrence -> recurrence.year end)
+    |> Enum.flat_map(fn recurrence ->
+      orig_day_of_year = day_of_year(recurrence)
+      first_of_jan = %{recurrence | month: 1, day: 1}
+
+      Enum.map(year_days, fn day_of_year ->
+        if day_of_year > orig_day_of_year do
+          shift(first_of_jan, day: day_of_year - 1)
+        else
+          shift(first_of_jan, year: 1, day: day_of_year - 1)
+        end
+      end)
     end)
   end
 
-  defp limit_by(:by_month_day, %{by_month_day: days}, acc) when has_some(days) do
+  defp apply_by({:by_year_day, :limit}, %{by_year_day: year_days}, acc)
+       when has_some(year_days) do
+    Enum.filter(acc, fn recurrence ->
+      Enum.member?(year_days, Date.day_of_year(recurrence))
+    end)
+  end
+
+  defp apply_by({:by_month_day, :limit}, %{by_month_day: days}, acc) when has_some(days) do
     Enum.filter(acc, fn recurrence ->
       Enum.member?(days, recurrence.day)
     end)
   end
 
-  defp limit_by(:by_day, %{by_day: days}, acc) when has_some(days) do
+  defp apply_by({:by_day, :limit}, %{by_day: days}, acc) when has_some(days) do
     Enum.filter(acc, fn recurrence ->
       target = weekday(recurrence)
       Enum.find(days, fn {_, allowed_day} -> allowed_day == target end) != nil
     end)
   end
 
-  defp limit_by(_limiter, _rule, recurrences), do: recurrences
+  defp apply_by({:by_set_position, :limit}, %{by_set_position: index}, recurrences)
+       when is_integer(index) and index != 0 do
+    index = if index > 0, do: index - 1, else: index
 
-  defp limiter(%{count: count}) when is_integer(count), do: count
-  defp limiter(%{until: until}), do: until
+    case Enum.at(recurrences, index) do
+      nil -> []
+      recurrence -> [recurrence]
+    end
+
+    recurrences
+  end
+
+  defp apply_by({_, :expand}, _rule, acc), do: acc
+  defp apply_by({_, :limit}, _rule, acc), do: acc
+
+  defp exclude(recurrences, dtstart) do
+    Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, dtstart) end)
+  end
+
+  defp ends_by(%{count: count}) when is_integer(count), do: count
+  defp ends_by(%{until: until}), do: until
 
   # TODO: is the start of the week needed here?
   def weekday(%Date{} = date) do
@@ -260,6 +343,10 @@ defmodule ICal.Recurrence.Generate do
   end
 
   def weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
+
+  # when no more recurrences are generated, then stop even if it could in theory
+  # go further? hmmm... there should be a search limit
+  #   defp update_limit(_limit, []), do: {nil, []}
 
   defp update_limit(limit, recurrences) when is_integer(limit) do
     updated_limit = limit - Enum.count(recurrences)
@@ -296,15 +383,14 @@ defmodule ICal.Recurrence.Generate do
   def week_number_bookends(dtstart, week) do
     # shift the week
     if week > 0 do
-      # positive week number, start from first day of the year
-      start_date =
-        Date.new!(dtstart.year, 1, 1)
-        |> Date.shift(week: week - 1)
-        |> Date.beginning_of_week()
-
+      # positive week number, start from first w of the year
       end_date =
-        start_date
+        Date.new!(dtstart.year, 1, 1)
         |> Date.end_of_week()
+        |> ensure_end_of_first_week()
+        |> Date.shift(week: week - 1)
+
+      start_date = Date.beginning_of_week(end_date)
 
       {start_date, end_date}
     else
@@ -312,11 +398,9 @@ defmodule ICal.Recurrence.Generate do
       # and since it is already on the last week, move one less week than requested
       # e.g. the -1 week is 0 weeks from the last week of the year
       start_date =
-        Date.new!(dtstart.year, 1, 1)
-        |> Date.shift(year: 1)
+        Date.new!(dtstart.year + 1, 1, 1)
         |> Date.end_of_week()
         |> Date.shift(day: 1)
-        |> IO.inspect()
         |> Date.shift(week: week)
 
       end_date = start_date |> Date.end_of_week()
@@ -324,6 +408,39 @@ defmodule ICal.Recurrence.Generate do
       {start_date, end_date}
     end
   end
+
+  defp week_of_year(%DateTime{} = datetime), do: week_of_year(DateTime.to_date(datetime))
+
+  defp week_of_year(%NaiveDateTime{} = datetime),
+    do: week_of_year(NaiveDateTime.to_date(datetime))
+
+  defp week_of_year(%Date{} = date) do
+    end_of_first_week =
+      Date.new!(date.year, 1, 1)
+      |> Date.end_of_week()
+      |> ensure_end_of_first_week()
+      |> Date.day_of_year()
+
+    end_of_this_week =
+      date
+      |> Date.end_of_week()
+      |> Date.day_of_year()
+
+    week =
+      (end_of_this_week - end_of_first_week)
+      |> Integer.floor_div(7)
+
+    week + 1
+  end
+
+  # the first week is considered the one with at least 4 days
+  # so if the end of the first week is 3 or less, then bump it by a week
+  defp ensure_end_of_first_week(%{day: day} = date) when day < 4, do: Date.shift(date, week: 1)
+  defp ensure_end_of_first_week(day), do: day
+
+  defp day_of_year(%DateTime{} = datetime), do: day_of_year(DateTime.to_date(datetime))
+  defp day_of_year(%NaiveDateTime{} = datetime), do: day_of_year(NaiveDateTime.to_date(datetime))
+  defp day_of_year(%Date{} = date), do: Date.day_of_year(date)
 
   defp is_between(earliest, middle, latest) do
     is_not_after(earliest, middle) and is_not_after(middle, latest)

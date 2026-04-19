@@ -342,7 +342,7 @@ defmodule ICal.RecurrenceTest do
 
       assert Enum.count(recurrences) == count
       [recurrence | _] = recurrences
-      assert recurrence.month == 4
+      assert recurrence.month == 6
     end
 
     test "positive set position" do
@@ -398,32 +398,32 @@ defmodule ICal.RecurrenceTest do
                ~U[2026-04-24 13:00:00Z],
                ~U[2026-04-25 13:00:00Z],
                ~U[2026-04-26 13:00:00Z],
-               ~U[2027-01-11 13:00:00Z],
-               ~U[2027-01-12 13:00:00Z],
-               ~U[2027-01-13 13:00:00Z],
-               ~U[2027-01-14 13:00:00Z],
-               ~U[2027-01-15 13:00:00Z],
-               ~U[2027-01-16 13:00:00Z],
-               ~U[2027-01-17 13:00:00Z],
-               ~U[2027-04-19 13:00:00Z],
-               ~U[2027-04-20 13:00:00Z],
-               ~U[2027-04-21 13:00:00Z],
-               ~U[2027-04-22 13:00:00Z],
-               ~U[2027-04-23 13:00:00Z],
-               ~U[2027-04-24 13:00:00Z],
-               ~U[2027-04-25 13:00:00Z],
-               ~U[2028-01-10 13:00:00Z]
+               ~U[2027-01-18 13:00:00Z],
+               ~U[2027-01-19 13:00:00Z],
+               ~U[2027-01-20 13:00:00Z],
+               ~U[2027-01-21 13:00:00Z],
+               ~U[2027-01-22 13:00:00Z],
+               ~U[2027-01-23 13:00:00Z],
+               ~U[2027-01-24 13:00:00Z],
+               ~U[2027-04-26 13:00:00Z],
+               ~U[2027-04-27 13:00:00Z],
+               ~U[2027-04-28 13:00:00Z],
+               ~U[2027-04-29 13:00:00Z],
+               ~U[2027-04-30 13:00:00Z],
+               ~U[2027-05-01 13:00:00Z],
+               ~U[2027-05-02 13:00:00Z],
+               ~U[2028-01-17 13:00:00Z]
              ] == recurrences
     end
 
-    test "by week number applied to by month " do
+    test "by week number applied to by month" do
       count = 5
 
       rule = %ICal.Recurrence{
         frequency: :yearly,
         count: count,
         by_month: [1, 4, 6],
-        by_week_number: [3, 17]
+        by_week_number: [2, 17]
       }
 
       dtstart = ~U[2026-04-15 13:00:00Z]
@@ -435,9 +435,9 @@ defmodule ICal.RecurrenceTest do
       assert [
                ~U[2027-01-15 13:00:00Z],
                ~U[2028-01-15 13:00:00Z],
-               ~U[2029-01-15 13:00:00Z],
-               ~U[2030-01-15 13:00:00Z],
-               ~U[2031-01-15 13:00:00Z]
+               ~U[2033-01-15 13:00:00Z],
+               ~U[2034-01-15 13:00:00Z],
+               ~U[2038-01-15 13:00:00Z]
              ] == recurrences
     end
 
@@ -451,11 +451,11 @@ defmodule ICal.RecurrenceTest do
       assert Enum.count(recurrences) == count
 
       assert [
-               ~U[2027-01-16 13:00:00Z],
-               ~U[2027-02-20 13:00:00Z],
-               ~U[2028-01-16 13:00:00Z],
-               ~U[2028-02-20 13:00:00Z],
-               ~U[2029-01-16 13:00:00Z]
+               ~U[2027-01-15 13:00:00Z],
+               ~U[2027-02-19 13:00:00Z],
+               ~U[2028-01-15 13:00:00Z],
+               ~U[2028-02-19 13:00:00Z],
+               ~U[2029-01-15 13:00:00Z]
              ] == recurrences
     end
 
@@ -520,8 +520,6 @@ defmodule ICal.RecurrenceTest do
         fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
         "every 10th and 31st in january for 3 years"
       )
-
-      #       |> IO.inspect()
     end
   end
 
