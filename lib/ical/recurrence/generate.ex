@@ -314,10 +314,26 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_by({:by_month_day, :limit}, %{by_month_day: days}, acc) when has_some(days) do
-    Enum.filter(acc, fn recurrence ->
-      Enum.member?(days, recurrence.day)
+  defp apply_by({:by_month_day, :expand}, %{by_month_day: month_days}, acc)
+       when has_some(month_days) do
+    acc
+    |> Enum.flat_map(fn recurrence ->
+      Enum.map(month_days, fn month_day ->
+        %{recurrence | day: month_day}
+      end)
     end)
+  end
+
+  defp apply_by({:by_month_day, :limit}, %{by_month_day: month_days}, acc)
+       when has_some(month_days) do
+    Enum.filter(acc, fn recurrence ->
+      Enum.member?(month_days, recurrence.day)
+    end)
+  end
+
+  # TODO
+  defp apply_by({:by_day, :expand}, %{by_day: days}, acc) when has_some(days) do
+    acc
   end
 
   defp apply_by({:by_day, :limit}, %{by_day: days}, acc) when has_some(days) do
@@ -325,6 +341,36 @@ defmodule ICal.Recurrence.Generate do
       target = weekday(recurrence)
       Enum.find(days, fn {_, allowed_day} -> allowed_day == target end) != nil
     end)
+  end
+
+  # TODO
+  defp apply_by({:by_hour, :expand}, %{by_hour: hours}, acc) when has_some(hours) do
+    acc
+  end
+
+  # TODO
+  defp apply_by({:by_hour, :limit}, %{by_hour: hours}, acc) when has_some(hours) do
+    acc
+  end
+
+  # TODO
+  defp apply_by({:by_minute, :expand}, %{by_minute: minutes}, acc) when has_some(minutes) do
+    acc
+  end
+
+  # TODO
+  defp apply_by({:by_minute, :limit}, %{by_minute: minutes}, acc) when has_some(minutes) do
+    acc
+  end
+
+  # TODO
+  defp apply_by({:by_second, :expand}, %{by_second: seconds}, acc) when has_some(seconds) do
+    acc
+  end
+
+  # TODO
+  defp apply_by({:by_second, :limit}, %{by_second: seconds}, acc) when has_some(seconds) do
+    acc
   end
 
   defp apply_by({:by_set_position, :limit}, %{by_set_position: index}, recurrences)
