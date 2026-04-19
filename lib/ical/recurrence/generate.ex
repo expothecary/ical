@@ -48,7 +48,7 @@ defmodule ICal.Recurrence.Generate do
   end
 
   def all(%ICal.Recurrence{frequency: :monthly, interval: interval} = rule, dtstart) do
-    by_day_application = if has_some(rule.by_month_day), do: :limit, else: :expand
+    by_day_application = if has_some(rule.by_month_day), do: :limit, else: :expand_month
 
     generate(
       ends_by(rule),
@@ -74,7 +74,7 @@ defmodule ICal.Recurrence.Generate do
       [week: interval],
       [
         {:by_month, :limit},
-        {:by_day, :expand},
+        {:by_day, :expand_week},
         {:by_hour, :expand},
         {:by_minute, :expand},
         {:by_second, :expand},
