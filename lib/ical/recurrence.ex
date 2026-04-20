@@ -28,6 +28,12 @@ defmodule ICal.Recurrence do
     interval: 1
   ]
 
+  @type recurrence_date :: Date.t() | DateTime.t()
+  @type stream_option ::
+          {:end_date, recurrence_date}
+          | {:exclude_dates, [recurrence_date]}
+          | {:other_recurrences, [recurrence_date]}
+
   @type frequency :: :secondly | :minutely | :hourly | :daily | :weekly | :monthly | :yearly
   @type weekday :: :monday | :tuesday | :wednesday | :thursday | :friday | :saturday | :sunday
   @type t :: %__MODULE__{
@@ -76,85 +82,6 @@ defmodule ICal.Recurrence do
       | dtstart: recurrence,
         dtend: offset(recurrence, diff(component.dtend, component.dtstart))
     }
-  end
-
-  defp diff(%Date{} = l, r), do: [day: Date.diff(l, r)]
-  defp diff(%DateTime{} = l, r), do: [second: DateTime.diff(l, r)]
-
-  defp offset(%DateTime{} = l, offset), do: DateTime.shift(l, offset)
-
-  defp offset(%Date{} = l, second: seconds) do
-    days = Integer.floor_div(seconds, 60 * 60 * 24)
-    Date.shift(l, day: days)
-  end
-
-  defp offset(%Date{} = l, offset) do
-    Date.shift(l, offset)
-  end
-
-  defp nil_or_positive(value) when is_integer(value) and value > 0, do: value
-  defp nil_or_positive(_), do: nil
-
-  defp positive(value, _default) when is_integer(value) and value > 0, do: value
-  defp positive(_, default), do: default
-
-  defp clamped_numbers(nil, _min, __max), do: nil
-
-  defp clamped_numbers(numbers, min, max) do
-    numbers
-    |> Enum.sort()
-    |> Enum.uniq()
-    |> Enum.reduce(
-      [],
-      fn number, acc ->
-        case number do
-          0 when min == 0 ->
-            acc ++ [0]
-
-          number when is_number(number) and number != 0 and number <= max and number >= min ->
-            acc ++ [number]
-
-          _ ->
-            acc
-        end
-      end
-    )
-  end
-
-  defp normalize_weekdays(nil, _week_start) do
-    nil
-  end
-
-  defp normalize_weekdays(weekdays, week_start) do
-    valid_weekdays = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
-
-    weekday_order =
-      if week_start == nil do
-        valid_weekdays
-      else
-        index = Enum.find_index(valid_weekdays, fn wk -> wk == week_start end) || 0
-        {l, r} = Enum.split(valid_weekdays, max(0, index))
-        r ++ l
-      end
-      |> Enum.with_index()
-      |> Enum.into(%{})
-
-    weekdays
-    |> Enum.uniq()
-    |> Enum.sort(fn {loffset, l}, {roffset, r} ->
-      if loffset == roffset do
-        Map.get(weekday_order, l) < Map.get(weekday_order, r)
-      else
-        l_is_neg = loffset < 0
-        r_is_neg = roffset < 0
-
-        if l_is_neg == r_is_neg do
-          loffset < roffset
-        else
-          r_is_neg
-        end
-      end
-    end)
   end
 
   @doc """
@@ -237,11 +164,94 @@ defmodule ICal.Recurrence do
   Creates a stream of recurrences based on an `%ICal.Recurrence{}`, a starting date,
   and an optional ending date
   """
-  @spec stream(t(), start_date :: Date.t() | DateTime.t() | NaiveDateTime.t()) ::
+  @spec stream(
+          t(),
+          start_date :: Date.t() | DateTime.t(),
+          options :: [stream_option()]
+        ) ::
           Enumerable.t()
-  def stream(%__MODULE__{} = rule, start_date, end_date) do
-    Generate.init(rule, start_date, end_date)
+  def stream(%__MODULE__{} = rule, start_date, options) do
+    Generate.init(rule, start_date, options)
     |> create_stream()
+  end
+
+  defp diff(%Date{} = l, r), do: [day: Date.diff(l, r)]
+  defp diff(%DateTime{} = l, r), do: [second: DateTime.diff(l, r)]
+
+  defp offset(%DateTime{} = l, offset), do: DateTime.shift(l, offset)
+
+  defp offset(%Date{} = l, second: seconds) do
+    days = Integer.floor_div(seconds, 60 * 60 * 24)
+    Date.shift(l, day: days)
+  end
+
+  defp offset(%Date{} = l, offset) do
+    Date.shift(l, offset)
+  end
+
+  defp nil_or_positive(value) when is_integer(value) and value > 0, do: value
+  defp nil_or_positive(_), do: nil
+
+  defp positive(value, _default) when is_integer(value) and value > 0, do: value
+  defp positive(_, default), do: default
+
+  defp clamped_numbers(nil, _min, __max), do: nil
+
+  defp clamped_numbers(numbers, min, max) do
+    numbers
+    |> Enum.sort()
+    |> Enum.uniq()
+    |> Enum.reduce(
+      [],
+      fn number, acc ->
+        case number do
+          0 when min == 0 ->
+            acc ++ [0]
+
+          number when is_number(number) and number != 0 and number <= max and number >= min ->
+            acc ++ [number]
+
+          _ ->
+            acc
+        end
+      end
+    )
+  end
+
+  defp normalize_weekdays(nil, _week_start) do
+    nil
+  end
+
+  defp normalize_weekdays(weekdays, week_start) do
+    valid_weekdays = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
+
+    weekday_order =
+      if week_start == nil do
+        valid_weekdays
+      else
+        index = Enum.find_index(valid_weekdays, fn wk -> wk == week_start end) || 0
+        {l, r} = Enum.split(valid_weekdays, max(0, index))
+        r ++ l
+      end
+      |> Enum.with_index()
+      |> Enum.into(%{})
+
+    weekdays
+    |> Enum.uniq()
+    |> Enum.sort(fn {loffset, l}, {roffset, r} ->
+      if loffset == roffset do
+        Map.get(weekday_order, l) < Map.get(weekday_order, r)
+      else
+        l_is_neg = loffset < 0
+        r_is_neg = roffset < 0
+
+        if l_is_neg == r_is_neg do
+          loffset < roffset
+        else
+          r_is_neg
+        end
+      end
+    end)
   end
 
   defp create_stream(state) do
