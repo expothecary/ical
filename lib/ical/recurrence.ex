@@ -70,6 +70,28 @@ defmodule ICal.Recurrence do
     ICal.Deserialize.Recurrence.from_params(values)
   end
 
+  def apply(%x{} = recurrence, component) when x == Date or x == DateTime do
+    %{
+      component
+      | dtstart: recurrence,
+        dtend: offset(recurrence, diff(component.dtend, component.dstart))
+    }
+  end
+
+  defp diff(%Date{} = l, r), do: [day: Date.diff(l, r)]
+  defp diff(%DateTime{} = l, r), do: [second: DateTime.diff(l, r)]
+
+  defp offset(%DateTime{} = l, offset), do: DateTime.shift(l, offset)
+
+  defp offset(%Date{} = l, second: seconds) do
+    days = Integer.floor_div(seconds, 60 * 60 * 24)
+    Date.shift(l, day: days)
+  end
+
+  defp offset(%Date{} = l, offset) do
+    Date.shift(l, offset)
+  end
+
   defp nil_or_positive(value) when is_integer(value) and value > 0, do: value
   defp nil_or_positive(_), do: nil
 
