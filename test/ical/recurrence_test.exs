@@ -184,6 +184,37 @@ defmodule ICal.RecurrenceTest do
                |> Enum.to_list()
     end
 
+    test "correctly handles event with a recurrence rule and recurrence dates" do
+      [event] =
+        Helper.test_data("recurrance_with_count")
+        |> ICal.from_ics()
+        |> Map.get(:events)
+
+      rdates = [
+        ~U[2015-10-23 07:30:00Z],
+        ~U[2015-10-23 09:30:00Z],
+        ~U[2015-12-24 12:30:00Z],
+        ~U[2015-12-25 12:30:00Z],
+        ~U[2015-12-26 10:30:00Z],
+        ~U[2015-12-27 09:30:00Z]
+      ]
+
+      event = %{event | rdates: rdates}
+
+      generated = [
+        ~U[2015-12-24 08:30:00Z],
+        ~U[2015-12-25 08:30:00Z],
+        ~U[2015-12-26 08:30:00Z]
+      ]
+
+      expected = Helper.sort_dates(rdates ++ generated)
+
+      assert expected ==
+               event
+               |> ICal.Recurrence.stream()
+               |> Enum.to_list()
+    end
+
     test "generates daily reccuring event with until" do
       recurrences =
         Helper.test_data("recurrance_daily_until")
