@@ -189,7 +189,6 @@ defmodule ICal.Recurrence do
   end
 
   def stream(%{rrule: rule, dtstart: start_date} = component, end_date) do
-    # TODO add rdates into the stream
     other_recurrences =
       case Map.get(component, :rdates) do
         [] -> nil
