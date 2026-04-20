@@ -2,6 +2,7 @@ defmodule ICal.Recurrence.Generate do
   @moduledoc false
 
   require Logger
+  alias ICal.Recurrence.State
 
   @fruitless_search_start_count 0
   @max_fruitless_search_depth 1000
@@ -14,32 +15,28 @@ defmodule ICal.Recurrence.Generate do
 
   @spec all(ICal.Recurrence.t(), starting_from :: recurrence) ::
           {:ok, [recurrence]} | {:error, error_reasons, [recurrence]}
-  def all(rule, starting_date) do
-    interval = rule_interval(rule)
-    modifiers = rule_modifiers(rule)
-
-    generate_all(
-      ends_by(rule),
-      starting_date,
-      interval,
-      modifiers,
-      rule
-    )
+  def all(rule, start_date) do
+    %State{
+      limit: rule_limit(rule),
+      start_date: start_date,
+      interval: rule_interval(rule),
+      modifiers: rule_modifiers(rule),
+      rule: rule
+    }
+    |> generate_all()
   end
 
   @spec one_set(ICal.Recurrence.t(), starting_from :: recurrence) ::
           {:ok, [recurrence]} | {:error, error_reasons, [recurrence]}
-  def one_set(rule, starting_date) do
-    interval = rule_interval(rule)
-    modifiers = rule_modifiers(rule)
-
-    generate_all(
-      ends_by(rule),
-      starting_date,
-      interval,
-      modifiers,
-      rule
-    )
+  def one_set(rule, start_date) do
+    %State{
+      limit: rule_limit(rule),
+      start_date: start_date,
+      interval: rule_interval(rule),
+      modifiers: rule_modifiers(rule),
+      rule: rule
+    }
+    |> generate_set()
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :yearly, interval: interval}) do
@@ -173,65 +170,44 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp generate_all(limit, starting_date, interval, modifiers, rule) do
-    generate_all(
-      limit,
-      starting_date,
-      interval,
-      modifiers,
-      rule,
-      0,
-      []
-    )
+  defp generate_all(state) do
+    generate_all(state, [])
   end
 
-  defp generate_all(nil, _starting_date, _interval, _modifiers, _rule, _fruitless_searches, _acc) do
-    {:error, :no_defined_limit, []}
+  defp generate_all(%{limit: nil}, acc) do
+    {:error, :no_defined_limit, acc}
   end
 
-  defp generate_all(limit, _starting_date, _interval, _modifiers, _rule, _fruitless_searches, acc)
+  defp generate_all(%{limit: limit}, acc)
        when is_integer(limit) and limit < 1, do: {:ok, acc}
 
-  defp generate_all(_limit, _starting_date, _interval, _modifiers, rule, fruitless_searches, acc)
+  defp generate_all(%{fruitless_searches: fruitless_searches, rule: rule}, acc)
        when fruitless_searches > @max_fruitless_search_depth do
     Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
     {:error, :search_exhaustion, acc}
   end
 
-  defp generate_all(limit, starting_date, interval, modifiers, rule, fruitless_searches, acc) do
-    {recurrences, next_starting_date, limit, fruitless_searches} =
-      generate_set(limit, starting_date, interval, modifiers, rule, fruitless_searches)
+  defp generate_all(state, acc) do
+    {recurrences, new_state} = generate_set(state)
 
-    if limit == nil do
-      acc ++ recurrences
+    if new_state.limit == :reached do
+     {:ok,  acc ++ recurrences}
     else
-      generate_all(
-        limit,
-        next_starting_date,
-        interval,
-        modifiers,
-        rule,
-        fruitless_searches,
-        acc ++ recurrences
-      )
+      generate_all(new_state, acc ++ recurrences)
     end
   end
 
-  defp generate_set(limit, starting_date, interval, modifiers, rule, fruitless_searches) do
+  defp generate_set(%State{} = state) do
     recurrences =
-      [starting_date]
-      |> apply_all_modifiers(modifiers, rule)
-      |> exclude(starting_date)
+      [state.start_date]
+      |> apply_all_modifiers(state)
+      |> exclude(state.start_date)
 
-    {limit, recurrences, fruitless_searches} =
-      update_limit(limit, recurrences, fruitless_searches)
-
-    next_starting_date = shift(starting_date, interval)
-
-    {recurrences, next_starting_date, limit, fruitless_searches}
+    new_state = %{state | start_date: shift(state.start_date, state.interval)}
+    update_limit(recurrences, new_state)
   end
 
-  defp apply_all_modifiers(recurrences, modifiers, rule) do
+  defp apply_all_modifiers(recurrences, %{modifiers: modifiers, rule: rule}) do
     Enum.reduce(modifiers, recurrences, fn modifier, acc ->
       apply_modifier(modifier, rule, acc)
       |> Enum.reduce([], &only_valid_dates/2)
@@ -424,12 +400,12 @@ defmodule ICal.Recurrence.Generate do
 
   defp apply_modifier(_, _rule, acc), do: acc
 
-  defp exclude(recurrences, starting_date) do
-    Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, starting_date) end)
+  defp exclude(recurrences, start_date) do
+    Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, start_date) end)
   end
 
-  defp ends_by(%{count: count}) when is_integer(count), do: count
-  defp ends_by(%{until: until}), do: until
+  defp rule_limit(%{count: count}) when is_integer(count), do: count
+  defp rule_limit(%{until: until}), do: until
 
   # TODO: is the start of the week needed here?
   def weekday(%Date{} = date) do
@@ -442,26 +418,27 @@ defmodule ICal.Recurrence.Generate do
 
   # when no more recurrences are generated for too long, then stop even if it could in theory
   # go further.
-  defp update_limit(limit, [], fruitless_searches), do: {limit, [], fruitless_searches + 1}
+  defp update_limit([], state),
+    do: {[], %{state | fruitless_searches: state.fruitless_searches + 1}}
 
-  # TODO: recurrence search depth limit
-  defp update_limit(limit, recurrences, _fruitless_searches) when is_integer(limit) do
+  defp update_limit(recurrences, %{limit: limit} = state) when is_integer(limit) do
     updated_limit = limit - Enum.count(recurrences)
 
     if updated_limit < 1 do
-      {nil, Enum.slice(recurrences, 0, limit), @fruitless_search_start_count}
+      {Enum.slice(recurrences, 0, limit), %{state | limit: :reached}}
     else
-      {updated_limit, recurrences, @fruitless_search_start_count}
+      {recurrences,
+       %{state | limit: updated_limit, fruitless_searches: @fruitless_search_start_count}}
     end
   end
 
-  defp update_limit(limit, recurrences, _fruitless_searches) do
-    index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit) end)
+  defp update_limit(recurrences, %{limit: limit_date} = state) do
+    index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
 
     if index != nil do
-      {nil, Enum.slice(recurrences, 0, index), @fruitless_search_start_count}
+      {Enum.slice(recurrences, 0, index), %{state | limit: :reached}}
     else
-      {limit, recurrences, @fruitless_search_start_count}
+      {recurrences, %{state | fruitless_searches: @fruitless_search_start_count}}
     end
   end
 
@@ -474,15 +451,15 @@ defmodule ICal.Recurrence.Generate do
     Date.range(first, last) |> Enum.map(fn date -> DateTime.new!(date, time) end)
   end
 
-  defp shift(%DateTime{} = starting_date, interval), do: DateTime.shift(starting_date, interval)
-  defp shift(%Date{} = starting_date, interval), do: Date.shift(starting_date, interval)
+  defp shift(%DateTime{} = start_date, interval), do: DateTime.shift(start_date, interval)
+  defp shift(%Date{} = start_date, interval), do: Date.shift(start_date, interval)
 
-  def week_number_bookends(starting_date, week) do
+  def week_number_bookends(start_date, week) do
     # shift the week
     if week > 0 do
       # positive week number, start from first w of the year
       end_date =
-        Date.new!(starting_date.year, 1, 1)
+        Date.new!(start_date.year, 1, 1)
         |> Date.end_of_week()
         |> ensure_end_of_first_week()
         |> Date.shift(week: week - 1)
@@ -495,7 +472,7 @@ defmodule ICal.Recurrence.Generate do
       # and since it is already on the last week, move one less week than requested
       # e.g. the -1 week is 0 weeks from the last week of the year
       start_date =
-        Date.new!(starting_date.year + 1, 1, 1)
+        Date.new!(start_date.year + 1, 1, 1)
         |> Date.end_of_week()
         |> Date.shift(day: 1)
         |> Date.shift(week: week)
