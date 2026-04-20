@@ -1,5 +1,14 @@
 defmodule ICal.Recurrence.State do
-  defstruct [:limit, :start_date, :interval, :modifiers, :rule, fruitless_searches: 0]
+  defstruct [
+    :limit,
+    :start_date,
+    :end_date,
+    :interval,
+    :modifiers,
+    :rule,
+    exclude_dates: [],
+    fruitless_searches: 0
+  ]
 
   @type recurrence :: Date.t() | DateTime.t() | NaiveDateTime.t()
   @type modifier_scope ::
@@ -17,9 +26,11 @@ defmodule ICal.Recurrence.State do
   @type t :: %__MODULE__{
           limit: :reached | non_neg_integer() | recurrence,
           start_date: recurrence,
+          end_date: recurrence | nil,
           interval: Duration.duration(),
           modifiers: [{modifier_scope, modifier_mode}],
           rule: ICal.Recurrence.t(),
+          exclude_dates: [recurrence],
           fruitless_searches: non_neg_integer()
         }
 end

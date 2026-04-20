@@ -13,30 +13,29 @@ defmodule ICal.Recurrence.Generate do
   @type recurrence :: Date.t() | DateTime.t() | NaiveDateTime.t()
   @type error_reasons :: :search_exhaustion | :no_defined_limit
 
+  @spec init(ICal.Recurrence.t(), start_date :: recurrence, end_date :: nil | recurrence) ::
+          State.t()
+  def init(rule, start_date, end_date \\ nil, exclude_dates \\ []) do
+    %State{
+      start_date: start_date,
+      interval: rule_interval(rule),
+      modifiers: rule_modifiers(rule),
+      rule: rule,
+      exclude_dates: exclude_dates
+    }
+    |> add_rule_limits(rule, end_date)
+  end
+
   @spec all(ICal.Recurrence.t(), starting_from :: recurrence) ::
           {:ok, [recurrence]} | {:error, error_reasons, [recurrence]}
   def all(rule, start_date) do
-    %State{
-      limit: rule_limit(rule),
-      start_date: start_date,
-      interval: rule_interval(rule),
-      modifiers: rule_modifiers(rule),
-      rule: rule
-    }
+    init(rule, start_date)
     |> generate_all()
   end
 
-  @spec one_set(ICal.Recurrence.t(), starting_from :: recurrence) ::
-          {:ok, [recurrence]} | {:error, error_reasons, [recurrence]}
-  def one_set(rule, start_date) do
-    %State{
-      limit: rule_limit(rule),
-      start_date: start_date,
-      interval: rule_interval(rule),
-      modifiers: rule_modifiers(rule),
-      rule: rule
-    }
-    |> generate_set()
+  @spec one_set(State.t()) :: {[recurrence], State.t()}
+  def one_set(%State{} = state) do
+    generate_set(state)
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :yearly, interval: interval}) do
@@ -191,7 +190,7 @@ defmodule ICal.Recurrence.Generate do
     {recurrences, new_state} = generate_set(state)
 
     if new_state.limit == :reached do
-     {:ok,  acc ++ recurrences}
+      {:ok, acc ++ recurrences}
     else
       generate_all(new_state, acc ++ recurrences)
     end
@@ -201,7 +200,7 @@ defmodule ICal.Recurrence.Generate do
     recurrences =
       [state.start_date]
       |> apply_all_modifiers(state)
-      |> exclude(state.start_date)
+      |> exclude(state)
 
     new_state = %{state | start_date: shift(state.start_date, state.interval)}
     update_limit(recurrences, new_state)
@@ -400,12 +399,27 @@ defmodule ICal.Recurrence.Generate do
 
   defp apply_modifier(_, _rule, acc), do: acc
 
-  defp exclude(recurrences, start_date) do
-    Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, start_date) end)
+  defp exclude(recurrences, %{start_date: start_date, exclude_dates: exclude_dates}) do
+    Enum.filter(recurrences, fn recurrence ->
+      is_not_before(recurrence, start_date) and not in_dates?(exclude_dates, recurrence)
+    end)
   end
 
-  defp rule_limit(%{count: count}) when is_integer(count), do: count
-  defp rule_limit(%{until: until}), do: until
+  defp in_dates?(all_dates, recurrence) do
+    Enum.reduce(all_dates, false, fn date, acc -> acc or equal?(date, recurrence) end)
+  end
+
+  defp add_rule_limits(state, %{count: count}, end_date) when is_integer(count) do
+    %{state | limit: count, end_date: end_date}
+  end
+
+  defp add_rule_limits(state, %{until: until}, end_date) do
+    if end_date != nil and is_after(until, end_date) do
+      %{state | limit: end_date, end_date: end_date}
+    else
+      %{state | limit: until, end_date: end_date}
+    end
+  end
 
   # TODO: is the start of the week needed here?
   def weekday(%Date{} = date) do
@@ -418,8 +432,9 @@ defmodule ICal.Recurrence.Generate do
 
   # when no more recurrences are generated for too long, then stop even if it could in theory
   # go further.
-  defp update_limit([], state),
-    do: {[], %{state | fruitless_searches: state.fruitless_searches + 1}}
+  defp update_limit([], state) do
+    {[], %{state | fruitless_searches: state.fruitless_searches + 1}}
+  end
 
   defp update_limit(recurrences, %{limit: limit} = state) when is_integer(limit) do
     updated_limit = limit - Enum.count(recurrences)
@@ -427,18 +442,33 @@ defmodule ICal.Recurrence.Generate do
     if updated_limit < 1 do
       {Enum.slice(recurrences, 0, limit), %{state | limit: :reached}}
     else
-      {recurrences,
-       %{state | limit: updated_limit, fruitless_searches: @fruitless_search_start_count}}
+      new_state = %{
+        state
+        | limit: updated_limit,
+          fruitless_searches: @fruitless_search_start_count
+      }
+
+      update_limit_by_date(recurrences, state.end_date, new_state)
     end
   end
 
   defp update_limit(recurrences, %{limit: limit_date} = state) do
+    new_state = %{state | fruitless_searches: @fruitless_search_start_count}
+
+    update_limit_by_date(recurrences, limit_date, new_state)
+  end
+
+  defp update_limit_by_date(recurrences, nil, state) do
+    {recurrences, state}
+  end
+
+  defp update_limit_by_date(recurrences, limit_date, state) do
     index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
 
     if index != nil do
       {Enum.slice(recurrences, 0, index), %{state | limit: :reached}}
     else
-      {recurrences, %{state | fruitless_searches: @fruitless_search_start_count}}
+      {recurrences, state}
     end
   end
 
@@ -519,6 +549,13 @@ defmodule ICal.Recurrence.Generate do
   defp is_between_inclusive(earliest, middle, latest) do
     is_not_after(earliest, middle) and is_not_after(middle, latest)
   end
+
+  defp equal?(%Date{} = d, %DateTime{} = dt), do: equal?(d, DateTime.to_date(dt))
+
+  defp equal?(%DateTime{} = dt, %Date{} = d),
+    do: equal?(dt, DateTime.new!(d, Time.new(0, 0, 0), dt.time_zone))
+
+  defp equal?(l, r), do: l == r
 
   defp is_not_before(%Date{} = d, %DateTime{} = dt), do: is_not_before(d, DateTime.to_date(dt))
   defp is_not_before(%DateTime{} = dt, %Date{} = d), do: is_not_before(DateTime.to_date(dt), d)
