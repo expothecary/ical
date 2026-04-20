@@ -13,7 +13,8 @@ A library for reading and writing iCalendar data.
   * Journals
   * Timezones
   * Alarms
-* Recurrence calculations (currrently only `BYDAY` is supported)
+* Recurrence calculations
+* Alarm calculations
 * Compatibility
   * RFC 5545 compliant
   * Support for common non-standard properties, including:
@@ -27,11 +28,6 @@ A library for reading and writing iCalendar data.
 Components that will eventually be supported (in rough order):
 
 * Free/busy (VFREEBUSY)
-
-Planned features:
-
-* Alarm calculation
-* Expanded recurrency calculation
 
 ## Usage
 
