@@ -136,7 +136,10 @@ defmodule ICal.Recurrence do
   end
 
   @doc """
-  Given a component with a recurrence rule, return a stream of recurrences for it.
+  Given a component that supports recurrence, returns a stream of recurrences for it.
+
+  The stream takes into consideration any recurrence rules (RRULE), recurrence dates (RDATE),
+  and excluded dates (EXDATE). It starts at the start date (DTSTART) defined in the component.
 
   Warning: this may create a very large sequence of recurrences.
 
