@@ -328,7 +328,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
     end
@@ -338,7 +338,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count, by_month: [1, 4, 6]}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
       [recurrence | _] = recurrences
@@ -357,7 +357,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
     end
@@ -374,7 +374,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
       [recurrence | _] = recurrences
@@ -386,7 +386,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count, by_week_number: [3, 17]}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -428,7 +428,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -446,7 +446,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count, by_year_day: [15, 50]}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -471,7 +471,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      recurrences = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -526,7 +526,7 @@ defmodule ICal.RecurrenceTest do
       dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=19971224T000000Z")
 
-      recurrences =
+      {:ok, recurrences} =
         Helper.time(
           fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
           "daily until December 24, 1997"
