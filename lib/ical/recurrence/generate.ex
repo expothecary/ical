@@ -265,7 +265,7 @@ defmodule ICal.Recurrence.Generate do
     Enum.reduce(acc, [], fn recurrence, acc ->
       acc ++
         Enum.map(months, fn month ->
-          if month > recurrence.month do
+          if month >= recurrence.month do
             %{recurrence | month: month}
           else
             %{recurrence | year: recurrence.year + 1, month: month}
