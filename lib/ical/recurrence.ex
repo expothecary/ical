@@ -160,7 +160,12 @@ defmodule ICal.Recurrence do
             |> Enum.to_list()
   """
 
-  @type recurrable_component :: %{}
+  @type recurrable_component :: %{
+          required(:rrule) => t() | nil,
+          required(:dtstart) => Date.t() | DateTime.t() | nil,
+          optional(:dtend) => Date.t() | DateTime.t() | nil,
+          optional(:rdates) => [Date.t() | DateTime.t() | ICal.period()]
+        }
 
   @spec stream(recurrable_component, nil | %Date{} | %DateTime{}) :: Enumerable.t()
   def stream(component, end_date \\ nil) do
@@ -173,7 +178,10 @@ defmodule ICal.Recurrence do
     Stream.transform([], [], fn _, acc -> {:halt, acc} end)
   end
 
-  defp create_recurrence_stream(%{rrule: rule, dtstart: start_date, exdates: exclude_dates}, end_date) do
+  defp create_recurrence_stream(
+         %{rrule: rule, dtstart: start_date, exdates: exclude_dates},
+         end_date
+       ) do
     Stream.resource(
       fn -> {[], Generate.init(rule, start_date, end_date, exclude_dates)} end,
       fn state -> next_recurring_event(state) end,
