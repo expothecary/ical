@@ -172,6 +172,20 @@ defmodule ICal.Recurrence do
     create_recurrence_stream(component, end_date)
   end
 
+  @doc """
+  Creates a stream of recurrences based on an `%ICal.Recurrence{}`, a starting date,
+  and an optional ending date
+  """
+  @spec stream(t(), start_date :: Date.t() | DateTime.t() | NaiveDateTime.t()) ::
+          Enumerable.t()
+  def stream(%__MODULE__{} = rule, start_date, end_date) do
+    Stream.resource(
+      fn -> {[], Generate.init(rule, start_date, end_date)} end,
+      fn state -> next_recurring_event(state) end,
+      fn state -> state end
+    )
+  end
+
   # no occurences, so simply drop out, and return the component itself as the only recurrence
   defp create_recurrence_stream(%{rrule: rule, dtstart: start_date} = component, _end_date)
        when is_nil(rule) or is_nil(start_date) do
