@@ -35,8 +35,13 @@ defmodule ICal.Alarm do
       |> Enum.take(1)
 
     case recurrences do
-      [recurrence] -> calculate_alarms(recurrence)
-      _ -> []
+      [recurrence] ->
+        recurrence
+        |> ICal.Recurrence.apply(component)
+        |> calculate_alarms()
+
+      _ ->
+        []
     end
   end
 
