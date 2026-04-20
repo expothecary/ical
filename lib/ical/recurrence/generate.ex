@@ -27,6 +27,21 @@ defmodule ICal.Recurrence.Generate do
     )
   end
 
+  @spec one_set(ICal.Recurrence.t(), starting_from :: recurrence) ::
+          {:ok, [recurrence]} | {:error, error_reasons, [recurrence]}
+  def one_set(rule, starting_date) do
+    interval = rule_interval(rule)
+    modifiers = rule_modifiers(rule)
+
+    generate_all(
+      ends_by(rule),
+      starting_date,
+      interval,
+      modifiers,
+      rule
+    )
+  end
+
   defp rule_interval(%ICal.Recurrence{frequency: :yearly, interval: interval}) do
     [year: interval]
   end
@@ -158,50 +173,43 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp generate_all(limit, starting_date, interval, by, rule) do
+  defp generate_all(limit, starting_date, interval, modifiers, rule) do
     generate_all(
       limit,
       starting_date,
       interval,
-      by,
+      modifiers,
       rule,
       0,
       []
     )
   end
 
-  defp generate_all(nil, _starting_date, _interval, _by, _rule, _fruitless_searches, _acc) do
+  defp generate_all(nil, _starting_date, _interval, _modifiers, _rule, _fruitless_searches, _acc) do
     {:error, :no_defined_limit, []}
   end
 
-  defp generate_all(limit, _starting_date, _interval, _by, _rule, _fruitless_searches, acc)
+  defp generate_all(limit, _starting_date, _interval, _modifiers, _rule, _fruitless_searches, acc)
        when is_integer(limit) and limit < 1, do: {:ok, acc}
 
-  defp generate_all(_limit, _starting_date, _interval, _by, rule, fruitless_searches, acc)
+  defp generate_all(_limit, _starting_date, _interval, _modifiers, rule, fruitless_searches, acc)
        when fruitless_searches > @max_fruitless_search_depth do
     Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
     {:error, :search_exhaustion, acc}
   end
 
-  defp generate_all(limit, starting_date, interval, by, rule, fruitless_searches, acc) do
-    recurrences =
-      [starting_date]
-      |> apply_all_by(by, rule)
-      |> exclude(starting_date)
-
-    {limit, recurrences, fruitless_searches} =
-      update_limit(limit, recurrences, fruitless_searches)
+  defp generate_all(limit, starting_date, interval, modifiers, rule, fruitless_searches, acc) do
+    {recurrences, next_starting_date, limit, fruitless_searches} =
+      generate_set(limit, starting_date, interval, modifiers, rule, fruitless_searches)
 
     if limit == nil do
       acc ++ recurrences
     else
-      next_starting_date = shift(starting_date, interval)
-
       generate_all(
         limit,
         next_starting_date,
         interval,
-        by,
+        modifiers,
         rule,
         fruitless_searches,
         acc ++ recurrences
@@ -209,9 +217,23 @@ defmodule ICal.Recurrence.Generate do
     end
   end
 
-  defp apply_all_by(recurrences, by, rule) do
-    Enum.reduce(by, recurrences, fn by, acc ->
-      apply_by(by, rule, acc)
+  defp generate_set(limit, starting_date, interval, modifiers, rule, fruitless_searches) do
+    recurrences =
+      [starting_date]
+      |> apply_all_modifiers(modifiers, rule)
+      |> exclude(starting_date)
+
+    {limit, recurrences, fruitless_searches} =
+      update_limit(limit, recurrences, fruitless_searches)
+
+    next_starting_date = shift(starting_date, interval)
+
+    {recurrences, next_starting_date, limit, fruitless_searches}
+  end
+
+  defp apply_all_modifiers(recurrences, modifiers, rule) do
+    Enum.reduce(modifiers, recurrences, fn modifier, acc ->
+      apply_modifier(modifier, rule, acc)
       |> Enum.reduce([], &only_valid_dates/2)
       |> Enum.sort(&compare_recurrences/2)
     end)
@@ -246,7 +268,7 @@ defmodule ICal.Recurrence.Generate do
   defp compare_recurrences(%NaiveDateTime{} = l, r), do: NaiveDateTime.compare(l, r) == :lt
   defp compare_recurrences(%Date{} = l, r), do: Date.compare(l, r) == :lt
 
-  defp apply_by({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
+  defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       acc ++
         Enum.map(months, fn month ->
@@ -259,13 +281,14 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_by({:by_month, :limit}, %{by_month: months}, acc) when has_some(months) do
+  defp apply_modifier({:by_month, :limit}, %{by_month: months}, acc) when has_some(months) do
     Enum.filter(acc, fn recurrence ->
       Enum.member?(months, recurrence.month)
     end)
   end
 
-  defp apply_by({:by_week_number, :expand}, %{by_week_number: weeks}, acc) when has_some(weeks) do
+  defp apply_modifier({:by_week_number, :expand}, %{by_week_number: weeks}, acc)
+       when has_some(weeks) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       recurrence_week = week_of_year(recurrence)
 
@@ -286,7 +309,8 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_by({:by_week_number, :limit}, %{by_week_number: weeks}, acc) when has_some(weeks) do
+  defp apply_modifier({:by_week_number, :limit}, %{by_week_number: weeks}, acc)
+       when has_some(weeks) do
     Enum.filter(acc, fn recurrence ->
       Enum.find(weeks, fn week ->
         {week_start, week_end} = week_number_bookends(recurrence, week)
@@ -295,7 +319,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_by({:by_year_day, :expand}, %{by_year_day: year_days}, acc)
+  defp apply_modifier({:by_year_day, :expand}, %{by_year_day: year_days}, acc)
        when has_some(year_days) do
     Enum.uniq_by(acc, fn recurrence -> recurrence.year end)
     |> Enum.flat_map(fn recurrence ->
@@ -312,14 +336,14 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_by({:by_year_day, :limit}, %{by_year_day: year_days}, acc)
+  defp apply_modifier({:by_year_day, :limit}, %{by_year_day: year_days}, acc)
        when has_some(year_days) do
     Enum.filter(acc, fn recurrence ->
       Enum.member?(year_days, Date.day_of_year(recurrence))
     end)
   end
 
-  defp apply_by({:by_month_day, :expand}, %{by_month_day: month_days}, acc)
+  defp apply_modifier({:by_month_day, :expand}, %{by_month_day: month_days}, acc)
        when has_some(month_days) do
     acc
     |> Enum.flat_map(fn recurrence ->
@@ -329,7 +353,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_by({:by_month_day, :limit}, %{by_month_day: month_days}, acc)
+  defp apply_modifier({:by_month_day, :limit}, %{by_month_day: month_days}, acc)
        when has_some(month_days) do
     Enum.filter(acc, fn recurrence ->
       Enum.member?(month_days, recurrence.day)
@@ -337,19 +361,19 @@ defmodule ICal.Recurrence.Generate do
   end
 
   # TODO
-  defp apply_by({:by_day, :expand_year}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_modifier({:by_day, :expand_year}, %{by_day: days}, acc) when has_some(days) do
     acc
   end
 
-  defp apply_by({:by_day, :expand_month}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_modifier({:by_day, :expand_month}, %{by_day: days}, acc) when has_some(days) do
     acc
   end
 
-  defp apply_by({:by_day, :expand_week}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_modifier({:by_day, :expand_week}, %{by_day: days}, acc) when has_some(days) do
     acc
   end
 
-  defp apply_by({:by_day, :limit}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_modifier({:by_day, :limit}, %{by_day: days}, acc) when has_some(days) do
     Enum.filter(acc, fn recurrence ->
       target = weekday(recurrence)
       Enum.find(days, fn {_, allowed_day} -> allowed_day == target end) != nil
@@ -357,36 +381,36 @@ defmodule ICal.Recurrence.Generate do
   end
 
   # TODO
-  defp apply_by({:by_hour, :expand}, %{by_hour: hours}, acc) when has_some(hours) do
+  defp apply_modifier({:by_hour, :expand}, %{by_hour: hours}, acc) when has_some(hours) do
     acc
   end
 
   # TODO
-  defp apply_by({:by_hour, :limit}, %{by_hour: hours}, acc) when has_some(hours) do
+  defp apply_modifier({:by_hour, :limit}, %{by_hour: hours}, acc) when has_some(hours) do
     acc
   end
 
   # TODO
-  defp apply_by({:by_minute, :expand}, %{by_minute: minutes}, acc) when has_some(minutes) do
+  defp apply_modifier({:by_minute, :expand}, %{by_minute: minutes}, acc) when has_some(minutes) do
     acc
   end
 
   # TODO
-  defp apply_by({:by_minute, :limit}, %{by_minute: minutes}, acc) when has_some(minutes) do
+  defp apply_modifier({:by_minute, :limit}, %{by_minute: minutes}, acc) when has_some(minutes) do
     acc
   end
 
   # TODO
-  defp apply_by({:by_second, :expand}, %{by_second: seconds}, acc) when has_some(seconds) do
+  defp apply_modifier({:by_second, :expand}, %{by_second: seconds}, acc) when has_some(seconds) do
     acc
   end
 
   # TODO
-  defp apply_by({:by_second, :limit}, %{by_second: seconds}, acc) when has_some(seconds) do
+  defp apply_modifier({:by_second, :limit}, %{by_second: seconds}, acc) when has_some(seconds) do
     acc
   end
 
-  defp apply_by({:by_set_position, :limit}, %{by_set_position: index}, recurrences)
+  defp apply_modifier({:by_set_position, :limit}, %{by_set_position: index}, recurrences)
        when is_integer(index) and index != 0 do
     index = if index > 0, do: index - 1, else: index
 
@@ -398,7 +422,7 @@ defmodule ICal.Recurrence.Generate do
     recurrences
   end
 
-  defp apply_by(_, _rule, acc), do: acc
+  defp apply_modifier(_, _rule, acc), do: acc
 
   defp exclude(recurrences, starting_date) do
     Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, starting_date) end)
