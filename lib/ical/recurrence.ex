@@ -173,15 +173,23 @@ defmodule ICal.Recurrence do
   end
 
   # no occurences, so simply drop out, and return the component itself as the only recurrence
-  defp create_recurrence_stream(%{rrule: rule, dtstart: start_date}, _end_date)
+  defp create_recurrence_stream(%{rrule: rule, dtstart: start_date} = component, _end_date)
        when is_nil(rule) or is_nil(start_date) do
-    Stream.transform([], [], fn _, acc -> {:halt, acc} end)
+    Stream.resource(
+      fn -> Map.get(component, :rdates, []) end,
+      fn
+        nil -> {:halt, nil}
+        rdates -> {rdates, nil}
+      end,
+      fn state -> state end
+    )
   end
 
   defp create_recurrence_stream(
          %{rrule: rule, dtstart: start_date, exdates: exclude_dates},
          end_date
        ) do
+    # TODO add rdates into the stream
     Stream.resource(
       fn -> {[], Generate.init(rule, start_date, end_date, exclude_dates)} end,
       fn state -> next_recurring_event(state) end,
