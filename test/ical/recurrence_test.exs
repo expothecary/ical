@@ -167,162 +167,128 @@ defmodule ICal.RecurrenceTest do
     end
   end
 
-  describe "RRULE: generating recurrences" do
-    test "event with no recurrences" do
+  describe "Recurrence stream" do
+    test "correctly handles event with no recurrences" do
       assert [] ==
                Fixtures.one_event()
                |> ICal.Recurrence.stream()
                |> Enum.to_list()
     end
 
-    test "daily reccuring event with until" do
-      events =
+    test "generates daily reccuring event with until" do
+      recurrences =
         Helper.test_data("recurrance_daily_until")
         |> ICal.from_ics()
         |> Map.get(:events)
         |> Enum.map(fn event ->
-          recurrences =
-            ICal.Recurrence.stream(event)
-            |> Enum.to_list()
-
-          [event | recurrences]
+          ICal.Recurrence.stream(event)
+          |> Enum.to_list()
         end)
         |> List.flatten()
 
-      assert events |> Enum.count() == 8
+      assert Enum.count(recurrences) == 8
 
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-24 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-25 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-26 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-27 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-28 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-29 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-30 08:30:00Z]
-      [event] = events
-      assert event.dtstart == ~U[2015-12-31 08:30:00Z]
+      assert recurrences == [
+               ~U[2015-12-24 08:30:00Z],
+               ~U[2015-12-25 08:30:00Z],
+               ~U[2015-12-26 08:30:00Z],
+               ~U[2015-12-27 08:30:00Z],
+               ~U[2015-12-28 08:30:00Z],
+               ~U[2015-12-29 08:30:00Z],
+               ~U[2015-12-30 08:30:00Z],
+               ~U[2015-12-31 08:30:00Z]
+             ]
     end
 
-    test "daily reccuring event with count" do
-      events =
+    test "generates daily reccuring event with count" do
+      recurrences =
         Helper.test_data("recurrance_with_count")
         |> ICal.from_ics()
         |> Map.get(:events)
         |> Enum.map(fn event ->
-          recurrences =
-            ICal.Recurrence.stream(event)
-            |> Enum.to_list()
-
-          [event | recurrences]
+          ICal.Recurrence.stream(event)
+          |> Enum.to_list()
         end)
         |> List.flatten()
 
-      assert events |> Enum.count() == 3
+      assert Enum.count(recurrences) == 3
 
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-24 08:30:00Z]
-      [event | _events] = events
-      assert event.dtstart == ~U[2015-12-25 08:30:00Z]
+      assert recurrences == [
+               ~U[2015-12-24 08:30:00Z],
+               ~U[2015-12-25 08:30:00Z],
+               ~U[2015-12-26 08:30:00Z]
+             ]
     end
 
-    test "monthly reccuring event with until" do
-      events =
+    test "generates monthly reccuring event with until" do
+      recurrences =
         Helper.test_data("recurrance_with_until_monthly")
         |> ICal.from_ics()
         |> Map.get(:events)
         |> Enum.map(fn event ->
-          recurrences =
-            ICal.Recurrence.stream(event)
-            |> Enum.to_list()
-
-          [event | recurrences]
+          ICal.Recurrence.stream(event)
+          |> Enum.to_list()
         end)
         |> List.flatten()
 
-      assert events |> Enum.count() == 7
+      assert Enum.count(recurrences) == 7
 
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-24 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-01-24 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-02-24 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-03-24 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-04-24 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-05-24 08:30:00Z]
-      [event] = events
-      assert event.dtstart == ~U[2016-06-24 08:30:00Z]
+      assert recurrences == [
+               ~U[2015-12-24 08:30:00Z],
+               ~U[2016-01-24 08:30:00Z],
+               ~U[2016-02-24 08:30:00Z],
+               ~U[2016-03-24 08:30:00Z],
+               ~U[2016-04-24 08:30:00Z],
+               ~U[2016-05-24 08:30:00Z],
+               ~U[2016-06-24 08:30:00Z]
+             ]
     end
 
-    test "weekly reccuring event with until" do
-      events =
+    test "generates weekly reccuring event with until" do
+      recurrences =
         Helper.test_data("recurrance_with_until_weekly")
         |> ICal.from_ics()
         |> Map.get(:events)
         |> Enum.map(fn event ->
-          recurrences =
-            ICal.Recurrence.stream(event)
-            |> Enum.to_list()
-
-          [event | recurrences]
+          ICal.Recurrence.stream(event)
+          |> Enum.to_list()
         end)
         |> List.flatten()
 
-      assert events |> Enum.count() == 6
+      assert Enum.count(recurrences) == 6
 
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-24 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2015-12-31 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-01-07 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-01-14 08:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2016-01-21 08:30:00Z]
-      [event] = events
-      assert event.dtstart == ~U[2016-01-28 08:30:00Z]
+      assert recurrences == [
+               ~U[2015-12-24 08:30:00Z],
+               ~U[2015-12-31 08:30:00Z],
+               ~U[2016-01-07 08:30:00Z],
+               ~U[2016-01-14 08:30:00Z],
+               ~U[2016-01-21 08:30:00Z],
+               ~U[2016-01-28 08:30:00Z]
+             ]
     end
 
-    test "exdates not included in reccuring event with until and byday, ignoring invalid byday value" do
-      events =
+    test "ensures exdates not included in reccuring event with until and byday, ignoring invalid byday value" do
+      recurrences =
         Helper.test_data("recurrence_until_byday")
         |> ICal.from_ics()
         |> Map.get(:events)
         |> Enum.map(fn event ->
-          recurrences =
-            ICal.Recurrence.stream(event)
-            |> Enum.to_list()
-
-          [event | recurrences]
+          ICal.Recurrence.stream(event)
+          |> Enum.to_list()
         end)
         |> List.flatten()
 
-      assert events |> Enum.count() == 5
+      assert Enum.count(recurrences) == 3
 
-      [event | events] = events
-      assert event.dtstart == ~U[2020-09-03 14:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2020-09-30 14:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2020-10-01 14:30:00Z]
-      [event | events] = events
-      assert event.dtstart == ~U[2020-10-14 14:30:00Z]
-      [event] = events
-      assert event.dtstart == ~U[2020-10-15 14:30:00Z]
+      assert recurrences == [
+               ~U[2020-09-03 14:30:00Z],
+               ~U[2020-10-01 14:30:00Z],
+               ~U[2020-10-15 14:30:00Z]
+             ]
     end
   end
 
-  describe "RRULE: generate with yearly frequence" do
+  describe "Recurrence generation with yearly frequence" do
     test "simple" do
       count = 5
       rule = %ICal.Recurrence{frequency: :yearly, count: count}
@@ -485,7 +451,7 @@ defmodule ICal.RecurrenceTest do
     end
   end
 
-  describe "RRULE: generate with daily frequence" do
+  describe "Recurrence generation with daily frequence" do
     test "every day in january for 3 years" do
       dtstart = DateTime.new!(~D[1998-01-31], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1")
@@ -543,7 +509,7 @@ defmodule ICal.RecurrenceTest do
     end
   end
 
-  describe "RRULE: generate with weekly frequency" do
+  describe "Recurrence generation with weekly frequency" do
     test "weekly for 10 weeks" do
       dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=WEEKLY;COUNT=10")
