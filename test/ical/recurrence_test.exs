@@ -348,7 +348,7 @@ defmodule ICal.RecurrenceTest do
 
       assert Enum.count(recurrences) == count
       [recurrence | _] = recurrences
-      assert recurrence.month == 6
+      assert %{month: 4} = recurrence
     end
 
     test "every day in january for 3 years using BYMONTH and BYDAY" do
@@ -407,7 +407,7 @@ defmodule ICal.RecurrenceTest do
 
       assert Enum.count(recurrences) == count
       [recurrence | _] = recurrences
-      assert recurrence.month == 6
+      assert %{month: 4} = recurrence
     end
 
     test "by week number" do
