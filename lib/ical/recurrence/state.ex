@@ -6,7 +6,8 @@ defmodule ICal.Recurrence.State do
     :interval,
     :modifiers,
     :rule,
-    exclude_dates: [],
+    exclude_dates: nil,
+    other_recurrences: nil,
     fruitless_searches: 0
   ]
 

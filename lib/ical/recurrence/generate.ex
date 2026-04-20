@@ -10,20 +10,30 @@ defmodule ICal.Recurrence.Generate do
   defguard has_some(x) when is_list(x) and x != []
   defguard has_none(x) when not has_some(x)
 
-  @type recurrence :: Date.t() | DateTime.t() | NaiveDateTime.t()
+  @type recurrence :: Date.t() | DateTime.t()
   @type error_reasons :: :search_exhaustion | :no_defined_limit
+  @type init_option ::
+          {:end_date, recurrence}
+          | {:exclude_dates, [recurrence]}
+          | {:other_recurrences, [recurrence]}
 
-  @spec init(ICal.Recurrence.t(), start_date :: recurrence, end_date :: nil | recurrence) ::
+  @spec init(ICal.Recurrence.t(), start_date :: recurrence, options :: [init_option]) ::
           State.t()
-  def init(rule, start_date, end_date \\ nil, exclude_dates \\ []) do
+  def init(rule, start_date, options \\ []) do
+    other_recurrences =
+      options
+      |> resolve_option(:other_recurrences, [])
+      |> Enum.sort(&compare_recurrences/2)
+
     %State{
       start_date: start_date,
       interval: rule_interval(rule),
       modifiers: rule_modifiers(rule),
       rule: rule,
-      exclude_dates: exclude_dates
+      exclude_dates: resolve_option(options, :exclude_dates, []),
+      other_recurrences: other_recurrences
     }
-    |> add_rule_limits(rule, end_date)
+    |> add_rule_limits(rule, Keyword.get(options, :end_date))
   end
 
   @spec all(ICal.Recurrence.t(), starting_from :: recurrence) ::
@@ -36,6 +46,13 @@ defmodule ICal.Recurrence.Generate do
   @spec one_set(State.t()) :: {[recurrence], State.t()}
   def one_set(%State{} = state) do
     generate_set(state)
+  end
+
+  defp resolve_option(options, key, default) do
+    case Keyword.get(options, key) do
+      nil -> default
+      value -> value
+    end
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :yearly, interval: interval}) do
@@ -177,8 +194,9 @@ defmodule ICal.Recurrence.Generate do
     {:error, :no_defined_limit, acc}
   end
 
-  defp generate_all(%{limit: limit}, acc)
-       when is_integer(limit) and limit < 1, do: {:ok, acc}
+  defp generate_all(%{limit: limit}, acc) when is_integer(limit) and limit < 1 do
+    {:ok, acc}
+  end
 
   defp generate_all(%{fruitless_searches: fruitless_searches, rule: rule}, acc)
        when fruitless_searches > @max_fruitless_search_depth do
@@ -340,10 +358,12 @@ defmodule ICal.Recurrence.Generate do
     acc
   end
 
+  # TODO
   defp apply_modifier({:by_day, :expand_month}, %{by_day: days}, acc) when has_some(days) do
     acc
   end
 
+  # TODO
   defp apply_modifier({:by_day, :expand_week}, %{by_day: days}, acc) when has_some(days) do
     acc
   end
@@ -409,6 +429,62 @@ defmodule ICal.Recurrence.Generate do
     Enum.reduce(all_dates, false, fn date, acc -> acc or equal?(date, recurrence) end)
   end
 
+  defp include_all_other(recurrences, %{other_recurrences: []} = state) do
+    {recurrences, state}
+  end
+
+  defp include_all_other(recurrences, %{other_recurrences: other_recurrences} = state) do
+    {
+      Enum.sort(recurrences ++ other_recurrences, &compare_recurrences/2),
+      %{state | other_recurrences: []}
+    }
+  end
+
+  defp include_other(recurrences, %{limit: :reached} = state) do
+    {recurrences, remaining_other} = merge_other(recurrences, state.other_recurrences)
+    include_all_other(recurrences, %{state | other_recurrences: remaining_other})
+  end
+
+  defp include_other(recurrences, %{other_recurrences: [_ | _] = other_recurrences} = state) do
+    {recurrences, remaining_other} = merge_other(recurrences, other_recurrences)
+    {recurrences, %{state | other_recurrences: remaining_other}}
+  end
+
+  defp include_other(recurrences, state) do
+    {recurrences, state}
+  end
+
+  @spec merge_other(recurrences :: [recurrence], other :: [recurrence]) ::
+          {merged_recurrences :: [recurrence], remaining_other :: [recurrence]}
+  defp merge_other(recurrences, []) do
+    {recurrences, []}
+  end
+
+  defp merge_other(recurrences, other_recurrences) do
+    Enum.reduce(recurrences, {[], other_recurrences}, fn
+      recurrence, {acc, []} ->
+        {acc ++ [recurrence], []}
+
+      recurrence, {acc, other_recurrences} ->
+        # other_recurrences is sorted, so only compare until a failure
+        index =
+          Enum.reduce_while(other_recurrences, -1, fn other_recurrence, index ->
+            if is_after(recurrence, other_recurrence) do
+              {:cont, index + 1}
+            else
+              {:halt, index}
+            end
+          end)
+
+        if index > -1 do
+          {inclusions, other_recurrences} = Enum.split(other_recurrences, index + 1)
+          {acc ++ inclusions ++ [recurrence], other_recurrences}
+        else
+          {acc ++ [recurrence], other_recurrences}
+        end
+    end)
+  end
+
   defp add_rule_limits(state, %{count: count}, end_date) when is_integer(count) do
     %{state | limit: count, end_date: end_date}
   end
@@ -421,7 +497,6 @@ defmodule ICal.Recurrence.Generate do
     end
   end
 
-  # TODO: is the start of the week needed here?
   def weekday(%Date{} = date) do
     index_date = Date.day_of_week(date)
     days = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
@@ -440,7 +515,9 @@ defmodule ICal.Recurrence.Generate do
     updated_limit = limit - Enum.count(recurrences)
 
     if updated_limit < 1 do
-      {Enum.slice(recurrences, 0, limit), %{state | limit: :reached}}
+      recurrences
+      |> Enum.slice(0, limit)
+      |> include_other(%{state | limit: :reached})
     else
       new_state = %{
         state
@@ -448,7 +525,7 @@ defmodule ICal.Recurrence.Generate do
           fruitless_searches: @fruitless_search_start_count
       }
 
-      update_limit_by_date(recurrences, state.end_date, new_state)
+      update_limit_by_date(recurrences, new_state.end_date, new_state)
     end
   end
 
@@ -459,16 +536,18 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp update_limit_by_date(recurrences, nil, state) do
-    {recurrences, state}
+    include_other(recurrences, state)
   end
 
   defp update_limit_by_date(recurrences, limit_date, state) do
     index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
 
     if index != nil do
-      {Enum.slice(recurrences, 0, index), %{state | limit: :reached}}
+      recurrences
+      |> Enum.slice(0, index)
+      |> include_other(%{state | limit: :reached})
     else
-      {recurrences, state}
+      include_other(recurrences, state)
     end
   end
 

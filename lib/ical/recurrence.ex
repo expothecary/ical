@@ -163,13 +163,50 @@ defmodule ICal.Recurrence do
   @type recurrable_component :: %{
           required(:rrule) => t() | nil,
           required(:dtstart) => Date.t() | DateTime.t() | nil,
+          optional(:exdates) => [Date.t() | DateTime.t()],
           optional(:dtend) => Date.t() | DateTime.t() | nil,
           optional(:rdates) => [Date.t() | DateTime.t() | ICal.period()]
         }
 
   @spec stream(recurrable_component, nil | %Date{} | %DateTime{}) :: Enumerable.t()
-  def stream(component, end_date \\ nil) do
-    create_recurrence_stream(component, end_date)
+  def stream(component, end_date \\ nil)
+
+  def stream(%{rrule: rule, dtstart: start_date} = component, _end_date)
+      when is_nil(rule) or is_nil(start_date) do
+    # this creates a stream with only the rdates of the component, if any,
+    # when the component lacks a rule or a start date
+    Stream.resource(
+      fn -> Map.get(component, :rdates) || [] end,
+      fn
+        nil -> {:halt, nil}
+        rdates -> {rdates, nil}
+      end,
+      fn state -> state end
+    )
+  end
+
+  def stream(%{rrule: rule, dtstart: start_date} = component, end_date) do
+    # TODO add rdates into the stream
+    other_recurrences =
+      case Map.get(component, :rdates) do
+        [] -> nil
+        nil -> nil
+        rdates -> rdates
+      end
+
+    exclude_dates =
+      case Map.get(component, :exdates) do
+        [] -> nil
+        nil -> nil
+        exdates -> exdates
+      end
+
+    Generate.init(rule, start_date,
+      end_date: end_date,
+      exclude_dates: exclude_dates,
+      other_recurrences: other_recurrences
+    )
+    |> create_stream()
   end
 
   @doc """
@@ -179,33 +216,13 @@ defmodule ICal.Recurrence do
   @spec stream(t(), start_date :: Date.t() | DateTime.t() | NaiveDateTime.t()) ::
           Enumerable.t()
   def stream(%__MODULE__{} = rule, start_date, end_date) do
-    Stream.resource(
-      fn -> {[], Generate.init(rule, start_date, end_date)} end,
-      fn state -> next_recurring_event(state) end,
-      fn state -> state end
-    )
+    Generate.init(rule, start_date, end_date)
+    |> create_stream()
   end
 
-  # no occurences, so simply drop out, and return the component itself as the only recurrence
-  defp create_recurrence_stream(%{rrule: rule, dtstart: start_date} = component, _end_date)
-       when is_nil(rule) or is_nil(start_date) do
+  defp create_stream(state) do
     Stream.resource(
-      fn -> Map.get(component, :rdates, []) end,
-      fn
-        nil -> {:halt, nil}
-        rdates -> {rdates, nil}
-      end,
-      fn state -> state end
-    )
-  end
-
-  defp create_recurrence_stream(
-         %{rrule: rule, dtstart: start_date, exdates: exclude_dates},
-         end_date
-       ) do
-    # TODO add rdates into the stream
-    Stream.resource(
-      fn -> {[], Generate.init(rule, start_date, end_date, exclude_dates)} end,
+      fn -> {[], state} end,
       fn state -> next_recurring_event(state) end,
       fn state -> state end
     )

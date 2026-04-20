@@ -27,6 +27,14 @@ defmodule ICal.Test.Helper do
     value
   end
 
+  def sort_dates(dates) do
+    Enum.sort(dates, &compare_dates/2)
+  end
+
+  defp compare_dates(%DateTime{} = l, r), do: DateTime.compare(l, r) == :lt
+  defp compare_dates(%NaiveDateTime{} = l, r), do: NaiveDateTime.compare(l, r) == :lt
+  defp compare_dates(%Date{} = l, r), do: Date.compare(l, r) == :lt
+
   defmacro __using__(_) do
     quote do
       alias ICal.Test.Helper
