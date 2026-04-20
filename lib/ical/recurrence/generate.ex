@@ -9,7 +9,53 @@ defmodule ICal.Recurrence.Generate do
   defguard has_some(x) when is_list(x) and x != []
   defguard has_none(x) when not has_some(x)
 
-  def all(%ICal.Recurrence{frequency: :yearly, interval: interval} = rule, dtstart) do
+  @type recurrence :: Date.t() | DateTime.t() | NaiveDateTime.t()
+  @type error_reasons :: :search_exhaustion | :no_defined_limit
+
+  @spec all(ICal.Recurrence.t(), starting_from :: recurrence) ::
+          {:ok, [recurrence]} | {:error, error_reasons, [recurrence]}
+  def all(rule, starting_date) do
+    interval = rule_interval(rule)
+    modifiers = rule_modifiers(rule)
+
+    generate_all(
+      ends_by(rule),
+      starting_date,
+      interval,
+      modifiers,
+      rule
+    )
+  end
+
+  defp rule_interval(%ICal.Recurrence{frequency: :yearly, interval: interval}) do
+    [year: interval]
+  end
+
+  defp rule_interval(%ICal.Recurrence{frequency: :monthly, interval: interval}) do
+    [month: interval]
+  end
+
+  defp rule_interval(%ICal.Recurrence{frequency: :weekly, interval: interval}) do
+    [week: interval]
+  end
+
+  defp rule_interval(%ICal.Recurrence{frequency: :daily, interval: interval}) do
+    [day: interval]
+  end
+
+  defp rule_interval(%ICal.Recurrence{frequency: :hourly, interval: interval}) do
+    [hour: interval]
+  end
+
+  defp rule_interval(%ICal.Recurrence{frequency: :minutely, interval: interval}) do
+    [minute: interval]
+  end
+
+  defp rule_interval(%ICal.Recurrence{frequency: :secondly, interval: interval}) do
+    [second: interval]
+  end
+
+  defp rule_modifiers(%ICal.Recurrence{frequency: :yearly} = rule) do
     week_number_application =
       if has_some(rule.by_month), do: :limit, else: :expand
 
@@ -25,143 +71,98 @@ defmodule ICal.Recurrence.Generate do
         true -> :expand_year
       end
 
-    modifiers =
-      [
-        {:by_month, :expand},
-        {:by_week_number, week_number_application},
-        {:by_year_day, year_day_appliaction},
-        {:by_month_day, :expand},
-        {:by_day, by_day_application},
-        {:by_hour, :expand},
-        {:by_minute, :expand},
-        {:by_second, :expand},
-        {:by_set_position, :limit}
-      ]
-
-    generate(
-      ends_by(rule),
-      dtstart,
-      [year: interval],
-      modifiers,
-      rule
-    )
+    [
+      {:by_month, :expand},
+      {:by_week_number, week_number_application},
+      {:by_year_day, year_day_appliaction},
+      {:by_month_day, :expand},
+      {:by_day, by_day_application},
+      {:by_hour, :expand},
+      {:by_minute, :expand},
+      {:by_second, :expand},
+      {:by_set_position, :limit}
+    ]
   end
 
-  def all(%ICal.Recurrence{frequency: :monthly, interval: interval} = rule, dtstart) do
+  defp rule_modifiers(%ICal.Recurrence{frequency: :monthly} = rule) do
     by_day_application = if has_some(rule.by_month_day), do: :limit, else: :expand_month
 
-    generate(
-      ends_by(rule),
-      dtstart,
-      [month: interval],
-      [
-        {:by_month, :limit},
-        {:by_month_day, :expand},
-        {:by_day, by_day_application},
-        {:by_hour, :expand},
-        {:by_minute, :expand},
-        {:by_second, :expand},
-        {:by_set_position, :limit}
-      ],
-      rule
-    )
+    [
+      {:by_month, :limit},
+      {:by_month_day, :expand},
+      {:by_day, by_day_application},
+      {:by_hour, :expand},
+      {:by_minute, :expand},
+      {:by_second, :expand},
+      {:by_set_position, :limit}
+    ]
   end
 
-  def all(%ICal.Recurrence{frequency: :weekly, interval: interval} = rule, dtstart) do
-    generate(
-      ends_by(rule),
-      dtstart,
-      [week: interval],
-      [
-        {:by_month, :limit},
-        {:by_day, :expand_week},
-        {:by_hour, :expand},
-        {:by_minute, :expand},
-        {:by_second, :expand},
-        {:by_set_position, :limit}
-      ],
-      rule
-    )
+  defp rule_modifiers(%ICal.Recurrence{frequency: :weekly}) do
+    [
+      {:by_month, :limit},
+      {:by_day, :expand_week},
+      {:by_hour, :expand},
+      {:by_minute, :expand},
+      {:by_second, :expand},
+      {:by_set_position, :limit}
+    ]
   end
 
-  def all(%ICal.Recurrence{frequency: :daily, interval: interval} = rule, dtstart) do
-    generate(
-      ends_by(rule),
-      dtstart,
-      [day: interval],
-      [
-        {:by_month, :limit},
-        {:by_month_day, :limit},
-        {:by_day, :limit},
-        {:by_hour, :expand},
-        {:by_minute, :expand},
-        {:by_second, :expand},
-        {:by_set_position, :limit}
-      ],
-      rule
-    )
+  defp rule_modifiers(%ICal.Recurrence{frequency: :daily}) do
+    [
+      {:by_month, :limit},
+      {:by_month_day, :limit},
+      {:by_day, :limit},
+      {:by_hour, :expand},
+      {:by_minute, :expand},
+      {:by_second, :expand},
+      {:by_set_position, :limit}
+    ]
   end
 
-  def all(%ICal.Recurrence{frequency: :hourly, interval: interval} = rule, dtstart) do
-    generate(
-      ends_by(rule),
-      dtstart,
-      [hour: interval],
-      [
-        {:by_month, :limit},
-        {:by_year_day, :limit},
-        {:by_month_day, :limit},
-        {:by_day, :limit},
-        {:by_hour, :limit},
-        {:by_minute, :expand},
-        {:by_set_position, :limit}
-      ],
-      rule
-    )
+  defp rule_modifiers(%ICal.Recurrence{frequency: :hourly}) do
+    [
+      {:by_month, :limit},
+      {:by_year_day, :limit},
+      {:by_month_day, :limit},
+      {:by_day, :limit},
+      {:by_hour, :limit},
+      {:by_minute, :expand},
+      {:by_set_position, :limit}
+    ]
   end
 
-  def all(%ICal.Recurrence{frequency: :minutely, interval: interval} = rule, dtstart) do
-    generate(
-      ends_by(rule),
-      dtstart,
-      [minute: interval],
-      [
-        {:by_month, :limit},
-        {:by_year_day, :limit},
-        {:by_month_day, :limit},
-        {:by_day, :limit},
-        {:by_hour, :limit},
-        {:by_minute, :limit},
-        {:by_second, :expand},
-        {:by_set_position, :limit}
-      ],
-      rule
-    )
+  defp rule_modifiers(%ICal.Recurrence{frequency: :minutely}) do
+    [
+      {:by_month, :limit},
+      {:by_year_day, :limit},
+      {:by_month_day, :limit},
+      {:by_day, :limit},
+      {:by_hour, :limit},
+      {:by_minute, :limit},
+      {:by_second, :expand},
+      {:by_set_position, :limit}
+    ]
   end
 
-  def all(%ICal.Recurrence{frequency: :secondly, interval: interval} = rule, dtstart) do
-    generate(
-      ends_by(rule),
-      dtstart,
-      [second: interval],
-      [
-        {:by_month, :limit},
-        {:by_year_day, :limit},
-        {:by_month_day, :limit},
-        {:by_day, :limit},
-        {:by_hour, :limit},
-        {:by_minute, :limit},
-        {:by_set_position, :limit}
-      ],
-      rule
-    )
+  defp rule_modifiers(%ICal.Recurrence{frequency: :secondly}) do
+    [
+      {:by_month, :limit},
+      {:by_year_day, :limit},
+      {:by_month_day, :limit},
+      {:by_day, :limit},
+      {:by_hour, :limit},
+      {:by_minute, :limit},
+      {:by_set_position, :limit}
+    ]
   end
 
-  defp generate(limit, dtstart, offset, by, rule) do
-    generate(
+  defp generate_all(limit, starting_date, interval, by, rule) do
+    generate_all(
       limit,
-      dtstart,
-      offset,
+      starting_date,
+      interval,
       by,
       rule,
       0,
@@ -169,20 +170,24 @@ defmodule ICal.Recurrence.Generate do
     )
   end
 
-  defp generate(limit, _dtstart, _offset, _by, _rule, _fruitless_searches, acc)
-       when is_integer(limit) and limit < 1, do: acc
-
-  defp generate(_limit, _dtstart, _offset, _by, rule, fruitless_searches, acc)
-       when fruitless_searches > @max_fruitless_search_depth do
-    Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
-    acc
+  defp generate_all(nil, _starting_date, _interval, _by, _rule, _fruitless_searches, _acc) do
+    {:error, :no_defined_limit, []}
   end
 
-  defp generate(limit, dtstart, offset, by, rule, fruitless_searches, acc) do
+  defp generate_all(limit, _starting_date, _interval, _by, _rule, _fruitless_searches, acc)
+       when is_integer(limit) and limit < 1, do: {:ok, acc}
+
+  defp generate_all(_limit, _starting_date, _interval, _by, rule, fruitless_searches, acc)
+       when fruitless_searches > @max_fruitless_search_depth do
+    Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
+    {:error, :search_exhaustion, acc}
+  end
+
+  defp generate_all(limit, starting_date, interval, by, rule, fruitless_searches, acc) do
     recurrences =
-      [dtstart]
+      [starting_date]
       |> apply_all_by(by, rule)
-      |> exclude(dtstart)
+      |> exclude(starting_date)
 
     {limit, recurrences, fruitless_searches} =
       update_limit(limit, recurrences, fruitless_searches)
@@ -190,12 +195,12 @@ defmodule ICal.Recurrence.Generate do
     if limit == nil do
       acc ++ recurrences
     else
-      dtnext = shift(dtstart, offset)
+      next_starting_date = shift(starting_date, interval)
 
-      generate(
+      generate_all(
         limit,
-        dtnext,
-        offset,
+        next_starting_date,
+        interval,
         by,
         rule,
         fruitless_searches,
@@ -242,13 +247,13 @@ defmodule ICal.Recurrence.Generate do
   defp compare_recurrences(%Date{} = l, r), do: Date.compare(l, r) == :lt
 
   defp apply_by({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
-    Enum.reduce(acc, [], fn dtstart, acc ->
+    Enum.reduce(acc, [], fn recurrence, acc ->
       acc ++
         Enum.map(months, fn month ->
-          if month > dtstart.month do
-            %{dtstart | month: month}
+          if month > recurrence.month do
+            %{recurrence | month: month}
           else
-            %{dtstart | year: dtstart.year + 1, month: month}
+            %{recurrence | year: recurrence.year + 1, month: month}
           end
         end)
     end)
@@ -395,8 +400,8 @@ defmodule ICal.Recurrence.Generate do
 
   defp apply_by(_, _rule, acc), do: acc
 
-  defp exclude(recurrences, dtstart) do
-    Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, dtstart) end)
+  defp exclude(recurrences, starting_date) do
+    Enum.filter(recurrences, fn recurrence -> is_not_before(recurrence, starting_date) end)
   end
 
   defp ends_by(%{count: count}) when is_integer(count), do: count
@@ -445,15 +450,15 @@ defmodule ICal.Recurrence.Generate do
     Date.range(first, last) |> Enum.map(fn date -> DateTime.new!(date, time) end)
   end
 
-  defp shift(%DateTime{} = dtstart, offset), do: DateTime.shift(dtstart, offset)
-  defp shift(%Date{} = dtstart, offset), do: Date.shift(dtstart, offset)
+  defp shift(%DateTime{} = starting_date, interval), do: DateTime.shift(starting_date, interval)
+  defp shift(%Date{} = starting_date, interval), do: Date.shift(starting_date, interval)
 
-  def week_number_bookends(dtstart, week) do
+  def week_number_bookends(starting_date, week) do
     # shift the week
     if week > 0 do
       # positive week number, start from first w of the year
       end_date =
-        Date.new!(dtstart.year, 1, 1)
+        Date.new!(starting_date.year, 1, 1)
         |> Date.end_of_week()
         |> ensure_end_of_first_week()
         |> Date.shift(week: week - 1)
@@ -466,7 +471,7 @@ defmodule ICal.Recurrence.Generate do
       # and since it is already on the last week, move one less week than requested
       # e.g. the -1 week is 0 weeks from the last week of the year
       start_date =
-        Date.new!(dtstart.year + 1, 1, 1)
+        Date.new!(starting_date.year + 1, 1, 1)
         |> Date.end_of_week()
         |> Date.shift(day: 1)
         |> Date.shift(week: week)
