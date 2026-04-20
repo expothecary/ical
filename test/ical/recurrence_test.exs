@@ -351,6 +351,29 @@ defmodule ICal.RecurrenceTest do
       assert recurrence.month == 6
     end
 
+    test "every day in january for 3 years using BYMONTH and BYDAY" do
+      dtstart = DateTime.new!(~D[1998-01-01], ~T[09:00:00], "America/New_York")
+
+      rule =
+        ICal.Recurrence.from_ics(
+          "RRULE:FREQ=YEARLY;UNTIL=20000131T140000Z;BYMONTH=1;BYDAY=SU,MO,TU,WE,TH,FR,SA"
+        )
+
+      {:ok, recurrences} =
+        Helper.time(
+          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          "every day in january for 3 years with yearly freq"
+        )
+
+      assert Enum.count(recurrences) == 93
+
+      assert Enum.at(recurrences, 0) ==
+               DateTime.new!(~D[1998-01-01], ~T[09:00:00], "America/New_York")
+
+      assert Enum.at(recurrences, -1) ==
+               DateTime.new!(~D[2000-01-31], ~T[09:00:00], "America/New_York")
+    end
+
     test "positive set position" do
       count = 5
 
@@ -492,7 +515,7 @@ defmodule ICal.RecurrenceTest do
   end
 
   describe "Recurrence generation with daily frequence" do
-    test "every day in january for 3 years" do
+    test "every day in january for 3 years using BYMONTH" do
       dtstart = DateTime.new!(~D[1998-01-31], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1")
 
@@ -546,6 +569,60 @@ defmodule ICal.RecurrenceTest do
                DateTime.new!(~D[1997-12-23], ~T[08:00:00], "America/New_York")
 
       assert Enum.count(recurrences) == 113
+    end
+
+    test "every other day forever is rejected by all/2" do
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2")
+
+      assert {:error, :no_defined_limit, []} == ICal.Recurrence.Generate.all(rule, dtstart)
+    end
+
+    test "every other day forever works with a stream" do
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2")
+      count = 10
+
+      expected = [
+        DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-04], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-06], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-08], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-10], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-12], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-14], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-16], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-18], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-20], ~T[09:00:00], "America/New_York")
+      ]
+
+      recurrences =
+        ICal.Recurrence.stream(rule, dtstart, [])
+        |> Enum.take(count)
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "every 10 days, five times" do
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5")
+      count = 10
+
+      expected = [
+        DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-12], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-22], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-12], ~T[09:00:00], "America/New_York")
+      ]
+
+      recurrences =
+        ICal.Recurrence.stream(rule, dtstart, [])
+        |> Enum.take(count)
+
+      assert Enum.count(recurrences) == 5
+      assert recurrences == expected
     end
   end
 

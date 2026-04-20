@@ -10,14 +10,13 @@ defmodule ICal.Recurrence.Generate do
   defguard has_some(x) when is_list(x) and x != []
   defguard has_none(x) when not has_some(x)
 
-  @type recurrence :: Date.t() | DateTime.t()
   @type error_reasons :: :search_exhaustion | :no_defined_limit
-  @type init_option ::
-          {:end_date, recurrence}
-          | {:exclude_dates, [recurrence]}
-          | {:other_recurrences, [recurrence]}
 
-  @spec init(ICal.Recurrence.t(), start_date :: recurrence, options :: [init_option]) ::
+  @spec init(
+          ICal.Recurrence.t(),
+          start_date :: ICal.Recurrence.recurrence_date(),
+          options :: [ICal.Recurrence.stream_option()]
+        ) ::
           State.t()
   def init(rule, start_date, options \\ []) do
     other_recurrences =
@@ -36,14 +35,15 @@ defmodule ICal.Recurrence.Generate do
     |> add_rule_limits(rule, Keyword.get(options, :end_date))
   end
 
-  @spec all(ICal.Recurrence.t(), starting_from :: recurrence) ::
-          {:ok, [recurrence]} | {:error, error_reasons, [recurrence]}
+  @spec all(ICal.Recurrence.t(), starting_from :: ICal.Recurrence.recurrence_date()) ::
+          {:ok, [ICal.Recurrence.recurrence_date()]}
+          | {:error, error_reasons, [ICal.Recurrence.recurrence_date()]}
   def all(rule, start_date) do
     init(rule, start_date)
     |> generate_all()
   end
 
-  @spec one_set(State.t()) :: {[recurrence], State.t()}
+  @spec one_set(State.t()) :: {[ICal.Recurrence.recurrence_date()], State.t()}
   def one_set(%State{} = state) do
     generate_set(state)
   end
@@ -354,24 +354,53 @@ defmodule ICal.Recurrence.Generate do
   end
 
   # TODO
-  defp apply_modifier({:by_day, :expand_year}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_modifier({:by_day, :expand_year}, %{by_day: weekdays}, acc)
+       when has_some(weekdays) do
     acc
   end
 
   # TODO
-  defp apply_modifier({:by_day, :expand_month}, %{by_day: days}, acc) when has_some(days) do
-    acc
+  defp apply_modifier({:by_day, :expand_month}, %{by_day: weekdays}, acc)
+       when has_some(weekdays) do
+    Enum.flat_map(acc, fn recurrence ->
+      order = weekday_order()
+      first_week_day = order[weekday(recurrence)]
+
+      Enum.flat_map(
+        weekdays,
+        fn
+          {0, weekday} ->
+            weekday_order = order[weekday]
+
+            # calculate when the first of this day occurs in the month
+            first =
+              case first_week_day - weekday_order do
+                diff when diff < 0 -> diff + 7
+                diff -> diff + 1
+              end
+
+            generate_by_day_in_month([%{recurrence | day: first}])
+
+          {offset, _weekday} when offset >= 0 ->
+            recurrence
+
+          {from_end, _weekday} ->
+            recurrence
+        end
+      )
+    end)
   end
 
   # TODO
-  defp apply_modifier({:by_day, :expand_week}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_modifier({:by_day, :expand_week}, %{by_day: weekdays}, acc)
+       when has_some(weekdays) do
     acc
   end
 
-  defp apply_modifier({:by_day, :limit}, %{by_day: days}, acc) when has_some(days) do
+  defp apply_modifier({:by_day, :limit}, %{by_day: weekdays}, acc) when has_some(weekdays) do
     Enum.filter(acc, fn recurrence ->
       target = weekday(recurrence)
-      Enum.find(days, fn {_, allowed_day} -> allowed_day == target end) != nil
+      Enum.find(weekdays, fn {_, allowed_day} -> allowed_day == target end) != nil
     end)
   end
 
@@ -454,8 +483,12 @@ defmodule ICal.Recurrence.Generate do
     {recurrences, state}
   end
 
-  @spec merge_other(recurrences :: [recurrence], other :: [recurrence]) ::
-          {merged_recurrences :: [recurrence], remaining_other :: [recurrence]}
+  @spec merge_other(
+          recurrences :: [ICal.Recurrence.recurrence_date()],
+          other :: [ICal.Recurrence.recurrence_date()]
+        ) ::
+          {merged_recurrences :: [ICal.Recurrence.recurrence_date()],
+           remaining_other :: [ICal.Recurrence.recurrence_date()]}
   defp merge_other(recurrences, []) do
     {recurrences, []}
   end
@@ -497,6 +530,10 @@ defmodule ICal.Recurrence.Generate do
     end
   end
 
+  def weekday_order do
+    %{monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7}
+  end
+
   def weekday(%Date{} = date) do
     index_date = Date.day_of_week(date)
     days = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
@@ -504,6 +541,16 @@ defmodule ICal.Recurrence.Generate do
   end
 
   def weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
+
+  def generate_by_day_in_month([last | _] = acc) do
+    next = shift(last, week: 1)
+
+    if next.month == last.month do
+      generate_by_day_in_month([next | acc])
+    else
+      acc
+    end
+  end
 
   # when no more recurrences are generated for too long, then stop even if it could in theory
   # go further.
@@ -540,6 +587,7 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp update_limit_by_date(recurrences, limit_date, state) do
+    # TODO: comparing from the end be more efficient in most cases?
     index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
 
     if index != nil do
