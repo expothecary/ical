@@ -74,7 +74,7 @@ defmodule ICal.Recurrence do
     %{
       component
       | dtstart: recurrence,
-        dtend: offset(recurrence, diff(component.dtend, component.dstart))
+        dtend: offset(recurrence, diff(component.dtend, component.dtstart))
     }
   end
 
