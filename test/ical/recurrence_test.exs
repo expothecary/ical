@@ -175,6 +175,15 @@ defmodule ICal.RecurrenceTest do
                |> Enum.to_list()
     end
 
+    test "correctly handles event with no recurrence rule, but recurrence dates" do
+      event = Fixtures.one_event(:with_rdates)
+
+      assert event.rdates ==
+               event
+               |> ICal.Recurrence.stream()
+               |> Enum.to_list()
+    end
+
     test "generates daily reccuring event with until" do
       recurrences =
         Helper.test_data("recurrance_daily_until")

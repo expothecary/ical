@@ -114,6 +114,18 @@ defmodule ICal.Test.Fixtures do
     }
   end
 
+  def one_event(:with_rdates) do
+    %{
+      one_event(:deserialize)
+      | rdates: [
+          ~D[1997-01-01],
+          ~D[1997-01-20],
+          ~D[1997-02-17],
+          ~D[1997-04-21]
+        ]
+    }
+  end
+
   def one_event(:one_alarm) do
     %{
       one_event(:deserialize)
