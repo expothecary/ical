@@ -774,62 +774,46 @@ defmodule ICal.Recurrence.Generate do
 
   defp shift_date(%Date{} = date, interval), do: Date.shift(date, interval)
 
-  def week_number_bookends(start_date, week) do
+  def week_number_bookends(date, week) do
     # shift the week
     if week > 0 do
       # positive week number, start from first w of the year
       end_date =
-        Date.new!(start_date.year, 1, 1)
+        Date.new!(date.year, 1, 1)
         |> Date.end_of_week()
         |> ensure_end_of_first_week()
         |> Date.shift(week: week - 1)
 
       start_date = Date.beginning_of_week(end_date)
 
-      {start_date, end_date}
+      add_time_if_exists(date, start_date, end_date)
     else
       # negative week number, start from the last week of the year
       # and since it is already on the last week, move one less week than requested
       # e.g. the -1 week is 0 weeks from the last week of the year
       start_date =
-        Date.new!(start_date.year + 1, 1, 1)
+        Date.new!(date.year + 1, 1, 1)
         |> Date.end_of_week()
         |> Date.shift(day: 1)
         |> Date.shift(week: week)
 
       end_date = start_date |> Date.end_of_week()
 
-      {start_date, end_date}
+      add_time_if_exists(date, start_date, end_date)
     end
   end
 
+  defp add_time_if_exists(%DateTime{} = date, start_date, end_date) do
+    {
+      DateTime.new!(start_date, DateTime.to_time(date), date.time_zone),
+      DateTime.new!(end_date, DateTime.to_time(date), date.time_zone)
+    }
+  end
+
+  defp add_time_if_exists(_, start_date, end_date), do: {start_date, end_date}
+
   defp days_in_month(%Date{} = date), do: Date.days_in_month(date)
   defp days_in_month(date), do: Date.days_in_month(DateTime.to_date(date))
-
-  defp week_of_year(%DateTime{} = datetime), do: week_of_year(DateTime.to_date(datetime))
-
-  defp week_of_year(%NaiveDateTime{} = datetime) do
-    week_of_year(NaiveDateTime.to_date(datetime))
-  end
-
-  defp week_of_year(%Date{} = date) do
-    end_of_first_week =
-      Date.new!(date.year, 1, 1)
-      |> Date.end_of_week()
-      |> ensure_end_of_first_week()
-      |> Date.day_of_year()
-
-    end_of_this_week =
-      date
-      |> Date.end_of_week()
-      |> Date.day_of_year()
-
-    week =
-      (end_of_this_week - end_of_first_week)
-      |> Integer.floor_div(7)
-
-    week + 1
-  end
 
   # the first week is considered the one with at least 4 days
   # so if the end of the first week is 3 or less, then bump it by a week
