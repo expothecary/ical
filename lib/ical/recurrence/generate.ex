@@ -672,8 +672,9 @@ defmodule ICal.Recurrence.Generate do
 
   defp week_of_year(%DateTime{} = datetime), do: week_of_year(DateTime.to_date(datetime))
 
-  defp week_of_year(%NaiveDateTime{} = datetime),
-    do: week_of_year(NaiveDateTime.to_date(datetime))
+  defp week_of_year(%NaiveDateTime{} = datetime) do
+    week_of_year(NaiveDateTime.to_date(datetime))
+  end
 
   defp week_of_year(%Date{} = date) do
     end_of_first_week =
@@ -708,10 +709,7 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp equal?(%Date{} = d, %DateTime{} = dt), do: equal?(d, DateTime.to_date(dt))
-
-  defp equal?(%DateTime{} = dt, %Date{} = d),
-    do: equal?(dt, DateTime.new!(d, Time.new(0, 0, 0), dt.time_zone))
-
+  defp equal?(%DateTime{} = dt, %Date{} = d), do: equal?(DateTime.to_date(dt), d)
   defp equal?(l, r), do: l == r
 
   defp is_not_before(%Date{} = d, %DateTime{} = dt), do: is_not_before(d, DateTime.to_date(dt))
