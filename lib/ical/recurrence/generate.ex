@@ -381,11 +381,11 @@ defmodule ICal.Recurrence.Generate do
 
             generate_by_day_in_month([%{recurrence | day: first}])
 
-          {offset, weekday} when offset >= 0 ->
+          {offset, weekday} when offset > 0 ->
             first_day = %{recurrence | day: 1}
             month_starts = order[weekday(first_day)]
             days_in_month = days_in_month(recurrence)
-            shift_days = Integer.mod(order[weekday] - month_starts, 7) * offset
+            shift_days = Integer.mod(order[weekday] - month_starts, 7) + 7 * (offset - 1)
 
             if shift_days >= days_in_month do
               []
@@ -396,9 +396,13 @@ defmodule ICal.Recurrence.Generate do
           {offset, weekday} ->
             last_day = %{recurrence | day: days_in_month(recurrence)}
             month_ends = order[weekday(last_day)]
-            shift_days = Integer.mod(order[weekday] - month_ends, 7) * offset
 
-            if shift_days >= month_ends do
+            # shift by the different between the month end weekday and the target weekday,
+            # plus one week per offset
+            shift_days =
+              Integer.mod(month_ends - order[weekday], 7) + 7 * (abs(offset) - 1)
+
+            if shift_days >= last_day.day do
               []
             else
               [shift(last_day, day: -shift_days)]
