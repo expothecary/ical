@@ -394,9 +394,27 @@ defmodule ICal.Recurrence.Generate do
   end
 
   # TODO
-  defp apply_modifier({:by_day, :expand_week}, %{by_day: weekdays}, acc)
+  defp apply_modifier(
+         {:by_day, :expand_week},
+         %{by_day: weekdays, week_start_day: week_start_day},
+         acc
+       )
        when has_some(weekdays) do
-    acc
+    Enum.flat_map(acc, fn recurrence ->
+      order = weekday_order()
+      first_week_day = beginning_of_week(recurrence, week_start_day)
+
+      week_start_ordinal = order[weekday(first_week_day)]
+
+      Enum.map(
+        weekdays,
+        fn {_, weekday} ->
+          # mod by 7 in case of negative difference
+          shift_days = Integer.mod(order[weekday] - week_start_ordinal, 7)
+          shift(first_week_day, day: shift_days)
+        end
+      )
+    end)
   end
 
   defp apply_modifier({:by_day, :limit}, %{by_day: weekdays}, acc) when has_some(weekdays) do
@@ -532,7 +550,17 @@ defmodule ICal.Recurrence.Generate do
     end
   end
 
-  def weekday_order do
+  defp beginning_of_week(%DateTime{} = date, start) do
+    DateTime.new!(
+      Date.beginning_of_week(DateTime.to_date(date), start),
+      DateTime.to_time(date),
+      date.time_zone
+    )
+  end
+
+  defp beginning_of_week(%Date{} = date, start), do: Date.beginning_of_week(date, start)
+
+  defp weekday_order do
     %{monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7}
   end
 
