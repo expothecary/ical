@@ -105,10 +105,8 @@ defmodule ICal.Deserialize.Component do
         end
 
         defp next_parameter(<<"EXDATE", data::binary>>, calendar, component) do
-          {data, params} = ICal.Deserialize.params(data)
-          {data, value} = ICal.Deserialize.value(data)
-          date = ICal.Deserialize.to_date(value, params, calendar)
-          record_value(data, calendar, component, :exdates, date)
+          {data, exdates} = comma_separated_dates(data, calendar)
+          record_value(data, calendar, component, :exdates, exdates)
         end
 
         defp next_parameter(<<"LAST-MODIFIED", data::binary>>, calendar, component) do
@@ -157,15 +155,7 @@ defmodule ICal.Deserialize.Component do
         end
 
         defp next_parameter(<<"RDATE", data::binary>>, calendar, component) do
-          {data, params} = ICal.Deserialize.params(data)
-          {data, values} = ICal.Deserialize.comma_separated_list(data)
-          type = Map.get(params, "VALUE", "DATE")
-
-          rdates =
-            values
-            |> Enum.reduce([], fn value, acc -> to_rdate(type, params, value, calendar, acc) end)
-            |> Enum.reverse()
-
+          {data, rdates} = comma_separated_dates(data, calendar)
           record_value(data, calendar, component, :rdates, rdates)
         end
 
@@ -273,14 +263,27 @@ defmodule ICal.Deserialize.Component do
         end
       end
 
-      defp to_rdate("DATE", params, value, calendar, acc) do
+      defp comma_separated_dates(data, calendar) do
+        {data, params} = ICal.Deserialize.params(data)
+        {data, values} = ICal.Deserialize.comma_separated_list(data)
+        type = Map.get(params, "VALUE", "DATE")
+
+        {
+          data,
+          values
+          |> Enum.reduce([], fn value, acc -> to_date(type, params, value, calendar, acc) end)
+          |> Enum.reverse()
+        }
+      end
+
+      defp to_date("DATE", params, value, calendar, acc) do
         case ICal.Deserialize.to_date(value, params, calendar) do
           nil -> acc
           date -> [date | acc]
         end
       end
 
-      defp to_rdate("PERIOD", params, value, calendar, acc) do
+      defp to_date("PERIOD", params, value, calendar, acc) do
         with [first, second] <- String.split(value, "/", parts: 2),
              p_start when p_start != nil <- ICal.Deserialize.to_date(first, params, calendar),
              p_end when p_end != nil <- to_period_end(second, params, calendar) do
@@ -290,7 +293,7 @@ defmodule ICal.Deserialize.Component do
         end
       end
 
-      defp to_rdate(_unrecognized, _params, _value, _calendar, acc), do: acc
+      defp to_date(_unrecognized, _params, _value, _calendar, acc), do: acc
 
       defp to_period_end(end_string, params, calendar) do
         date = ICal.Deserialize.to_date(end_string, params, calendar)

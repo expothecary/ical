@@ -389,7 +389,18 @@ defmodule ICal.DeserializeTest do
 
     test "Bad dates result in nils" do
       ics = Helper.test_data("broken_dates")
+
       assert ICal.from_ics(ics) == %ICal{events: [Fixtures.broken_dates_event()]}
+    end
+
+    test "Exdates is a command separated list" do
+      ics = Helper.test_data("list_of_exdates")
+
+      assert %ICal{
+               events: [
+                 %ICal.Event{exdates: [~U[2022-06-08 09:00:00Z], ~U[2022-06-22 09:00:00Z]]}
+               ]
+             } = ICal.from_ics(ics)
     end
 
     test "Status is properly parsed" do
