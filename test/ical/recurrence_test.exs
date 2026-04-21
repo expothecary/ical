@@ -779,10 +779,6 @@ defmodule ICal.RecurrenceTest do
       assert recurrences == expected
     end
 
-    #   ==> (1997 9:00 AM EDT) September 5;October 3
-    #            (1997 9:00 AM EST) November 7;December 5
-    #            (1998 9:00 AM EST) January 2;February 6;March 6;April 3
-    #            (1998 9:00 AM EDT) May 1;June 5
     test "monthly on the first Friday for 10 occurrences" do
       count = 10
       dtstart = DateTime.new!(~D[1997-09-05], ~T[09:00:00], "America/New_York")
