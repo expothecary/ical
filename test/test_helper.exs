@@ -1,4 +1,6 @@
 defmodule ICal.Test.Helper do
+  require Logger
+
   def test_data_path(name) do
     Path.join([File.cwd!(), "/test/data"], name <> ".ics")
   end
@@ -23,7 +25,7 @@ defmodule ICal.Test.Helper do
   @spec time(fun, label :: String.t()) :: term
   def time(function, label \\ "") do
     {time, value} = :timer.tc(function, :microsecond)
-    IO.puts("TIME #{label} => #{time} microseconds / #{time / 1000} ms")
+    Logger.info("TIME #{label} => #{time} microseconds / #{time / 1000} ms")
     value
   end
 
