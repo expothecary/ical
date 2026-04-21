@@ -279,22 +279,11 @@ defmodule ICal.Recurrence.Generate do
   defp apply_modifier({:by_week_number, :expand}, %{by_week_number: weeks}, acc)
        when has_some(weeks) do
     Enum.reduce(acc, [], fn recurrence, acc ->
-      recurrence_week = week_of_year(recurrence)
+      Enum.reduce(weeks, acc, fn week, acc ->
+        {first, last} = week_number_bookends(recurrence, week)
 
-      acc ++
-        Enum.flat_map(weeks, fn week ->
-          reference_date =
-            if week > recurrence_week do
-              recurrence
-            else
-              %{recurrence | year: recurrence.year + 1}
-            end
-
-          {first, last} =
-            week_number_bookends(reference_date, week)
-
-          range(first, last, recurrence)
-        end)
+        acc ++ range(first, last, recurrence)
+      end)
     end)
   end
 
