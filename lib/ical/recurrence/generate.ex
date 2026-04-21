@@ -405,14 +405,15 @@ defmodule ICal.Recurrence.Generate do
 
   defp apply_modifier({:by_day, :expand_month}, %{by_day: weekdays}, acc)
        when has_some(weekdays) do
-    Enum.flat_map(acc, fn recurrence ->
+    Enum.reduce(acc, [], fn recurrence, acc ->
       order = weekday_order()
       first_week_day = order[weekday(recurrence)]
 
-      Enum.flat_map(
+      Enum.reduce(
         weekdays,
+        acc,
         fn
-          {0, weekday} ->
+          {0, weekday}, acc ->
             weekday_order = order[weekday]
 
             # calculate when the first of this day occurs in the month
@@ -422,21 +423,21 @@ defmodule ICal.Recurrence.Generate do
                 diff -> diff + 1
               end
 
-            generate_by_day_in_month([%{recurrence | day: first}])
+            acc ++ generate_all_weekdays_in_month([%{recurrence | day: first}])
 
-          {offset, weekday} when offset > 0 ->
+          {offset, weekday}, acc when offset > 0 ->
             first_day = %{recurrence | day: 1}
             month_starts = order[weekday(first_day)]
             days_in_month = days_in_month(recurrence)
             shift_days = Integer.mod(order[weekday] - month_starts, 7) + 7 * (offset - 1)
 
             if shift_days >= days_in_month do
-              []
+              acc
             else
-              [shift_date(first_day, day: shift_days)]
+              acc ++ [shift_date(first_day, day: shift_days)]
             end
 
-          {offset, weekday} ->
+          {offset, weekday}, acc ->
             last_day = %{recurrence | day: days_in_month(recurrence)}
             month_ends = order[weekday(last_day)]
 
@@ -446,9 +447,9 @@ defmodule ICal.Recurrence.Generate do
               Integer.mod(month_ends - order[weekday], 7) + 7 * (abs(offset) - 1)
 
             if shift_days >= last_day.day do
-              []
+              acc
             else
-              [shift_date(last_day, day: -shift_days)]
+              acc ++ [shift_date(last_day, day: -shift_days)]
             end
         end
       )
@@ -702,11 +703,11 @@ defmodule ICal.Recurrence.Generate do
 
   defp weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
 
-  defp generate_by_day_in_month([last | _] = acc) do
+  defp generate_all_weekdays_in_month([last | _] = acc) do
     next = shift_date(last, week: 1)
 
     if next.month == last.month do
-      generate_by_day_in_month([next | acc])
+      generate_all_weekdays_in_month([next | acc])
     else
       acc
     end
