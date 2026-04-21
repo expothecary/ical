@@ -733,14 +733,14 @@ defmodule ICal.Recurrence.Generate do
     end
   end
 
+  defp days_in_month(%Date{} = date), do: Date.days_in_month(date)
+  defp days_in_month(date), do: Date.days_in_month(DateTime.to_date(date))
+
   defp week_of_year(%DateTime{} = datetime), do: week_of_year(DateTime.to_date(datetime))
 
   defp week_of_year(%NaiveDateTime{} = datetime) do
     week_of_year(NaiveDateTime.to_date(datetime))
   end
-
-  defp days_in_month(%Date{} = date), do: Date.days_in_month(date)
-  defp days_in_month(date), do: Date.days_in_month(DateTime.to_date(date))
 
   defp week_of_year(%Date{} = date) do
     end_of_first_week =
