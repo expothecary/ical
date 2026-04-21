@@ -382,9 +382,11 @@ defmodule ICal.Recurrence.Generate do
             generate_by_day_in_month([%{recurrence | day: first}])
 
           {offset, _weekday} when offset >= 0 ->
+            # TODO
             recurrence
 
           {from_end, _weekday} ->
+            # TODO
             recurrence
         end
       )
