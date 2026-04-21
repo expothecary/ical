@@ -755,7 +755,7 @@ defmodule ICal.Recurrence.Generate do
 
   def range(first, last, %DateTime{} = dt) do
     time = DateTime.to_time(dt)
-    Date.range(first, last) |> Enum.map(fn date -> DateTime.new!(date, time) end)
+    Date.range(first, last) |> Enum.map(fn date -> DateTime.new!(date, time, dt.time_zone) end)
   end
 
   defp shift_interval(date, {:date, interval}), do: shift_date(date, interval)
