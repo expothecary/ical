@@ -4,13 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## vNEXT
+## v2.0.0
 
-This release drops support for Elixir 1.15 and 1.16 in order to gain
-access to the improved date and calendaring APIs introduced in 1.17. 
-
-Timex was also removed as a dependency, along with its transitive dependencies
-such as gettext. 
+The minimum version of Elixir required is 1.17. Support for Elixir 1.15 and 1.16 was
+dropped so `ICal` may use the improved date and calendaring APIs introduced in 1.17.
 
 It is recommended to add a timezone database such as `tz` to applications that use 
 ICal in order to benefit fully from these changes.
@@ -20,13 +17,18 @@ ICal in order to benefit fully from these changes.
     - `next_activation/2`: calculates when an alarm should next activate (if ever)
     - `next_alarms/1`: returns all next alarms with activation times for a compoonent with
       alarms (`ICal.Event`, `ICal.Todo`)
-  - Recurrence now supports `ICal.Todo`
+  - Recurrence generation was re-written:
+    - The entirety of the RFC5545 RRULE specification is supported
+    - Works with `ICal.Event`, `ICal.Todo` and `ICal.Journal`
+    - Recurrence dates (`RDATE`) are included
+    - Excluded dates (`EXDATE`) are respected
 - Fixes
   - Gap and ambiguous times are properly handled when a datetime lands in a timezone shift period
 - Janitorial
+  - The dependency on `Timex` was removed
   - Documentation improvements
 
-Contributors to this release included:
+Contributors to this release include:
 - [Matthew Lehner](https://github.com/matthewlehner)
 - [Patrick Wendo](https://github.com/W3NDO)
 
