@@ -95,7 +95,7 @@ defmodule ICal.Recurrence.Generate do
       cond do
         has_some(rule.by_year_day) -> :limit
         has_some(rule.by_month_day) -> :limit
-        has_some(rule.by_week_number) -> :expand_week
+        has_some(rule.by_week_number) -> :limit
         has_some(rule.by_month) -> :expand_month
         true -> :expand_year
       end
