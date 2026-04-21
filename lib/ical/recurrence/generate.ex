@@ -57,31 +57,31 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :yearly, interval: interval}) do
-    [year: interval]
+    {:date, [year: interval]}
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :monthly, interval: interval}) do
-    [month: interval]
+    {:date, [month: interval]}
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :weekly, interval: interval}) do
-    [week: interval]
+    {:date, [week: interval]}
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :daily, interval: interval}) do
-    [day: interval]
+    {:date, [day: interval]}
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :hourly, interval: interval}) do
-    [hour: interval]
+    {:time, [hour: interval]}
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :minutely, interval: interval}) do
-    [minute: interval]
+    {:time, [minute: interval]}
   end
 
   defp rule_interval(%ICal.Recurrence{frequency: :secondly, interval: interval}) do
-    [second: interval]
+    {:time, [second: interval]}
   end
 
   defp rule_modifiers(%ICal.Recurrence{frequency: :yearly} = rule) do
@@ -221,7 +221,7 @@ defmodule ICal.Recurrence.Generate do
       |> apply_all_modifiers(state)
       |> exclude(state)
 
-    new_state = %{state | start_date: shift(state.start_date, state.interval)}
+    new_state = %{state | start_date: shift_interval(state.start_date, state.interval)}
     update_limit(recurrences, new_state)
   end
 
@@ -264,14 +264,9 @@ defmodule ICal.Recurrence.Generate do
 
   defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
     Enum.reduce(acc, [], fn recurrence, acc ->
-      acc ++
-        Enum.map(months, fn month ->
-          if month >= recurrence.month do
-            %{recurrence | month: month}
-          else
-            %{recurrence | year: recurrence.year + 1, month: month}
-          end
-        end)
+      Enum.reduce(months, acc, fn month, acc ->
+        acc ++ [%{recurrence | month: month}]
+      end)
     end)
   end
 
@@ -317,15 +312,12 @@ defmodule ICal.Recurrence.Generate do
        when has_some(year_days) do
     Enum.uniq_by(acc, fn recurrence -> recurrence.year end)
     |> Enum.flat_map(fn recurrence ->
-      orig_day_of_year = day_of_year(recurrence)
+      #       orig_day_of_year = day_of_year(recurrence)
       first_of_jan = %{recurrence | month: 1, day: 1}
 
       Enum.map(year_days, fn day_of_year ->
-        if day_of_year > orig_day_of_year do
-          shift(first_of_jan, day: day_of_year - 1)
-        else
-          shift(first_of_jan, year: 1, day: day_of_year - 1)
-        end
+        shifted = shift_date(first_of_jan, day: day_of_year - 1)
+        %{recurrence | month: shifted.month, day: shifted.day}
       end)
     end)
   end
@@ -390,7 +382,7 @@ defmodule ICal.Recurrence.Generate do
             if shift_days >= days_in_month do
               []
             else
-              [shift(first_day, day: shift_days)]
+              [shift_date(first_day, day: shift_days)]
             end
 
           {offset, weekday} ->
@@ -405,7 +397,7 @@ defmodule ICal.Recurrence.Generate do
             if shift_days >= last_day.day do
               []
             else
-              [shift(last_day, day: -shift_days)]
+              [shift_date(last_day, day: -shift_days)]
             end
         end
       )
@@ -428,7 +420,7 @@ defmodule ICal.Recurrence.Generate do
         fn {_, weekday} ->
           # mod by 7 in case of negative difference
           shift_days = Integer.mod(order[weekday] - week_start_ordinal, 7)
-          shift(first_week_day, day: shift_days)
+          shift_date(first_week_day, day: shift_days)
         end
       )
     end)
@@ -526,19 +518,23 @@ defmodule ICal.Recurrence.Generate do
 
   defp exclude(recurrences, %{earliest_date: earliest, exclude_dates: exclude_dates}) do
     in_set =
-      Enum.filter(recurrences, fn recurrence ->
-        not in_dates?(exclude_dates, recurrence)
-      end)
+      if has_some(exclude_dates) do
+        Enum.filter(recurrences, fn recurrence ->
+          not in_dates?(exclude_dates, recurrence)
+        end)
+      else
+        recurrences
+      end
 
     index =
       Enum.find_index(in_set, fn recurrence ->
         is_not_before(recurrence, earliest)
       end)
 
-    if index != nil and index > 0 do
-      Enum.slice(in_set, index..-1//1)
-    else
-      in_set
+    case index do
+      nil -> []
+      0 -> in_set
+      index -> Enum.slice(in_set, index..-1//1)
     end
   end
 
@@ -656,7 +652,7 @@ defmodule ICal.Recurrence.Generate do
   defp weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
 
   defp generate_by_day_in_month([last | _] = acc) do
-    next = shift(last, week: 1)
+    next = shift_date(last, week: 1)
 
     if next.month == last.month do
       generate_by_day_in_month([next | acc])
@@ -700,7 +696,8 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp update_limit_by_date(recurrences, limit_date, state) do
-    index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
+    index =
+      Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
 
     if index != nil do
       recurrences
@@ -720,8 +717,21 @@ defmodule ICal.Recurrence.Generate do
     Date.range(first, last) |> Enum.map(fn date -> DateTime.new!(date, time) end)
   end
 
-  defp shift(%DateTime{} = start_date, interval), do: DateTime.shift(start_date, interval)
-  defp shift(%Date{} = start_date, interval), do: Date.shift(start_date, interval)
+  defp shift_interval(date, {:date, interval}), do: shift_date(date, interval)
+
+  defp shift_interval(date, {:time, interval}) do
+    case date do
+      %Date{} -> DateTime.new!(date, Time.new!(0, 0, 0), "Etc/UTC") |> DateTime.shift(interval)
+      %DateTime{} -> DateTime.shift(date, interval)
+    end
+  end
+
+  defp shift_date(%DateTime{} = date, interval) do
+    shifted = DateTime.shift(date, interval)
+    %{date | year: shifted.year, month: shifted.month, day: shifted.day}
+  end
+
+  defp shift_date(%Date{} = date, interval), do: Date.shift(date, interval)
 
   def week_number_bookends(start_date, week) do
     # shift the week
