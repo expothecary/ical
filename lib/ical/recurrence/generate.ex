@@ -25,6 +25,7 @@ defmodule ICal.Recurrence.Generate do
       |> Enum.sort(&compare_recurrences/2)
 
     %State{
+      earliest_date: start_date,
       start_date: start_date,
       interval: rule_interval(rule),
       modifiers: rule_modifiers(rule),
@@ -468,10 +469,22 @@ defmodule ICal.Recurrence.Generate do
 
   defp apply_modifier(_, _rule, acc), do: acc
 
-  defp exclude(recurrences, %{start_date: start_date, exclude_dates: exclude_dates}) do
-    Enum.filter(recurrences, fn recurrence ->
-      is_not_before(recurrence, start_date) and not in_dates?(exclude_dates, recurrence)
-    end)
+  defp exclude(recurrences, %{earliest_date: earliest, exclude_dates: exclude_dates}) do
+    in_set =
+      Enum.filter(recurrences, fn recurrence ->
+        not in_dates?(exclude_dates, recurrence)
+      end)
+
+    index =
+      Enum.find_index(in_set, fn recurrence ->
+        is_not_before(recurrence, earliest)
+      end)
+
+    if index != nil and index > 0 do
+      Enum.slice(in_set, index..-1//1)
+    else
+      in_set
+    end
   end
 
   defp in_dates?(all_dates, recurrence) do
