@@ -785,10 +785,6 @@ defmodule ICal.Recurrence.Generate do
   defp ensure_end_of_first_week(%{day: day} = date) when day < 4, do: Date.shift(date, week: 1)
   defp ensure_end_of_first_week(day), do: day
 
-  defp day_of_year(%DateTime{} = datetime), do: day_of_year(DateTime.to_date(datetime))
-  defp day_of_year(%NaiveDateTime{} = datetime), do: day_of_year(NaiveDateTime.to_date(datetime))
-  defp day_of_year(%Date{} = date), do: Date.day_of_year(date)
-
   defp is_between_inclusive(earliest, middle, latest) do
     is_not_after(earliest, middle) and is_not_after(middle, latest)
   end
