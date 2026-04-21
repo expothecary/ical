@@ -396,7 +396,8 @@ defmodule ICal.Recurrence.Generate do
        when has_some(weekdays) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       order = weekday_order()
-      first_week_day = order[weekday(recurrence)]
+
+      first_week_day = order[weekday(%{recurrence | day: 1})]
 
       Enum.reduce(
         weekdays,
@@ -406,10 +407,13 @@ defmodule ICal.Recurrence.Generate do
             weekday_order = order[weekday]
 
             # calculate when the first of this day occurs in the month
+            # if the weekday order is before the first weekday
+            # of the month, then it appears one week later minus the difference
+            # if the weekday order is after, then it's just the diff + 1 days in
             first =
               case first_week_day - weekday_order do
-                diff when diff < 0 -> diff + 7
-                diff -> diff + 1
+                diff when diff <= 0 -> abs(diff) + 1
+                diff -> 8 - diff
               end
 
             acc ++ generate_all_weekdays_in_month([%{recurrence | day: first}])
@@ -430,8 +434,8 @@ defmodule ICal.Recurrence.Generate do
             last_day = %{recurrence | day: days_in_month(recurrence)}
             month_ends = order[weekday(last_day)]
 
-            # shift by the different between the month end weekday and the target weekday,
-            # plus one week per offset
+            # shift by the difference between the month end weekday and the target weekday,
+            # plus one week per additional offset
             shift_days =
               Integer.mod(month_ends - order[weekday], 7) + 7 * (abs(offset) - 1)
 
