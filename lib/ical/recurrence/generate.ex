@@ -382,9 +382,11 @@ defmodule ICal.Recurrence.Generate do
 
             generate_by_day_in_month([%{recurrence | day: first}])
 
-          {offset, _weekday} when offset >= 0 ->
-            # TODO
-            recurrence
+          {offset, weekday} when offset >= 0 ->
+            first_day = %{recurrence | day: 1}
+            month_starts = order[weekday(first_day)]
+            shift_days = Integer.mod(order[weekday] - month_starts, 7) * offset
+            [shift(first_day, day: shift_days)]
 
           {from_end, _weekday} ->
             # TODO
@@ -404,7 +406,6 @@ defmodule ICal.Recurrence.Generate do
     Enum.flat_map(acc, fn recurrence ->
       order = weekday_order()
       first_week_day = beginning_of_week(recurrence, week_start_day)
-
       week_start_ordinal = order[weekday(first_week_day)]
 
       Enum.map(
