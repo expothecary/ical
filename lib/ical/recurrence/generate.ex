@@ -408,7 +408,6 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  # TODO
   defp apply_modifier(
          {:by_day, :expand_week},
          %{by_day: weekdays, week_start_day: week_start_day},
@@ -438,34 +437,73 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  # TODO
   defp apply_modifier({:by_hour, :expand}, %{by_hour: hours}, acc) when has_some(hours) do
-    acc
+    Enum.flat_map(acc, fn recurrence ->
+      Enum.map(
+        hours,
+        fn hour ->
+          case recurrence do
+            %Date{} = date -> DateTime.new!(date, Time.new!(hour, 0, 0))
+            %DateTime{} = date -> %{date | hour: hour}
+          end
+        end
+      )
+    end)
   end
 
-  # TODO
   defp apply_modifier({:by_hour, :limit}, %{by_hour: hours}, acc) when has_some(hours) do
-    acc
+    Enum.filter(acc, fn recurrence ->
+      case recurrence do
+        %DateTime{hour: hour} -> Enum.member?(hours, hour)
+        _ -> false
+      end
+    end)
   end
 
-  # TODO
   defp apply_modifier({:by_minute, :expand}, %{by_minute: minutes}, acc) when has_some(minutes) do
-    acc
+    Enum.flat_map(acc, fn recurrence ->
+      Enum.map(
+        minutes,
+        fn minute ->
+          case recurrence do
+            %Date{} = date -> DateTime.new!(date, Time.new!(0, minute, 0))
+            %DateTime{} = date -> %{date | minute: minute}
+          end
+        end
+      )
+    end)
   end
 
-  # TODO
   defp apply_modifier({:by_minute, :limit}, %{by_minute: minutes}, acc) when has_some(minutes) do
-    acc
+    Enum.filter(acc, fn recurrence ->
+      case recurrence do
+        %DateTime{minute: minute} -> Enum.member?(minutes, minute)
+        _ -> false
+      end
+    end)
   end
 
-  # TODO
   defp apply_modifier({:by_second, :expand}, %{by_second: seconds}, acc) when has_some(seconds) do
-    acc
+    Enum.flat_map(acc, fn recurrence ->
+      Enum.map(
+        seconds,
+        fn second ->
+          case recurrence do
+            %Date{} = date -> DateTime.new!(date, Time.new!(0, 0, second))
+            %DateTime{} = date -> %{date | second: second}
+          end
+        end
+      )
+    end)
   end
 
-  # TODO
   defp apply_modifier({:by_second, :limit}, %{by_second: seconds}, acc) when has_some(seconds) do
-    acc
+    Enum.filter(acc, fn recurrence ->
+      case recurrence do
+        %DateTime{second: second} -> Enum.member?(seconds, second)
+        _ -> false
+      end
+    end)
   end
 
   defp apply_modifier({:by_set_position, :limit}, %{by_set_position: index}, recurrences)
@@ -643,7 +681,6 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp update_limit_by_date(recurrences, limit_date, state) do
-    # TODO: comparing from the end be more efficient in most cases?
     index = Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
 
     if index != nil do
