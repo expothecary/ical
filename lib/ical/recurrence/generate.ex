@@ -360,7 +360,6 @@ defmodule ICal.Recurrence.Generate do
     acc
   end
 
-  # TODO
   defp apply_modifier({:by_day, :expand_month}, %{by_day: weekdays}, acc)
        when has_some(weekdays) do
     Enum.flat_map(acc, fn recurrence ->
@@ -689,6 +688,9 @@ defmodule ICal.Recurrence.Generate do
   defp week_of_year(%NaiveDateTime{} = datetime) do
     week_of_year(NaiveDateTime.to_date(datetime))
   end
+
+  defp days_in_month(%Date{} = date), do: Date.days_in_month(date)
+  defp days_in_month(date), do: Date.days_in_month(DateTime.to_date(date))
 
   defp week_of_year(%Date{} = date) do
     end_of_first_week =
