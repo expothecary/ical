@@ -534,15 +534,15 @@ defmodule ICal.Recurrence.Generate do
     %{monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7}
   end
 
-  def weekday(%Date{} = date) do
+  defp weekday(%Date{} = date) do
     index_date = Date.day_of_week(date)
     days = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
     Enum.at(days, index_date - 1)
   end
 
-  def weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
+  defp weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
 
-  def generate_by_day_in_month([last | _] = acc) do
+  defp generate_by_day_in_month([last | _] = acc) do
     next = shift(last, week: 1)
 
     if next.month == last.month do
