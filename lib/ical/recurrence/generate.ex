@@ -312,7 +312,6 @@ defmodule ICal.Recurrence.Generate do
        when has_some(year_days) do
     Enum.uniq_by(acc, fn recurrence -> recurrence.year end)
     |> Enum.flat_map(fn recurrence ->
-      #       orig_day_of_year = day_of_year(recurrence)
       first_of_jan = %{recurrence | month: 1, day: 1}
 
       Enum.map(year_days, fn day_of_year ->
@@ -346,10 +345,62 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  # TODO
   defp apply_modifier({:by_day, :expand_year}, %{by_day: weekdays}, acc)
        when has_some(weekdays) do
-    acc
+    Enum.reduce(acc, [], fn recurrence, acc ->
+      Enum.reduce(weekdays, acc, fn
+        {offset, weekday}, acc when offset >= 0 ->
+          order = weekday_order()
+          first_of_jan = %{recurrence | month: 1, day: 1}
+          first_week_day = order[weekday(first_of_jan)]
+          weekday_order = order[weekday]
+          # calculate when the first of this day occurs in the month
+          first =
+            case first_week_day - weekday_order do
+              diff when diff < 0 -> diff + 7
+              diff -> 8 - diff
+            end
+
+          # first day of the year this weekday appears
+          first_occurance = %{first_of_jan | day: first}
+
+          # having found the first day in the year, move forward offset less one
+          # more weeks
+          offset = max(0, offset - 1)
+
+          next = shift_date(first_occurance, week: offset)
+
+          if next.year == recurrence.year do
+            acc ++ [next]
+          else
+            acc
+          end
+
+        {offset, weekday}, acc ->
+          order = weekday_order()
+          dec_31 = %{recurrence | month: 12, day: 31}
+          last_week_day = order[weekday(dec_31)]
+          weekday_order = order[weekday]
+
+          # the last day in the month for this weekday
+          last =
+            case weekday_order - last_week_day do
+              diff when diff < 1 -> 31 + diff
+              diff -> 24 + diff
+            end
+
+          # last day in the year this weekday appears
+          last_occurance = %{dec_31 | day: last}
+
+          next = shift_date(last_occurance, week: offset + 1)
+
+          if next.year == recurrence.year do
+            acc ++ [next]
+          else
+            acc
+          end
+      end)
+    end)
   end
 
   defp apply_modifier({:by_day, :expand_month}, %{by_day: weekdays}, acc)
