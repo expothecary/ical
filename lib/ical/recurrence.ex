@@ -2,10 +2,7 @@
 # credo:disable-for-this-file
 defmodule ICal.Recurrence do
   @moduledoc """
-  Adds support for ICal recurring.
-
-  Events can recur by frequency, count, interval, and/or start/end date. To
-  see the specific rules and examples, see `add_recurring_events/2` below.
+  Support for recurring events, todos, and journals.
   """
 
   require Logger
