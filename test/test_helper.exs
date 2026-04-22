@@ -24,7 +24,7 @@ defmodule ICal.Test.Helper do
   @doc "Times a function"
   @spec time(fun, label :: String.t()) :: term
   def time(function, label \\ "") do
-    {time, value} = :timer.tc(function, :microsecond)
+    {time, value} = :timer.tc(function)
 
     if Application.get_env(:ical, :show_test_timings, false) do
       Logger.info("TIME #{label} => #{time} microseconds / #{time / 1000} ms")
