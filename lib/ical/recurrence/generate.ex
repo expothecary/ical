@@ -777,7 +777,7 @@ defmodule ICal.Recurrence.Generate do
 
   defp shift_date(%DateTime{} = date, interval) do
     shifted = DateTime.shift(date, interval)
-    %{date | year: shifted.year, month: shifted.month, day: shifted.day}
+    %{shifted | hour: date.hour, minute: date.minute, second: date.second}
   end
 
   defp shift_date(%Date{} = date, interval), do: Date.shift(date, interval)
