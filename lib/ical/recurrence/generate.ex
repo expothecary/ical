@@ -199,12 +199,6 @@ defmodule ICal.Recurrence.Generate do
     {:ok, acc}
   end
 
-  defp generate_all(%{fruitless_searches: fruitless_searches, rule: rule}, acc)
-       when fruitless_searches > @max_fruitless_search_depth do
-    Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
-    {:error, :search_exhaustion, acc}
-  end
-
   defp generate_all(state, acc) do
     {recurrences, new_state} = generate_set(state)
 
@@ -213,6 +207,12 @@ defmodule ICal.Recurrence.Generate do
     else
       generate_all(new_state, acc ++ recurrences)
     end
+  end
+
+  defp generate_set(%{fruitless_searches: fruitless_searches, rule: rule} = state)
+       when fruitless_searches > @max_fruitless_search_depth do
+    Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
+    {[], %{state | limit: :reached}}
   end
 
   defp generate_set(%State{} = state) do
