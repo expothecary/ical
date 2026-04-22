@@ -304,8 +304,7 @@ defmodule ICal.Recurrence.Generate do
       first_of_jan = %{recurrence | month: 1, day: 1}
 
       Enum.map(year_days, fn day_of_year ->
-        shifted = shift_date(first_of_jan, day: day_of_year - 1)
-        %{recurrence | month: shifted.month, day: shifted.day}
+        shift_date(first_of_jan, day: day_of_year - 1)
       end)
     end)
   end
