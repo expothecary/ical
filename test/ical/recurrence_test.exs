@@ -826,7 +826,8 @@ defmodule ICal.RecurrenceTest do
       dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2")
 
-      assert {:error, :no_defined_limit, []} == ICal.Recurrence.Generate.all(rule, start_date: dtstart)
+      assert {:error, :no_defined_limit, []} ==
+               ICal.Recurrence.Generate.all(rule, start_date: dtstart)
     end
 
     test "recurrenct termination is correctly noted" do
@@ -893,7 +894,10 @@ defmodule ICal.RecurrenceTest do
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=WEEKLY;COUNT=10")
 
       {:ok, recurrences} =
-        Helper.time(fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end, "weekly for 10 weeks")
+        Helper.time(
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
+          "weekly for 10 weeks"
+        )
 
       assert Enum.count(recurrences) == 10
       #        ==> (1997 9:00 AM EDT) September 2,9,16,23,30;October 7,14,21
@@ -905,7 +909,10 @@ defmodule ICal.RecurrenceTest do
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=WEEKLY;UNTIL=19971224T000000Z")
 
       {:ok, recurrences} =
-        Helper.time(fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end, "weekly for 10 weeks")
+        Helper.time(
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
+          "weekly for 10 weeks"
+        )
 
       assert Enum.count(recurrences) == 17
       assert Enum.at(recurrences, 0) == dtstart
