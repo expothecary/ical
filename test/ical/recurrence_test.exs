@@ -827,6 +827,16 @@ defmodule ICal.RecurrenceTest do
       assert {:error, :no_defined_limit, []} == ICal.Recurrence.Generate.all(rule, dtstart)
     end
 
+    test "recurrenct termination is correctly noted" do
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2")
+      refute ICal.Recurrence.terminates?(rule)
+
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2;COUNT=10")
+      assert ICal.Recurrence.terminates?(rule)
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2;UNTIL=19971224T000000Z")
+      assert ICal.Recurrence.terminates?(rule)
+    end
+
     test "every other day forever works with a stream" do
       dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2")
@@ -1185,100 +1195,279 @@ defmodule ICal.RecurrenceTest do
       assert recurrences == expected
     end
 
-    #      Monthly on the third-to-the-last day of the month, forever:
-    #
-    #        DTSTART;TZID=America/New_York:19970928T090000
-    #        RRULE:FREQ=MONTHLY;BYMONTHDAY=-3
-    #
-    #        ==> (1997 9:00 AM EDT) September 28
-    #            (1997 9:00 AM EST) October 29;November 28;December 29
-    #            (1998 9:00 AM EST) January 29;February 26
-    #            ...
-    #
-    #       Monthly on the 2nd and 15th of the month for 10 occurrences:
-    #
-    #        DTSTART;TZID=America/New_York:19970902T090000
-    #        RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=2,15
-    #
-    #        ==> (1997 9:00 AM EDT) September 2,15;October 2,15
-    #            (1997 9:00 AM EST) November 2,15;December 2,15
-    #            (1998 9:00 AM EST) January 2,15
-    #
-    #       Monthly on the first and last day of the month for 10 occurrences:
-    #
-    #        DTSTART;TZID=America/New_York:19970930T090000
-    #        RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=1,-1
-    #
-    #        ==> (1997 9:00 AM EDT) September 30;October 1
-    #            (1997 9:00 AM EST) October 31;November 1,30;December 1,31
-    #            (1998 9:00 AM EST) January 1,31;February 1
-    #
-    #       Every 18 months on the 10th thru 15th of the month for 10
-    #       occurrences:
-    #
-    #        DTSTART;TZID=America/New_York:19970910T090000
-    #        RRULE:FREQ=MONTHLY;INTERVAL=18;COUNT=10;BYMONTHDAY=10,11,12,
-    #         13,14,15
-    #
-    #        ==> (1997 9:00 AM EDT) September 10,11,12,13,14,15
-    #            (1999 9:00 AM EST) March 10,11,12,13
-    #
-    #       Every Tuesday, every other month:
-    #
-    #        DTSTART;TZID=America/New_York:19970902T090000
-    #        RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=TU
-    #
-    #        ==> (1997 9:00 AM EDT) September 2,9,16,23,30
-    #            (1997 9:00 AM EST) November 4,11,18,25
-    #            (1998 9:00 AM EST) January 6,13,20,27;March 3,10,17,24,31
-    #            ...
-    #      Every Friday the 13th, forever:
-    #
-    #        DTSTART;TZID=America/New_York:19970902T090000
-    #        EXDATE;TZID=America/New_York:19970902T090000
-    #        RRULE:FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13
-    #
-    #        ==> (1998 9:00 AM EST) February 13;March 13;November 13
-    #            (1999 9:00 AM EDT) August 13
-    #            (2000 9:00 AM EDT) October 13
-    #            ...
-    #       The first Saturday that follows the first Sunday of the month,
-    #       forever:
-    #
-    #        DTSTART;TZID=America/New_York:19970913T090000
-    #        RRULE:FREQ=MONTHLY;BYDAY=SA;BYMONTHDAY=7,8,9,10,11,12,13
-    #
-    #        ==> (1997 9:00 AM EDT) September 13;October 11
-    #            (1997 9:00 AM EST) November 8;December 13
-    #            (1998 9:00 AM EST) January 10;February 7;March 7
-    #            (1998 9:00 AM EDT) April 11;May 9;June 13...
-    #            ...
-    #   The third instance into the month of one of Tuesday, Wednesday, or
-    #       Thursday, for the next 3 months:
-    #
-    #        DTSTART;TZID=America/New_York:19970904T090000
-    #        RRULE:FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3
-    #
-    #        ==> (1997 9:00 AM EDT) September 4;October 7
-    #            (1997 9:00 AM EST) November 6
-    #
-    #       The second-to-last weekday of the month:
-    #
-    #        DTSTART;TZID=America/New_York:19970929T090000
-    #        RRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-2
-    #
-    #        ==> (1997 9:00 AM EDT) September 29
-    #            (1997 9:00 AM EST) October 30;November 27;December 30
-    #            (1998 9:00 AM EST) January 29;February 26;March 30
-    #            ...
-    #        An example where an invalid date (i.e., February 30) is ignored.
-    #
-    #        DTSTART;TZID=America/New_York:20070115T090000
-    #        RRULE:FREQ=MONTHLY;BYMONTHDAY=15,30;COUNT=5
-    #
-    #        ==> (2007 EST) January 15,30
-    #            (2007 EST) February 15
-    #            (2007 EDT) March 15,30
+    test "on the third-to-the-last day of the month" do
+      count = 6
+      dtstart = DateTime.new!(~D[1997-09-28], ~T[09:00:00], "America/New_York")
+
+      rule =
+        ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;BYMONTHDAY=-3")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          "on the third-to-the-last day of the month"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-28], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-29], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-28], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-12-29], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-29], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-02-26], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "2nd and 15th of the month for 10 occurrences" do
+      count = 10
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+
+      rule =
+        ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=2,15")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          "2nd and 15th of the month for 10 occurrences"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-12-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-12-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-15], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "first and last day of the month for 10 occurrencess" do
+      count = 10
+      dtstart = DateTime.new!(~D[1997-09-30], ~T[09:00:00], "America/New_York")
+
+      rule =
+        ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=1,-1")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          "first and last day of the month for 10 occurrencess"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-30], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-01], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-31], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-01], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-30], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-12-01], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-12-31], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-01], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-31], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-02-01], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "every 18 months on the 10th thru 15th of the month for 10 occurrencess" do
+      count = 10
+      dtstart = DateTime.new!(~D[1997-09-10], ~T[09:00:00], "America/New_York")
+
+      rule =
+        ICal.Recurrence.from_ics(
+          "RRULE:FREQ=MONTHLY;INTERVAL=18;COUNT=10;BYMONTHDAY=10,11,12,13,14,15"
+        )
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          "every 18 months on the 10th thru 15th of the month for 10 occurrencess"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-10], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-11], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-12], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-14], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1999-03-10], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1999-03-11], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1999-03-12], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1999-03-13], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "every Tuesday, every other month" do
+      count = 13
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=TU")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          "every Tuesday, every other month"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-09], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-16], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-23], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-09-30], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-04], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-11], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-18], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-25], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-06], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-20], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-27], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "every Friday the 13th" do
+      count = 5
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13")
+
+      recurrences =
+        Helper.time(
+          fn ->
+            ICal.Recurrence.stream(rule, dtstart, exclude_dates: [dtstart]) |> Enum.take(count)
+          end,
+          "every Friday the 13th"
+        )
+
+      expected = [
+        DateTime.new!(~D[1998-02-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-03-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-11-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1999-08-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[2000-10-13], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "first Saturday that follows the first Sunday of the month" do
+      count = 7
+      dtstart = DateTime.new!(~D[1997-09-13], ~T[09:00:00], "America/New_York")
+
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;BYDAY=SA;BYMONTHDAY=7,8,9,10,11,12,13")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          "first Saturday that follows the first Sunday of the month"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-11], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-08], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-12-13], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-10], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-02-07], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-03-07], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "third instance into the month of one of Tuesday, Wednesday, or Thursday for the next 3 months" do
+      count = 3
+      dtstart = DateTime.new!(~D[1997-09-04], ~T[09:00:00], "America/New_York")
+
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          "third instance into the month of one of Tuesday, Wednesday, or Thursday for the next 3 months"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-04], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-07], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-06], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "second-to-last weekday of the month" do
+      count = 7
+      dtstart = DateTime.new!(~D[1997-09-29], ~T[09:00:00], "America/New_York")
+
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-2")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          "second-to-last weekday of the month"
+        )
+
+      expected = [
+        DateTime.new!(~D[1997-09-29], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-10-30], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-11-27], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1997-12-30], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-01-29], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-02-26], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[1998-03-30], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
+
+    test "an invalid date (February 30) is ignored" do
+      count = 5
+      dtstart = DateTime.new!(~D[2007-01-15], ~T[09:00:00], "America/New_York")
+
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=MONTHLY;BYMONTHDAY=15,30;COUNT=5")
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          "second-to-last weekday of the month"
+        )
+
+      expected = [
+        DateTime.new!(~D[2007-01-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[2007-01-30], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[2007-02-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[2007-03-15], ~T[09:00:00], "America/New_York"),
+        DateTime.new!(~D[2007-03-30], ~T[09:00:00], "America/New_York")
+      ]
+
+      assert Enum.count(recurrences) == count
+      assert recurrences == expected
+    end
   end
 
   describe "Recurrence generation with time components," do
