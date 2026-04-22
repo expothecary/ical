@@ -10,13 +10,10 @@ defmodule ICal.Recurrence.Generate do
   defguard has_some(x) when is_list(x) and x != []
   defguard has_none(x) when not has_some(x)
 
-  @type error_reasons :: :search_exhaustion | :no_defined_limit
-
   @spec init(
           ICal.Recurrence.t(),
           options :: [ICal.Recurrence.stream_option()]
-        ) ::
-          State.t()
+        ) :: State.t()
   def init(rule, options) do
     other_recurrences =
       options
@@ -32,16 +29,18 @@ defmodule ICal.Recurrence.Generate do
       modifiers: rule_modifiers(rule),
       rule: rule,
       exclude_dates: resolve_option(options, :exclude, []),
-      other_recurrences: other_recurrences
+      other_recurrences: other_recurrences,
+      error: :none
     }
     |> add_rule_limits(rule, Keyword.get(options, :end_date))
   end
 
-  @spec all(ICal.Recurrence.t(), starting_from :: ICal.Recurrence.recurrence_date()) ::
+  @spec all(ICal.Recurrence.t(), options :: [ICal.Recurrence.stream_option()]) ::
           {:ok, [ICal.Recurrence.recurrence_date()]}
-          | {:error, error_reasons, [ICal.Recurrence.recurrence_date()]}
-  def all(rule, start_date) do
-    init(rule, start_date: start_date)
+          | {:error, State.error_reason(), [ICal.Recurrence.recurrence_date()]}
+  def all(rule, options) do
+    rule
+    |> init(options)
     |> generate_all()
   end
 
@@ -188,32 +187,35 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
+  @spec generate_all(State.t()) ::
+          {:ok, [ICal.Recurrence.recurrence_date()]}
+          | {:error, State.error_reason(), [ICal.Recurrence.recurrence_date()]}
   defp generate_all(state) do
     generate_all(state, [])
   end
 
-  defp generate_all(%{limit: nil}, acc) do
+  defp generate_all(%State{limit: nil}, acc) do
     {:error, :no_defined_limit, acc}
   end
 
-  defp generate_all(%{limit: limit}, acc) when is_integer(limit) and limit < 1 do
+  defp generate_all(%State{limit: limit}, acc) when is_integer(limit) and limit < 1 do
     {:ok, acc}
   end
 
-  defp generate_all(state, acc) do
+  defp generate_all(%State{} = state, acc) do
     {recurrences, new_state} = generate_set(state)
 
-    if new_state.limit == :reached do
-      {:ok, acc ++ recurrences}
-    else
-      generate_all(new_state, acc ++ recurrences)
+    case new_state do
+      %{limit: :reached, error: :none} -> {:ok, acc ++ recurrences}
+      %{limit: :reached, error: error} -> {:error, error, acc ++ recurrences}
+      new_state -> generate_all(new_state, acc ++ recurrences)
     end
   end
 
   defp generate_set(%{fruitless_searches: fruitless_searches, rule: rule} = state)
        when fruitless_searches > @max_fruitless_search_depth do
     Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
-    {[], %{state | limit: :reached}}
+    {[], %{state | limit: :reached, error: :search_exhaustion}}
   end
 
   defp generate_set(%State{} = state) do
