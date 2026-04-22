@@ -7,4 +7,5 @@ end
 
 if Mix.env() == :dev or Mix.env() == :test do
   config :ical, show_test_timings: false
+  config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 end
