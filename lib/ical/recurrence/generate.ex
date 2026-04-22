@@ -321,7 +321,12 @@ defmodule ICal.Recurrence.Generate do
     acc
     |> Enum.flat_map(fn recurrence ->
       Enum.map(month_days, fn month_day ->
-        %{recurrence | day: month_day}
+        if month_day > 0 do
+          %{recurrence | day: month_day}
+        else
+          end_day = days_in_month(recurrence)
+          %{recurrence | day: end_day + month_day + 1}
+        end
       end)
     end)
   end
