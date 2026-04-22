@@ -302,16 +302,22 @@ defmodule ICal.Recurrence.Generate do
 
   defp apply_modifier({:by_month_day, :expand}, %{by_month_day: month_days}, acc)
        when has_some(month_days) do
-    acc
-    |> Enum.flat_map(fn recurrence ->
-      Enum.map(month_days, fn month_day ->
+    Enum.reduce(acc, [], fn recurrence, acc ->
+      Enum.reduce(month_days, acc, fn month_day, acc ->
         first = %{recurrence | day: 1}
 
-        if month_day > 0 do
-          shift_date(first, day: month_day - 1)
+        date =
+          if month_day > 0 do
+            shift_date(first, day: month_day - 1)
+          else
+            end_day = days_in_month(recurrence)
+            shift_date(first, day: end_day + month_day)
+          end
+
+        if date.month == recurrence.month do
+          acc ++ [date]
         else
-          end_day = days_in_month(recurrence)
-          shift_date(first, day: end_day + month_day)
+          acc
         end
       end)
     end)
