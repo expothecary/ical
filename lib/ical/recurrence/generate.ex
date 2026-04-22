@@ -228,34 +228,31 @@ defmodule ICal.Recurrence.Generate do
   defp apply_all_modifiers(recurrences, %{modifiers: modifiers, rule: rule}) do
     Enum.reduce(modifiers, recurrences, fn modifier, acc ->
       apply_modifier(modifier, rule, acc)
-      |> Enum.reduce([], &only_valid_dates/2)
+      |> Enum.filter(&date_valid?/1)
       |> Enum.sort(&compare_recurrences/2)
     end)
   end
 
-  defp only_valid_dates(%NaiveDateTime{} = date, acc) do
+  defp date_valid?(%NaiveDateTime{} = date) do
     case NaiveDateTime.new(NaiveDateTime.to_date(date), NaiveDateTime.to_time(date)) do
-      {:ok, date} -> acc ++ [date]
-      _ -> acc
+      {:ok, _date} -> true
+      _ -> false
     end
   end
 
-  defp only_valid_dates(%Date{} = date, acc) do
+  defp date_valid?(%Date{} = date) do
     case Date.new(date.year, date.month, date.day) do
-      {:ok, date} -> acc ++ [date]
-      _ -> acc
+      {:ok, _} -> true
+      _ -> false
     end
   end
 
-  defp only_valid_dates(%DateTime{} = datetime, acc) do
-    case ICal.as_valid_datetime(
-           DateTime.to_date(datetime),
-           DateTime.to_time(datetime),
-           datetime.time_zone
-         ) do
-      nil -> acc
-      datetime -> acc ++ [datetime]
-    end
+  defp date_valid?(%DateTime{} = datetime) do
+    ICal.as_valid_datetime(
+      DateTime.to_date(datetime),
+      DateTime.to_time(datetime),
+      datetime.time_zone
+    ) != nil
   end
 
   defp compare_recurrences(%DateTime{} = l, r), do: DateTime.compare(l, r) == :lt
