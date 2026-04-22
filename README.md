@@ -61,8 +61,8 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
 
   ```elixir
   def deps do
-    [{:ical, "~> 1.0"}]
-      {:ical, "~> 1.0"},
+    [
+      {:ical, "~> 2.0"}
       {:tz, "~> 1.1"}
     ]
   end
