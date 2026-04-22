@@ -233,26 +233,13 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp date_valid?(%NaiveDateTime{} = date) do
-    case NaiveDateTime.new(NaiveDateTime.to_date(date), NaiveDateTime.to_time(date)) do
-      {:ok, _date} -> true
-      _ -> false
-    end
-  end
-
   defp date_valid?(%Date{} = date) do
-    case Date.new(date.year, date.month, date.day) do
-      {:ok, _} -> true
-      _ -> false
-    end
+    Calendar.ISO.valid_date?(date.year, date.month, date.day)
   end
 
   defp date_valid?(%DateTime{} = datetime) do
-    ICal.as_valid_datetime(
-      DateTime.to_date(datetime),
-      DateTime.to_time(datetime),
-      datetime.time_zone
-    ) != nil
+    Calendar.ISO.valid_date?(datetime.year, datetime.month, datetime.day) and
+      Calendar.ISO.valid_time?(datetime.hour, datetime.minute, datetime.second, {0, 0})
   end
 
   defp compare_recurrences(%DateTime{} = l, r), do: DateTime.compare(l, r) == :lt
