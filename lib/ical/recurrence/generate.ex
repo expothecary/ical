@@ -537,16 +537,16 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_set_position, :limit}, %{by_set_position: index}, recurrences)
-       when is_integer(index) and index != 0 do
-    index = if index > 0, do: index - 1, else: index
+  defp apply_modifier({:by_set_position, :limit}, %{by_set_position: positions}, recurrences)
+       when has_some(positions) do
+    Enum.reduce(positions, [], fn index, acc ->
+      index = if index > 0, do: index - 1, else: index
 
-    case Enum.at(recurrences, index) do
-      nil -> []
-      recurrence -> [recurrence]
-    end
-
-    recurrences
+      case Enum.at(recurrences, index) do
+        nil -> acc
+        recurrence -> acc ++ [recurrence]
+      end
+    end)
   end
 
   defp apply_modifier(_, _rule, acc), do: acc
