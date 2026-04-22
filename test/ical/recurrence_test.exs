@@ -4,6 +4,8 @@ defmodule ICal.RecurrenceTest do
   alias ICal.Test.Fixtures
   alias ICal.Test.Helper
 
+  doctest ICal.Recurrence
+
   describe "RRULE: serialization" do
     test "Serializes correctly" do
       ics =
@@ -613,7 +615,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every 20th Monday of the year"
         )
 
@@ -636,7 +638,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every 2nd-to-last Monday of the year"
         )
 
@@ -659,7 +661,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "Monday of week number 20 (where the default start of the week is Monday"
         )
 
@@ -682,7 +684,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every Thursday in March"
         )
 
@@ -710,7 +712,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every Thursday, but only during June, July, and August"
         )
 
@@ -747,7 +749,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every 4 years, the first Tuesday after a Monday in November"
         )
 
@@ -856,7 +858,7 @@ defmodule ICal.RecurrenceTest do
       ]
 
       recurrences =
-        ICal.Recurrence.stream(rule, dtstart, [])
+        ICal.Recurrence.stream(rule, start_date: dtstart)
         |> Enum.take(count)
 
       assert Enum.count(recurrences) == count
@@ -877,7 +879,7 @@ defmodule ICal.RecurrenceTest do
       ]
 
       recurrences =
-        ICal.Recurrence.stream(rule, dtstart, [])
+        ICal.Recurrence.stream(rule, start_date: dtstart)
         |> Enum.take(count)
 
       assert Enum.count(recurrences) == 5
@@ -919,7 +921,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every other week, forever"
         )
 
@@ -1204,7 +1206,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "on the third-to-the-last day of the month"
         )
 
@@ -1230,7 +1232,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list() end,
           "2nd and 15th of the month for 10 occurrences"
         )
 
@@ -1260,7 +1262,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list() end,
           "first and last day of the month for 10 occurrencess"
         )
 
@@ -1292,7 +1294,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list() end,
           "every 18 months on the 10th thru 15th of the month for 10 occurrencess"
         )
 
@@ -1321,7 +1323,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every Tuesday, every other month"
         )
 
@@ -1354,7 +1356,8 @@ defmodule ICal.RecurrenceTest do
       recurrences =
         Helper.time(
           fn ->
-            ICal.Recurrence.stream(rule, dtstart, exclude_dates: [dtstart]) |> Enum.take(count)
+            ICal.Recurrence.stream(rule, start_date: dtstart, exclude_recurrences: [dtstart])
+            |> Enum.take(count)
           end,
           "every Friday the 13th"
         )
@@ -1379,7 +1382,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "first Saturday that follows the first Sunday of the month"
         )
 
@@ -1405,7 +1408,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.to_list() end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list() end,
           "third instance into the month of one of Tuesday, Wednesday, or Thursday for the next 3 months"
         )
 
@@ -1427,7 +1430,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "second-to-last weekday of the month"
         )
 
@@ -1453,7 +1456,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "second-to-last weekday of the month"
         )
 
@@ -1556,7 +1559,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every 20 minutes from 9:00 AM to 4:40 PM every day"
         )
 
@@ -1586,7 +1589,7 @@ defmodule ICal.RecurrenceTest do
 
       recurrences =
         Helper.time(
-          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          fn -> ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.take(count) end,
           "every 25 seconds from 09:00"
         )
 

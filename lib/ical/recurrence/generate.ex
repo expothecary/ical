@@ -14,15 +14,16 @@ defmodule ICal.Recurrence.Generate do
 
   @spec init(
           ICal.Recurrence.t(),
-          start_date :: ICal.Recurrence.recurrence_date(),
           options :: [ICal.Recurrence.stream_option()]
         ) ::
           State.t()
-  def init(rule, start_date, options \\ []) do
+  def init(rule, options) do
     other_recurrences =
       options
-      |> resolve_option(:other_recurrences, [])
+      |> resolve_option(:include, [])
       |> Enum.sort(&compare_recurrences/2)
+
+    start_date = resolve_option(options, :start_date, DateTime.utc_now())
 
     %State{
       earliest_date: start_date,
@@ -30,7 +31,7 @@ defmodule ICal.Recurrence.Generate do
       interval: rule_interval(rule),
       modifiers: rule_modifiers(rule),
       rule: rule,
-      exclude_dates: resolve_option(options, :exclude_dates, []),
+      exclude_dates: resolve_option(options, :exclude, []),
       other_recurrences: other_recurrences
     }
     |> add_rule_limits(rule, Keyword.get(options, :end_date))
@@ -40,7 +41,7 @@ defmodule ICal.Recurrence.Generate do
           {:ok, [ICal.Recurrence.recurrence_date()]}
           | {:error, error_reasons, [ICal.Recurrence.recurrence_date()]}
   def all(rule, start_date) do
-    init(rule, start_date)
+    init(rule, start_date: start_date)
     |> generate_all()
   end
 
