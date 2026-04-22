@@ -675,7 +675,7 @@ defmodule ICal.Recurrence.Generate do
           until
       end
 
-    if end_date != nil and after?(until, end_date) do
+    if end_date != nil and (until == nil or after?(until, end_date)) do
       %{state | limit: end_date, end_date: end_date}
     else
       %{state | limit: until, end_date: end_date}
