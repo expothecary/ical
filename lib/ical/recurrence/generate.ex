@@ -275,7 +275,7 @@ defmodule ICal.Recurrence.Generate do
     Enum.filter(acc, fn recurrence ->
       Enum.find(weeks, fn week ->
         {week_start, week_end} = week_number_bookends(recurrence, week)
-        is_between_inclusive(week_start, recurrence, week_end)
+        inclusively_between?(week_start, recurrence, week_end)
       end) != nil
     end)
   end
@@ -581,7 +581,7 @@ defmodule ICal.Recurrence.Generate do
 
     index =
       Enum.find_index(in_set, fn recurrence ->
-        is_not_before(recurrence, earliest)
+        not before?(recurrence, earliest)
       end)
 
     case index do
@@ -639,7 +639,7 @@ defmodule ICal.Recurrence.Generate do
         # other_recurrences is sorted, so only compare until a failure
         index =
           Enum.reduce_while(other_recurrences, -1, fn other_recurrence, index ->
-            if is_after(recurrence, other_recurrence) do
+            if after?(recurrence, other_recurrence) do
               {:cont, index + 1}
             else
               {:halt, index}
@@ -675,7 +675,7 @@ defmodule ICal.Recurrence.Generate do
           until
       end
 
-    if end_date != nil and is_after(until, end_date) do
+    if end_date != nil and after?(until, end_date) do
       %{state | limit: end_date, end_date: end_date}
     else
       %{state | limit: until, end_date: end_date}
@@ -750,7 +750,7 @@ defmodule ICal.Recurrence.Generate do
 
   defp update_limit_by_date(recurrences, limit_date, state) do
     index =
-      Enum.find_index(recurrences, fn recurrence -> is_after(recurrence, limit_date) end)
+      Enum.find_index(recurrences, fn recurrence -> after?(recurrence, limit_date) end)
 
     if index != nil do
       recurrences
@@ -832,21 +832,21 @@ defmodule ICal.Recurrence.Generate do
   defp ensure_end_of_first_week(%{day: day} = date) when day < 4, do: Date.shift(date, week: 1)
   defp ensure_end_of_first_week(day), do: day
 
-  defp is_between_inclusive(earliest, middle, latest) do
-    not is_after(earliest, middle) and not is_after(middle, latest)
+  defp inclusively_between?(earliest, middle, latest) do
+    not after?(earliest, middle) and not after?(middle, latest)
   end
 
   defp equal?(%Date{} = d, %DateTime{} = dt), do: equal?(d, DateTime.to_date(dt))
   defp equal?(%DateTime{} = dt, %Date{} = d), do: equal?(DateTime.to_date(dt), d)
   defp equal?(l, r), do: l == r
 
-  defp is_not_before(%Date{} = d, %DateTime{} = dt), do: is_not_before(d, DateTime.to_date(dt))
-  defp is_not_before(%DateTime{} = dt, %Date{} = d), do: is_not_before(DateTime.to_date(dt), d)
-  defp is_not_before(%Date{} = l, r), do: not Date.before?(l, r)
-  defp is_not_before(%DateTime{} = l, r), do: not DateTime.before?(l, r)
+  defp before?(%Date{} = d, %DateTime{} = dt), do: before?(d, DateTime.to_date(dt))
+  defp before?(%DateTime{} = dt, %Date{} = d), do: before?(DateTime.to_date(dt), d)
+  defp before?(%Date{} = l, r), do: Date.before?(l, r)
+  defp before?(%DateTime{} = l, r), do: DateTime.before?(l, r)
 
-  defp is_after(%Date{} = d, %DateTime{} = dt), do: is_after(d, DateTime.to_date(dt))
-  defp is_after(%DateTime{} = dt, %Date{} = d), do: is_after(DateTime.to_date(dt), d)
-  defp is_after(%Date{} = l, r), do: Date.after?(l, r)
-  defp is_after(%DateTime{} = l, r), do: DateTime.after?(l, r)
+  defp after?(%Date{} = d, %DateTime{} = dt), do: after?(d, DateTime.to_date(dt))
+  defp after?(%DateTime{} = dt, %Date{} = d), do: after?(DateTime.to_date(dt), d)
+  defp after?(%Date{} = l, r), do: Date.after?(l, r)
+  defp after?(%DateTime{} = l, r), do: DateTime.after?(l, r)
 end
