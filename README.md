@@ -37,37 +37,23 @@ The primary entry points are `ICal.from_ics/1` and `ICal.from_file/1` for parsin
 and `ICal.to_ics/1` for serializing an `%ICal{}` to an `iodata` ready for writing to a file, sending
 over the network, etc.
 
-Individual calendar entries (e.g. `%ICal.Event{}`) can also be de/serialized via their respective
-modules.
-
 ```elixir
 calendar = ICal.from_file(ical_path)
 %ICal{events: events} = calendar
 ics_iodata = ICal.to_ics(calendar)
 ```
 
-Recurrences may be calculated from a calendar component up to a given future date:
+To accommodate applications which use `rrule` strings on their own, `ICal.Recurrence` structs can
+be created these strings using `ICal.Recurrence.from_ics/1`:
 
 ```elixir
-  reccurences =
-    event
-    |> ICalendar.Recurrence.get_recurrences(~U[2027-01-01 00:00:00Z])
-    |> Enum.take(4)
+ICal.Recurrence.from_ics("RRULE:RRULE:FREQ=YEARLY;COUNT=10;BYMONTH=6,7")
 ```
 
+Recurrence dates may be calculated from either a calendar component or a `%ICal.Recurrence{}` using
+the `ICal.Recurrence.stream/2` function, while alarms may be resolved using `ICal.Alarm.next_alarms/1`.
+
 Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
-
-## Goals
-
-* corrrect: support the iCalendar (and its related) RFCs for standards-compliance
-* useful: handle real-world data (such as produced by other clients) gracefully, do
-  not lose data while parsing (including fields not supported by / used in this library)
-* good DevExp
-  * parsed results should be easy to use, even if iCalednar is a complex format
-  * typed structs and clear APIs
-  * good doucmentation
-* resource friendly: be performant in parsing and serializing
-* reliable: be well-tested, beyond just code coverage
 
 ## Installation
 
@@ -99,6 +85,18 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
 
   See [tzdb_test](https://github.com/mathieuprog/tzdb_test) for more
   information on the available timezone database libraries.
+
+## Goals
+
+* corrrect: support the iCalendar (and its related) RFCs for standards-compliance
+* useful: handle real-world data (such as produced by other clients) gracefully, do
+  not lose data while parsing (including fields not supported by / used in this library)
+* good developer experience
+  * parsed results should be easy to use, even if iCalednar is a complex format
+  * typed structs and clear APIs
+  * good doucmentation
+* resource friendly: be performant in parsing and serializing
+* reliable: be well-tested, beyond just code coverage
 
 ## Participating in development
 
