@@ -53,6 +53,21 @@ defmodule ICal.Recurrence do
           week_start_day: weekday | :default
         }
 
+  @doc """
+  Takes a string starting with "RRULE:" and returns a recurrence struct.
+  """
+  def from_ics(<<"RRULE", data::binary>>) do
+    data = ICal.Deserialize.skip_params(data)
+    {_data, values} = ICal.Deserialize.param_list(data)
+    ICal.Deserialize.Recurrence.from_params(values)
+  end
+
+  @doc """
+  Normalizes a recurrence, to ensure it is within the boundaries defined by RFC5545.
+
+  Call this before using the recurrence if creating recurrences manually. Recurrences
+  parsed from ics data are automatically normalized.
+  """
   def normalize(%__MODULE__{} = recurrence) do
     %{
       recurrence
@@ -70,12 +85,10 @@ defmodule ICal.Recurrence do
     }
   end
 
-  def from_ics(<<"RRULE", data::binary>>) do
-    data = ICal.Deserialize.skip_params(data)
-    {_data, values} = ICal.Deserialize.param_list(data)
-    ICal.Deserialize.Recurrence.from_params(values)
-  end
-
+  @doc """
+  Applies a generated date or datetime recurrence to an `ICal` component such as
+  an event, todo, or journal entry.
+  """
   def apply(%x{} = recurrence, component) when x == Date or x == DateTime do
     %{
       component
@@ -85,12 +98,23 @@ defmodule ICal.Recurrence do
   end
 
   @doc """
+  Returns true if the recurrence terminates eventually, false if it has no
+  defined end and instead continues indefinitely.
+  """
+  def terminates?(%__MODULE__{count: count, until: until}) do
+    is_integer(count) or until != nil
+  end
+
+  @doc """
   Given a component that supports recurrence, returns a stream of recurrences for it.
 
   The stream takes into consideration any recurrence rules (RRULE), recurrence dates (RDATE),
   and excluded dates (EXDATE). It starts at the start date (DTSTART) defined in the component.
 
-  Warning: this may create a very large sequence of recurrences.
+  As recurrences may not have an end, continuing on forever, the resulting stream can be also
+  be infinite. For this reason, unless absolutely sure the stream terminates do not request the
+  entire contents of the stream by calling `Enum.to_list()` on it, for isntance. Instead, always
+  consume the stream in chunks until it is exausted.
 
   ## Parameters
 
