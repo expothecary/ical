@@ -338,7 +338,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
     end
@@ -348,7 +348,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count, by_month: [1, 4, 6]}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
       [recurrence | _] = recurrences
@@ -365,7 +365,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every day in january for 3 years with yearly freq"
         )
 
@@ -390,7 +390,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
     end
@@ -407,7 +407,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
       [recurrence | _] = recurrences
@@ -419,7 +419,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count, by_week_number: [3, 17]}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -461,7 +461,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -479,7 +479,7 @@ defmodule ICal.RecurrenceTest do
       rule = %ICal.Recurrence{frequency: :yearly, count: count, by_year_day: [15, 50]}
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -504,7 +504,7 @@ defmodule ICal.RecurrenceTest do
 
       dtstart = ~U[2026-04-15 13:00:00Z]
 
-      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, dtstart)
+      {:ok, recurrences} = ICal.Recurrence.Generate.all(rule, start_date: dtstart)
 
       assert Enum.count(recurrences) == count
 
@@ -525,7 +525,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "in June and July for 10 occurrences"
         )
 
@@ -555,7 +555,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every other year on January, February, and March for 10 occurences"
         )
 
@@ -585,7 +585,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every third year on the 1st, 100th, and 200th day for 10 occurences"
         )
 
@@ -771,7 +771,7 @@ defmodule ICal.RecurrenceTest do
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1")
 
       Helper.time(
-        fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+        fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
         "every day in january for 3 years"
       )
     end
@@ -785,7 +785,7 @@ defmodule ICal.RecurrenceTest do
         )
 
       Helper.time(
-        fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+        fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
         "every 10th and 31st in january for 3 years"
       )
     end
@@ -797,7 +797,7 @@ defmodule ICal.RecurrenceTest do
         ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20280131T140000Z;BYMONTH=1;BYDAY=TH,TU")
 
       Helper.time(
-        fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+        fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
         "every 10th and 31st in january for 3 years"
       )
     end
@@ -808,7 +808,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "daily until December 24, 1997"
         )
 
@@ -826,7 +826,7 @@ defmodule ICal.RecurrenceTest do
       dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;INTERVAL=2")
 
-      assert {:error, :no_defined_limit, []} == ICal.Recurrence.Generate.all(rule, dtstart)
+      assert {:error, :no_defined_limit, []} == ICal.Recurrence.Generate.all(rule, start_date: dtstart)
     end
 
     test "recurrenct termination is correctly noted" do
@@ -893,7 +893,7 @@ defmodule ICal.RecurrenceTest do
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=WEEKLY;COUNT=10")
 
       {:ok, recurrences} =
-        Helper.time(fn -> ICal.Recurrence.Generate.all(rule, dtstart) end, "weekly for 10 weeks")
+        Helper.time(fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end, "weekly for 10 weeks")
 
       assert Enum.count(recurrences) == 10
       #        ==> (1997 9:00 AM EDT) September 2,9,16,23,30;October 7,14,21
@@ -905,7 +905,7 @@ defmodule ICal.RecurrenceTest do
       rule = ICal.Recurrence.from_ics("RRULE:FREQ=WEEKLY;UNTIL=19971224T000000Z")
 
       {:ok, recurrences} =
-        Helper.time(fn -> ICal.Recurrence.Generate.all(rule, dtstart) end, "weekly for 10 weeks")
+        Helper.time(fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end, "weekly for 10 weeks")
 
       assert Enum.count(recurrences) == 17
       assert Enum.at(recurrences, 0) == dtstart
@@ -941,7 +941,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every other week, forever"
         )
 
@@ -973,7 +973,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every other week, Mo/We/Fr until Dec 24"
         )
 
@@ -1018,7 +1018,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every other week, Mo/We/Fr until Dec 24"
         )
 
@@ -1046,7 +1046,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "WKST variance -> days generated with MO WKST"
         )
 
@@ -1070,7 +1070,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "example where the days generated makes a difference because of WKST"
         )
 
@@ -1096,7 +1096,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "monthly on the first Friday for 10 occurrences"
         )
 
@@ -1126,7 +1126,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "monthly on the first Friday until December 24, 1997"
         )
 
@@ -1150,7 +1150,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every other month on the first and last Sunday of the month for 10 occurences"
         )
 
@@ -1180,7 +1180,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "monthly on the second-to-last Monday of the month for 6 months"
         )
 
@@ -1483,7 +1483,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every 3 hours from 9:00 AM to 5:00 PM on a specific day"
         )
 
@@ -1506,7 +1506,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every 15 minutes for 6 occurrences"
         )
 
@@ -1532,7 +1532,7 @@ defmodule ICal.RecurrenceTest do
 
       {:ok, recurrences} =
         Helper.time(
-          fn -> ICal.Recurrence.Generate.all(rule, dtstart) end,
+          fn -> ICal.Recurrence.Generate.all(rule, start_date: dtstart) end,
           "every hour and a half for 4 occurrences"
         )
 

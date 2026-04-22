@@ -11,9 +11,12 @@ defmodule ICal.Recurrence.State do
     :rule,
     exclude_dates: nil,
     other_recurrences: nil,
-    fruitless_searches: 0
+    fruitless_searches: 0,
+    error: :none
   ]
 
+  @type recurrence_date :: Date.t() | DateTime.t()
+  @type error_reason :: :none | :search_exhaustion | :no_defined_limit
   @type modifier_scope ::
           :by_month
           | :by_week_number
@@ -27,14 +30,15 @@ defmodule ICal.Recurrence.State do
   @type modifier_mode :: :limit | :expand | :expand_week | :expand_month | :expand_year
 
   @type t :: %__MODULE__{
-          limit: :reached | non_neg_integer() | ICal.Recurrence.recurrence_date(),
-          earliest_date: ICal.Recurrence.recurrence_date(),
-          start_date: ICal.Recurrence.recurrence_date(),
-          end_date: ICal.Recurrence.recurrence_date() | nil,
-          interval: Duration.duration(),
+          earliest_date: recurrence_date(),
+          end_date: recurrence_date() | nil,
+          error: error_reason(),
+          exclude_dates: [recurrence_date()],
+          fruitless_searches: non_neg_integer(),
+          interval: {:date | :time, Duration.duration()},
+          limit: :reached | non_neg_integer() | recurrence_date(),
           modifiers: [{modifier_scope, modifier_mode}],
           rule: ICal.Recurrence.t(),
-          exclude_dates: [ICal.Recurrence.recurrence_date()],
-          fruitless_searches: non_neg_integer()
+          start_date: recurrence_date()
         }
 end

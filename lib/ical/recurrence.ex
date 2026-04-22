@@ -134,17 +134,15 @@ defmodule ICal.Recurrence do
   ```
   """
 
-  @type recurrable_component ::
-          t()
-          | %{
-              required(:rrule) => t() | nil,
-              required(:dtstart) => Date.t() | DateTime.t() | nil,
-              optional(:exdates) => [Date.t() | DateTime.t()],
-              optional(:dtend) => Date.t() | DateTime.t() | nil,
-              optional(:rdates) => [Date.t() | DateTime.t() | ICal.period()]
-            }
+  @type recurrable_component :: %{
+          required(:rrule) => t() | nil,
+          required(:dtstart) => Date.t() | DateTime.t() | nil,
+          optional(:exdates) => [Date.t() | DateTime.t()],
+          optional(:dtend) => Date.t() | DateTime.t() | nil,
+          optional(:rdates) => [Date.t() | DateTime.t() | ICal.period()]
+        }
 
-  @spec stream(recurrable_component, options :: [stream_option()]) :: Enumerable.t()
+  @spec stream(t() | recurrable_component, options :: [stream_option()]) :: Enumerable.t()
   def stream(component, options \\ [])
 
   def stream(%__MODULE__{} = rule, options) do
