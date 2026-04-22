@@ -27,9 +27,10 @@ defmodule ICal.Recurrence do
 
   @type recurrence_date :: Date.t() | DateTime.t()
   @type stream_option ::
-          {:end_date, recurrence_date}
-          | {:exclude_dates, [recurrence_date]}
-          | {:other_recurrences, [recurrence_date]}
+          {:start_date, recurrence_date}
+          | {:end_date, recurrence_date}
+          | {:include, [recurrence_date]}
+          | {:exclude, [recurrence_date]}
 
   @type frequency :: :secondly | :minutely | :hourly | :daily | :weekly | :monthly | :yearly
   @type weekday :: :monday | :tuesday | :wednesday | :thursday | :friday | :saturday | :sunday
@@ -103,7 +104,7 @@ defmodule ICal.Recurrence do
   end
 
   @doc """
-  Given a component that supports recurrence, returns a stream of recurrences for it.
+  Creates a stream of recurrences for a recurrence rule or a component with a recurrence rule.
 
   The stream takes into consideration any recurrence rules (RRULE), recurrence dates (RDATE),
   and excluded dates (EXDATE). It starts at the start date (DTSTART) defined in the component.
@@ -114,37 +115,44 @@ defmodule ICal.Recurrence do
   consume the stream in chunks until it is exausted.
 
   ## Parameters
-
-    - `component`: The ICal component (e.g. event or todo) that may contain an rrule. See `ICal.Event`.
-
-    - `end_date` *(optional)*: A date time that represents the fallback end date
-      for recurrence. This value is only used when the options specified
-      in the rrule result in an infinite recurrance (ie. when neither `count` nor
-      `until` is set). If no end_date is set, it will default to
-      `DateTime.utc_now()`.
+    - `component`: An `ICal.Event`, `ICal.Todo`, `ICal.Journal`, or a bare `ICal.Recurrence` struct
+    - `options`: An optional list of `t:stream_option/0` values. Can be used to set explicit start and end
+      dates as well as recurrences to include in or exclude from the stream.
 
   ## Examples
 
-      iex> dt = ~D[2016-08-13]
-      iex> dt_end = ~D[2016-08-23]
-      iex> event = %ICal.Event{rrule: %ICal.Recurrence{frequency: :daily}, dtstart: dt, dtend: dt}
-      iex> recurrences =
-            ICal.Recurrence.stream(event)
-            |> Enum.to_list()
+  ```
+  iex> dt = ~D[2016-08-13]
+  iex> dt_end = ~D[2016-08-23]
+  iex> recurrence = %ICal.Recurrence{frequency: :daily}
+  iex> event = %ICal.Event{rrule: recurrence, dtstart: dt, dtend: dt_end}
+  iex> ICal.Recurrence.stream(event) |> Enum.take(5)
+  [~D[2016-08-13], ~D[2016-08-14], ~D[2016-08-15], ~D[2016-08-16], ~D[2016-08-17]]
+  iex> rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY")
+  iex> ICal.Recurrence.stream(rule, start_date: dt, end_date: dt_end) |> Enum.take(5)
+  [~D[2016-08-13], ~D[2016-08-14], ~D[2016-08-15], ~D[2016-08-16], ~D[2016-08-17]]
+  ```
   """
 
-  @type recurrable_component :: %{
-          required(:rrule) => t() | nil,
-          required(:dtstart) => Date.t() | DateTime.t() | nil,
-          optional(:exdates) => [Date.t() | DateTime.t()],
-          optional(:dtend) => Date.t() | DateTime.t() | nil,
-          optional(:rdates) => [Date.t() | DateTime.t() | ICal.period()]
-        }
+  @type recurrable_component ::
+          t()
+          | %{
+              required(:rrule) => t() | nil,
+              required(:dtstart) => Date.t() | DateTime.t() | nil,
+              optional(:exdates) => [Date.t() | DateTime.t()],
+              optional(:dtend) => Date.t() | DateTime.t() | nil,
+              optional(:rdates) => [Date.t() | DateTime.t() | ICal.period()]
+            }
 
-  @spec stream(recurrable_component, nil | %Date{} | %DateTime{}) :: Enumerable.t()
-  def stream(component, end_date \\ nil)
+  @spec stream(recurrable_component, options :: [stream_option()]) :: Enumerable.t()
+  def stream(component, options \\ [])
 
-  def stream(%{rrule: rule, dtstart: start_date} = component, _end_date)
+  def stream(%__MODULE__{} = rule, options) do
+    Generate.init(rule, options)
+    |> create_stream()
+  end
+
+  def stream(%{rrule: rule, dtstart: start_date} = component, _options)
       when is_nil(rule) or is_nil(start_date) do
     # this creates a stream with only the rdates of the component, if any,
     # when the component lacks a rule or a start date
@@ -158,42 +166,23 @@ defmodule ICal.Recurrence do
     )
   end
 
-  def stream(%{rrule: rule, dtstart: start_date} = component, end_date) do
-    other_recurrences =
-      case Map.get(component, :rdates) do
-        [] -> nil
-        nil -> nil
-        rdates -> rdates
-      end
+  def stream(%{rrule: rule, dtstart: start_date} = component, options) do
+    all_options =
+      options
+      |> Keyword.put_new_lazy(:include, fn -> default_option(component, :rdates) end)
+      |> Keyword.put_new_lazy(:exclude, fn -> default_option(component, :exdates) end)
+      |> Keyword.put_new(:start_date, start_date)
 
-    exclude_dates =
-      case Map.get(component, :exdates) do
-        [] -> nil
-        nil -> nil
-        exdates -> exdates
-      end
-
-    Generate.init(rule, start_date,
-      end_date: end_date,
-      exclude_dates: exclude_dates,
-      other_recurrences: other_recurrences
-    )
+    Generate.init(rule, all_options)
     |> create_stream()
   end
 
-  @doc """
-  Creates a stream of recurrences based on an `%ICal.Recurrence{}`, a starting date,
-  and an optional ending date
-  """
-  @spec stream(
-          t(),
-          start_date :: Date.t() | DateTime.t(),
-          options :: [stream_option()]
-        ) ::
-          Enumerable.t()
-  def stream(%__MODULE__{} = rule, start_date, options) do
-    Generate.init(rule, start_date, options)
-    |> create_stream()
+  defp default_option(component, key) do
+    case Map.get(component, key) do
+      [] -> nil
+      nil -> nil
+      rdates -> rdates
+    end
   end
 
   defp diff(%Date{} = l, r), do: [day: Date.diff(l, r)]
