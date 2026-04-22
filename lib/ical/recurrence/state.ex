@@ -1,4 +1,6 @@
 defmodule ICal.Recurrence.State do
+  @moduledoc false
+
   defstruct [
     :limit,
     :earliest_date,
