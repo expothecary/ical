@@ -129,6 +129,8 @@ defmodule ICal do
       {:gap, just_before, just_after} -> adjust_to_gap(time, just_before, just_after)
       _ -> nil
     end
+  rescue
+    _ -> nil
   end
 
   defp adjust_to_gap(original_time, before_gap, after_gap) do
