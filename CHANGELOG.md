@@ -9,21 +9,23 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 The minimum version of Elixir required is 1.17. Support for Elixir 1.15 and 1.16 was
 dropped so `ICal` may use the improved date and calendaring APIs introduced in 1.17.
 
-It is recommended to add a timezone database such as `tz` to applications that use 
+It is recommended to add a timezone database such as `tz` to applications that use
 ICal in order to benefit fully from these changes.
 
 - Improvements
-  - New functions in `ICal.Alarm`
-    - `next_activation/2`: calculates when an alarm should next activate (if ever)
-    - `next_alarms/1`: returns all next alarms with activation times for a compoonent with
-      alarms (`ICal.Event`, `ICal.Todo`)
-  - Recurrence generation was re-written:
+  - Recurrence generation was re-written and is now feature complete
     - The entirety of the RFC5545 RRULE specification is supported
     - Works with `ICal.Event`, `ICal.Todo` and `ICal.Journal`
     - Recurrence dates (`RDATE`) are included
     - Excluded dates (`EXDATE`) are respected
+  - New functions in `ICal.Alarm`
+    - `next_activation/2`: calculates when an alarm should next activate (if ever)
+    - `next_alarms/1`: returns all next alarms with activation times for a compoonent with
+      alarms (`ICal.Event`, `ICal.Todo`)
 - Fixes
   - Gap and ambiguous times are properly handled when a datetime lands in a timezone shift period
+  - Properly parse lists of excluded dates
+  - Fix serializing of components with status of draft
 - Janitorial
   - The dependency on `Timex` was removed
   - Documentation improvements
