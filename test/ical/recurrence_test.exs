@@ -1582,7 +1582,7 @@ defmodule ICal.RecurrenceTest do
       count = 4
       dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
 
-      rule = ICal.Recurrence.from_ics( "RRULE:FREQ=SECONDLY;INTERVAL=25" )
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=SECONDLY;INTERVAL=25")
 
       recurrences =
         Helper.time(
