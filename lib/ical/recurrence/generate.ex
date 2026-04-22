@@ -249,7 +249,7 @@ defmodule ICal.Recurrence.Generate do
   defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(months, acc, fn month, acc ->
-        acc ++ [%{recurrence | month: month}]
+        [%{recurrence | month: month} | acc]
       end)
     end)
   end
@@ -284,11 +284,11 @@ defmodule ICal.Recurrence.Generate do
   defp apply_modifier({:by_year_day, :expand}, %{by_year_day: year_days}, acc)
        when has_some(year_days) do
     Enum.uniq_by(acc, fn recurrence -> recurrence.year end)
-    |> Enum.flat_map(fn recurrence ->
+    |> Enum.reduce([], fn recurrence, acc ->
       first_of_jan = %{recurrence | month: 1, day: 1}
 
-      Enum.map(year_days, fn day_of_year ->
-        shift_date(first_of_jan, day: day_of_year - 1)
+      Enum.reduce(year_days, acc, fn day_of_year, acc ->
+        [shift_date(first_of_jan, day: day_of_year - 1) | acc]
       end)
     end)
   end
@@ -315,7 +315,7 @@ defmodule ICal.Recurrence.Generate do
           end
 
         if date.month == recurrence.month do
-          acc ++ [date]
+          [date | acc]
         else
           acc
         end
@@ -356,7 +356,7 @@ defmodule ICal.Recurrence.Generate do
           next = shift_date(first_occurance, week: offset)
 
           if next.year == recurrence.year do
-            acc ++ [next]
+            [next | acc]
           else
             acc
           end
@@ -380,7 +380,7 @@ defmodule ICal.Recurrence.Generate do
           next = shift_date(last_occurance, week: offset + 1)
 
           if next.year == recurrence.year do
-            acc ++ [next]
+            [next | acc]
           else
             acc
           end
@@ -423,7 +423,7 @@ defmodule ICal.Recurrence.Generate do
             if shift_days >= days_in_month do
               acc
             else
-              acc ++ [shift_date(first_day, day: shift_days)]
+              [shift_date(first_day, day: shift_days) | acc]
             end
 
           {offset, weekday}, acc ->
@@ -438,7 +438,7 @@ defmodule ICal.Recurrence.Generate do
             if shift_days >= last_day.day do
               acc
             else
-              acc ++ [shift_date(last_day, day: -shift_days)]
+              [shift_date(last_day, day: -shift_days) | acc]
             end
         end
       )
@@ -451,17 +451,18 @@ defmodule ICal.Recurrence.Generate do
          acc
        )
        when has_some(weekdays) do
-    Enum.flat_map(acc, fn recurrence ->
+    Enum.reduce(acc, [], fn recurrence, acc ->
       order = weekday_order()
       first_week_day = beginning_of_week(recurrence, week_start_day)
       week_start_ordinal = order[weekday(first_week_day)]
 
-      Enum.map(
+      Enum.reduce(
         weekdays,
-        fn {_, weekday} ->
+        acc,
+        fn {_, weekday}, acc ->
           # mod by 7 in case of negative difference
           shift_days = Integer.mod(order[weekday] - week_start_ordinal, 7)
-          shift_date(first_week_day, day: shift_days)
+          [shift_date(first_week_day, day: shift_days) | acc]
         end
       )
     end)
@@ -475,14 +476,18 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp apply_modifier({:by_hour, :expand}, %{by_hour: hours}, acc) when has_some(hours) do
-    Enum.flat_map(acc, fn recurrence ->
-      Enum.map(
+    Enum.reduce(acc, [], fn recurrence, acc ->
+      Enum.reduce(
         hours,
-        fn hour ->
-          case recurrence do
-            %Date{} = date -> DateTime.new!(date, Time.new!(hour, 0, 0))
-            %DateTime{} = date -> %{date | hour: hour}
-          end
+        acc,
+        fn hour, acc ->
+          date =
+            case recurrence do
+              %Date{} = date -> DateTime.new!(date, Time.new!(hour, 0, 0))
+              %DateTime{} = date -> %{date | hour: hour}
+            end
+
+          [date | acc]
         end
       )
     end)
@@ -498,14 +503,18 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp apply_modifier({:by_minute, :expand}, %{by_minute: minutes}, acc) when has_some(minutes) do
-    Enum.flat_map(acc, fn recurrence ->
-      Enum.map(
+    Enum.reduce(acc, [], fn recurrence, acc ->
+      Enum.reduce(
         minutes,
-        fn minute ->
-          case recurrence do
-            %Date{} = date -> DateTime.new!(date, Time.new!(0, minute, 0))
-            %DateTime{} = date -> %{date | minute: minute}
-          end
+        acc,
+        fn minute, acc ->
+          date =
+            case recurrence do
+              %Date{} = date -> DateTime.new!(date, Time.new!(0, minute, 0))
+              %DateTime{} = date -> %{date | minute: minute}
+            end
+
+          [date | acc]
         end
       )
     end)
@@ -521,14 +530,18 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp apply_modifier({:by_second, :expand}, %{by_second: seconds}, acc) when has_some(seconds) do
-    Enum.flat_map(acc, fn recurrence ->
-      Enum.map(
+    Enum.reduce(acc, [], fn recurrence, acc ->
+      Enum.reduce(
         seconds,
-        fn second ->
-          case recurrence do
-            %Date{} = date -> DateTime.new!(date, Time.new!(0, 0, second))
-            %DateTime{} = date -> %{date | second: second}
-          end
+        acc,
+        fn second, acc ->
+          date =
+            case recurrence do
+              %Date{} = date -> DateTime.new!(date, Time.new!(0, 0, second))
+              %DateTime{} = date -> %{date | second: second}
+            end
+
+          [date | acc]
         end
       )
     end)
@@ -550,7 +563,7 @@ defmodule ICal.Recurrence.Generate do
 
       case Enum.at(recurrences, index) do
         nil -> acc
-        recurrence -> acc ++ [recurrence]
+        recurrence -> [recurrence | acc]
       end
     end)
   end
