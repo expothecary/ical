@@ -1577,5 +1577,27 @@ defmodule ICal.RecurrenceTest do
       assert DateTime.new!(~D[1997-09-03], ~T[14:00:00], "America/New_York") ==
                Enum.at(recurrences, -1)
     end
+
+    test "every 25 seconds from 09:00" do
+      count = 4
+      dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
+
+      rule = ICal.Recurrence.from_ics( "RRULE:FREQ=SECONDLY;INTERVAL=25" )
+
+      recurrences =
+        Helper.time(
+          fn -> ICal.Recurrence.stream(rule, dtstart, []) |> Enum.take(count) end,
+          "every 25 seconds from 09:00"
+        )
+
+      assert Enum.count(recurrences) == count
+
+      assert [
+               DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York"),
+               DateTime.new!(~D[1997-09-02], ~T[09:00:25], "America/New_York"),
+               DateTime.new!(~D[1997-09-02], ~T[09:00:50], "America/New_York"),
+               DateTime.new!(~D[1997-09-02], ~T[09:01:15], "America/New_York")
+             ] == recurrences
+    end
   end
 end
