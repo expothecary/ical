@@ -243,7 +243,6 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp compare_recurrences(%DateTime{} = l, r), do: DateTime.compare(l, r) == :lt
-  defp compare_recurrences(%NaiveDateTime{} = l, r), do: NaiveDateTime.compare(l, r) == :lt
   defp compare_recurrences(%Date{} = l, r), do: Date.compare(l, r) == :lt
 
   defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
@@ -834,7 +833,7 @@ defmodule ICal.Recurrence.Generate do
   defp ensure_end_of_first_week(day), do: day
 
   defp is_between_inclusive(earliest, middle, latest) do
-    is_not_after(earliest, middle) and is_not_after(middle, latest)
+    not is_after(earliest, middle) and not is_after(middle, latest)
   end
 
   defp equal?(%Date{} = d, %DateTime{} = dt), do: equal?(d, DateTime.to_date(dt))
@@ -843,16 +842,11 @@ defmodule ICal.Recurrence.Generate do
 
   defp is_not_before(%Date{} = d, %DateTime{} = dt), do: is_not_before(d, DateTime.to_date(dt))
   defp is_not_before(%DateTime{} = dt, %Date{} = d), do: is_not_before(DateTime.to_date(dt), d)
-  defp is_not_before(%Date{} = l, r), do: Date.compare(l, r) != :lt
-  defp is_not_before(%DateTime{} = l, r), do: DateTime.compare(l, r) != :lt
+  defp is_not_before(%Date{} = l, r), do: not Date.before?(l, r)
+  defp is_not_before(%DateTime{} = l, r), do: not DateTime.before?(l, r)
 
   defp is_after(%Date{} = d, %DateTime{} = dt), do: is_after(d, DateTime.to_date(dt))
   defp is_after(%DateTime{} = dt, %Date{} = d), do: is_after(DateTime.to_date(dt), d)
-  defp is_after(%Date{} = l, r), do: Date.compare(l, r) == :gt
-  defp is_after(%DateTime{} = l, r), do: DateTime.compare(l, r) == :gt
-
-  defp is_not_after(%Date{} = d, %DateTime{} = dt), do: is_not_after(d, DateTime.to_date(dt))
-  defp is_not_after(%DateTime{} = dt, %Date{} = d), do: is_not_after(DateTime.to_date(dt), d)
-  defp is_not_after(%Date{} = l, r), do: Date.compare(l, r) != :gt
-  defp is_not_after(%DateTime{} = l, r), do: DateTime.compare(l, r) != :gt
+  defp is_after(%Date{} = l, r), do: Date.after?(l, r)
+  defp is_after(%DateTime{} = l, r), do: DateTime.after?(l, r)
 end

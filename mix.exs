@@ -2,7 +2,7 @@ defmodule ICal.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/expothecary/ical"
-  @version "1.1.2"
+  @version "2.0.0"
 
   def project do
     [
@@ -76,7 +76,9 @@ defmodule ICal.Mixfile do
       source_ref: "v#{@version}",
       formatters: ["html"],
       groups_for_modules: [
-        "Calendar Entries": [ICal.Alarm, ICal.Event, ICal.Journal, ICal.Timezone, ICal.Todo],
+        Components: [ICal.Alarm, ICal.Event, ICal.Journal, ICal.Timezone, ICal.Todo],
+        Recurrences: [ICal.Recurrence],
+        Alarms: [~r/ICal.Alarm.*/],
         Properties: [
           ICal.Attachment,
           ICal.Attendee,
@@ -84,9 +86,7 @@ defmodule ICal.Mixfile do
           ICal.Duration,
           ICal.RequestStatus,
           ICal.Timezone.Properties
-        ],
-        Alarms: [~r/ICal.Alarm.*/],
-        Utilities: [ICal.Recurrence]
+        ]
       ]
     ]
   end
