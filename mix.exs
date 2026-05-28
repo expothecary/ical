@@ -19,6 +19,14 @@ defmodule ICal.Mixfile do
     ]
   end
 
+  # Run "mix help compile.app" to learn about applications.
+  def application do
+    [
+      extra_applications: [:logger],
+      mod: {ICal.Application, []}
+    ]
+  end
+
   defp elixirc_paths(:test), do: ["lib", "test/support", "test/data"]
   defp elixirc_paths(_), do: ["lib"]
 
