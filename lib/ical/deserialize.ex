@@ -214,18 +214,18 @@ defmodule ICal.Deserialize do
   # we have no params, but also no value .. return anyways!
   def params(data), do: {data, %{}}
 
-  # called on multi-line continuation
-  defp params(data, params), do: params(data, <<>>, params)
+  # called on multi-line continuation via continue_on_line_fold
+  defp params(data, {val, params}), do: params(data, val, params)
 
   # parse the actual list of params, first checking for end of buffer or line
   defp params(<<>> = data, _val, params), do: {data, params}
 
-  defp params(<<?\n, _::binary>> = data, _val, params) do
-    continue_on_line_fold(data, params, &params/2)
+  defp params(<<?\n, data::binary>>, val, params) do
+    continue_on_line_fold(data, {val, params}, &params/2)
   end
 
-  defp params(<<?\r, ?\n, data::binary>>, _val, params) do
-    continue_on_line_fold(data, params, &params/2)
+  defp params(<<?\r, ?\n, data::binary>>, val, params) do
+    continue_on_line_fold(data, {val, params}, &params/2)
   end
 
   # escaped character!
@@ -396,6 +396,7 @@ defmodule ICal.Deserialize do
   end
 
   defp continue_on_line_fold(data, :no_value, _fun), do: data
+  defp continue_on_line_fold(data, {_accumulator, value}, _fun), do: {data, value}
   defp continue_on_line_fold(data, value, _fun), do: {data, value}
 
   defp continue_line(data, :no_value, fun), do: fun.(data)

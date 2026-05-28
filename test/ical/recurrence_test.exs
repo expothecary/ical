@@ -167,6 +167,34 @@ defmodule ICal.RecurrenceTest do
       rrule = %{"FREQ" => "GARBAGE"}
       assert nil === ICal.Deserialize.Recurrence.from_params(rrule)
     end
+
+    test "suppports single-line and line-folded rules" do
+      expected = %ICal.Recurrence{
+        until: ~U[2018-04-15 20:59:59Z],
+        frequency: :monthly,
+        by_set_position: [3],
+        by_day: [{0, :monday}],
+        week_start_day: :monday,
+        interval: 1
+      }
+
+      Enum.each(
+        [
+          "RRULE:FREQ=MONTHLY;WKST=MO;UNTIL=20180415T205959Z;INTERVAL=1;BYDAY=MO;BYSETPOS=3\r\n",
+          "RRULE:FREQ=MONTHLY;WKST=MO;UNTIL=20180415T205959Z;INTERVAL=1;BYDAY=MO;BYSETPOS=3",
+          "RRULE:FREQ=MONTHLY;WKST=MO;UNTIL=20180415T205959Z;INTERVAL=1;BYDAY=MO;BYSET\r\n POS=3\r\n"
+        ],
+        fn string ->
+          assert expected === ICal.Recurrence.from_ics(string)
+        end
+      )
+
+      rrule =
+        "RRULE:FREQ=MONTHLY;WKST=MO;UNTIL=20180415T205959Z;INTERVAL=1;BYDAY=MO;BYSET\r\nPOS=3\r\n"
+        |> ICal.Recurrence.from_ics()
+
+      assert %{expected | by_set_position: nil} === rrule
+    end
   end
 
   describe "Recurrence stream" do
