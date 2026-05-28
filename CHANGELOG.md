@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v2.0.1
+
+- Improvements
+  - When a timezone database is not available, an error logged warning that ICal will not work correctly.
+    Even better, ICal will register a timezone database if either the `Tz` or `TimeZoneInfo` libraries are
+    available, and will issue an info-level log message about this. Hopefully fewer people will run into
+    issues from not having a timezone db setup as a result.
+- Fixes
+  - Properties of type `DATE` which also have a timezone defined on them now parse correctly. While such
+    data is probably not RFC-compliant, there are clients/libraries in the wild that produce such entries,
+    and ICal now produces the expected results. Conservative in what you send, liberal in what you receive,
+    as they say.
+
 ## v2.0.0
 
 The minimum version of Elixir required is 1.17. Support for Elixir 1.15 and 1.16 was
