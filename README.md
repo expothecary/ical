@@ -5,7 +5,7 @@ A library for reading and writing iCalendar data.
 ## Features
 
 * Parsing iCalendar data from strings or files
-* Serializing iCalendar data to iolists suitable for writing out to files, send over the network, etc.
+* Serializing iCalendar data to iolists suitable for writing out to files, sending over the network, etc.
 * Integration with Plug / Phoenix via `ICal.encode_to_iodata`
 * Components supported
   * Events (with alarms)
