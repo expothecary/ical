@@ -234,6 +234,20 @@ defmodule ICal.DeserializeTest do
       assert ICal.from_file("/does/not/exist.ics") == {:error, :enoent}
     end
 
+    test "Deserializing DATE fields with TZID params works correctly " do
+      # According to https://datatracker.ietf.org/doc/html/rfc5545#section-3.2.19
+      # this is not a RFC-conformant calendar, but ICal should still be able to parse it.
+      ics = Helper.test_data("date_only_event")
+      calendar = ICal.from_ics(ics)
+
+      assert Enum.count(calendar.events) == 1
+
+      [event] = calendar.events
+
+      assert event.dtstart != nil
+      assert event.dtend != nil
+    end
+
     test "Bad separators do not disturb parsing" do
       ics = Helper.test_data("broken_uid")
       %ICal{events: [event]} = ICal.from_ics(ics)
