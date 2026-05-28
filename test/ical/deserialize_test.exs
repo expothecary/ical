@@ -244,8 +244,8 @@ defmodule ICal.DeserializeTest do
 
       [event] = calendar.events
 
-      assert event.dtstart != nil
-      assert event.dtend != nil
+      assert event.dtstart == ~D[2026-05-29]
+      assert event.dtend == ~D[2026-05-30]
     end
 
     test "Bad separators do not disturb parsing" do
