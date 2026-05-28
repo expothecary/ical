@@ -224,7 +224,7 @@ defmodule ICal.Deserialize do
     continue_on_line_fold(data, params, &params/2)
   end
 
-  defp params(<<?r, ?\n, _::binary>> = data, _val, params) do
+  defp params(<<?\r, ?\n, data::binary>>, _val, params) do
     continue_on_line_fold(data, params, &params/2)
   end
 
