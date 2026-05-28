@@ -44,10 +44,26 @@ ics_iodata = ICal.to_ics(calendar)
 ```
 
 To accommodate applications which use `rrule` strings on their own, `ICal.Recurrence` structs can
-be created these strings using `ICal.Recurrence.from_ics/1`:
+be created from them using `ICal.Recurrence.from_ics/1`:
 
 ```elixir
-ICal.Recurrence.from_ics("RRULE:RRULE:FREQ=YEARLY;COUNT=10;BYMONTH=6,7")
+iex> ICal.Recurrence.from_ics("RRULE:FREQ=YEARLY;COUNT=10;BYMONTH=6,7")
+%ICal.Recurrence{
+  until: nil,
+  count: 10,
+  by_second: nil,
+  by_minute: nil,
+  by_hour: nil,
+  by_day: nil,
+  by_month_day: nil,
+  by_year_day: nil,
+  by_month: [6, 7],
+  by_set_position: nil,
+  by_week_number: nil,
+  week_start_day: :default,
+  frequency: :yearly,
+  interval: 1
+}
 ```
 
 Recurrence dates may be calculated from either a calendar component or a `%ICal.Recurrence{}` using
