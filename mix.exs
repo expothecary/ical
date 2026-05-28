@@ -66,7 +66,7 @@ defmodule ICal.Mixfile do
 
   defp package do
     [
-      description: "iCalendar support with a focus on real-world usage and good DevEx",
+      description: "iCalendar parsing, serialization, and recurrence generation.",
       maintainers: ["Max Salminen", "Aaron Seigo"],
       licenses: ["MIT"],
       links: %{
