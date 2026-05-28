@@ -197,7 +197,7 @@ defmodule ICalTest do
     |> assert_fully_contains(expected)
   end
 
-  test "ICalender.to_ics/1 with exdates" do
+  test "ICal.to_ics/1 with exdates" do
     events = [
       %ICal.Event{
         exdates: [
@@ -216,7 +216,7 @@ defmodule ICalTest do
     assert ics =~ "EXDATE;TZID=America/Toronto:20200917T143000"
   end
 
-  test "ICalender.to_ics/1 with duration" do
+  test "ICal.to_ics/1 with duration" do
     events = [
       %ICal.Event{
         duration: %ICal.Duration{
@@ -236,7 +236,7 @@ defmodule ICalTest do
     assert ics =~ "DURATION:P15DT5H20S"
   end
 
-  test "ICalender.to_ics/1 with RECURRENCE-ID in UTC" do
+  test "ICal.to_ics/1 with RECURRENCE-ID in UTC" do
     events = [
       %ICal.Event{
         recurrence_id: ~U[2020-09-17 14:30:00Z],
@@ -252,7 +252,7 @@ defmodule ICalTest do
     assert ics =~ "RECURRENCE-ID:20200917T143000Z"
   end
 
-  test "ICalender.to_ics/1 with RECURRENCE-ID with timezone" do
+  test "ICal.to_ics/1 with RECURRENCE-ID with timezone" do
     recurrence_id = DateTime.shift_zone!(~U[2020-09-17 18:30:00Z], "America/Toronto")
 
     events = [
@@ -270,7 +270,7 @@ defmodule ICalTest do
     assert ics =~ "RECURRENCE-ID;TZID=America/Toronto:20200917T143000"
   end
 
-  test "ICalender.to_ics/1 -> ICal.from_ics/1 and back again" do
+  test "ICal.to_ics/1 -> ICal.from_ics/1 and back again" do
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
@@ -292,7 +292,7 @@ defmodule ICalTest do
     assert events |> List.first() == new_event
   end
 
-  test "ICalender.to_ics/1 -> ICal.from_ics/1 and back again, with newlines" do
+  test "ICal.to_ics/1 -> ICal.from_ics/1 and back again, with newlines" do
     events = [
       %ICal.Event{
         summary: "Film with Amy and Adam",
@@ -318,7 +318,7 @@ defmodule ICalTest do
     Regex.scan(~r/#{check_for}/, ics) |> Enum.count()
   end
 
-  test "ICalender.to_ics/1 supports bare components and lists of components" do
+  test "ICal.to_ics/1 supports bare components and lists of components" do
     assert %ICal{events: [%ICal.Event{}]}
            |> ICal.to_ics()
            |> to_string()
