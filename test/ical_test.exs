@@ -63,7 +63,7 @@ defmodule ICalTest do
     assert calendar.version == "2.0"
     assert calendar.product_id == "-//Elixir ICal//EN"
     assert calendar.method == "REQUEST"
-    assert calendar.default_timezone == "Etc/UTC"
+    assert calendar.default_timezone == nil
     assert calendar.custom_properties == %{}
   end
 
@@ -77,14 +77,37 @@ defmodule ICalTest do
     assert Fixtures.calendar(:custom_properties) == calendar
   end
 
-  test "ICal with custom tz alter dates" do
+  test "ICal with custom tz does not alter UTC dates" do
     dtstamp = ~U[2015-12-24 08:00:00Z]
 
     %ICal{events: [%ICal.Event{dtstamp: parsed_date}]} =
       Helper.test_data("custom_calendar_tz") |> ICal.from_ics()
 
-    assert dtstamp != parsed_date
-    assert parsed_date.time_zone == "Europe/Zurich"
+    assert dtstamp == parsed_date
+  end
+
+  test "ICal with custom tz applies default timezone to floating dates" do
+    ics = """
+    BEGIN:VCALENDAR
+    X-WR-TIMEZONE:Europe/Zurich
+    BEGIN:VEVENT
+    UID:1
+    DTSTART:20151224T080000
+    END:VEVENT
+    END:VCALENDAR
+    """
+
+    %ICal{events: [%ICal.Event{dtstart: parsed_date}]} = ICal.from_ics(ics)
+
+    assert %DateTime{
+             year: 2015,
+             month: 12,
+             day: 24,
+             hour: 8,
+             minute: 0,
+             second: 0,
+             time_zone: "Europe/Zurich"
+           } = parsed_date
   end
 
   test "ICal.to_ics/1 of a calendar with an event, as in README" do

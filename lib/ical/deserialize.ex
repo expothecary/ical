@@ -415,7 +415,7 @@ defmodule ICal.Deserialize do
 
   # convert a string to a proper timezone, this includes ones with a /
   # but also ones like Central Standard Time, so we try our best to normalize those
-  # all else fails, assume UTC
+  # all else fails, use the calendar default timezone if one was declared
   def to_timezone(timezone, default \\ "Etc/UTC")
   def to_timezone(nil, default), do: default
 
@@ -426,6 +426,9 @@ defmodule ICal.Deserialize do
 
       ICal.Deserialize.Timezone.windows_to_olson(timezone) != nil ->
         ICal.Deserialize.Timezone.windows_to_olson(timezone)
+
+      is_nil(default) ->
+        nil
 
       true ->
         default
@@ -440,7 +443,8 @@ defmodule ICal.Deserialize do
 
   It returns `nil` for ill-formed dates or datetime strings.
   """
-  @spec to_date(String.t() | nil, map, ICal.t()) :: Date.t() | DateTime.t() | nil
+  @spec to_date(String.t() | nil, map, ICal.t()) ::
+          Date.t() | DateTime.t() | NaiveDateTime.t() | nil
   def to_date(nil, _params, _calendar), do: nil
 
   def to_date(date_string, %{"VALUE" => "DATE"}, _calendar) do
@@ -457,11 +461,21 @@ defmodule ICal.Deserialize do
   end
 
   def to_date(date_string, %{"TZID" => timezone}, %ICal{default_timezone: default_timezone}) do
-    # Microsoft Outlook calendar .ICS files report times in Greenwich Standard Time (UTC +0)
-    # so just convert this to UTC
     timezone = to_timezone(timezone, default_timezone)
 
-    to_date_in_timezone(date_string, timezone)
+    if timezone == nil do
+      to_local_date(date_string)
+    else
+      to_date_in_timezone(date_string, timezone)
+    end
+  end
+
+  def to_date(<<_::binary-size(15), "Z">> = date_string, _params, _calendar) do
+    to_date_in_timezone(date_string, "Etc/UTC")
+  end
+
+  def to_date(date_string, _params, %ICal{default_timezone: nil}) do
+    to_local_date(date_string)
   end
 
   def to_date(date_string, _params, %ICal{default_timezone: default_timezone}) do
