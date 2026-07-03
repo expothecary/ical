@@ -12,7 +12,7 @@ defmodule ICal do
             todos: [],
             journals: [],
             timezones: %{},
-            default_timezone: "Etc/UTC",
+            default_timezone: nil,
             name: nil,
             custom_properties: %{},
             __other_components: []
@@ -40,7 +40,7 @@ defmodule ICal do
           todos: [ICal.Todo.t()],
           journals: [ICal.Journal.t()],
           timezones: %{String.t() => ICal.Timezone.t()},
-          default_timezone: String.t(),
+          default_timezone: String.t() | nil,
           name: String.t() | nil,
           custom_properties: custom_properties
         }

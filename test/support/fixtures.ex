@@ -499,7 +499,7 @@ defmodule ICal.Test.Fixtures do
           }
         }
       ],
-      default_timezone: "Etc/UTC"
+      default_timezone: nil
     }
   end
 

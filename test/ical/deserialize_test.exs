@@ -201,6 +201,50 @@ defmodule ICal.DeserializeTest do
       assert ~D[1998-01-19] == ICal.Deserialize.to_date("19980119", %{"VALUE" => "DATE"}, %ICal{})
     end
 
+    test "to_date/3 parses a floating DATE-TIME as a naive datetime" do
+      assert ~N[1998-01-19 02:00:00] ==
+               ICal.Deserialize.to_date("19980119T020000", %{}, %ICal{})
+    end
+
+    test "to_date/3 parses a floating DATE-TIME in the calendar default timezone when set" do
+      result =
+        ICal.Deserialize.to_date(
+          "19980119T020000",
+          %{},
+          %ICal{default_timezone: "America/Chicago"}
+        )
+
+      assert %DateTime{
+               year: 1998,
+               month: 1,
+               day: 19,
+               hour: 2,
+               minute: 0,
+               second: 0,
+               time_zone: "America/Chicago"
+             } = result
+    end
+
+    test "to_date/3 parses a UTC DATE-TIME as a UTC datetime" do
+      assert ~U[1998-01-19 02:00:00Z] ==
+               ICal.Deserialize.to_date("19980119T020000Z", %{}, %ICal{})
+    end
+
+    test "to_date/3 parses a DATE-TIME with TZID in that timezone" do
+      result =
+        ICal.Deserialize.to_date("19980119T020000", %{"TZID" => "America/Chicago"}, %ICal{})
+
+      assert %DateTime{
+               year: 1998,
+               month: 1,
+               day: 19,
+               hour: 2,
+               minute: 0,
+               second: 0,
+               time_zone: "America/Chicago"
+             } = result
+    end
+
     test "to_date/3 returns nil for an unparseable VALUE=DATE string" do
       assert nil == ICal.Deserialize.to_date("garbage", %{"VALUE" => "DATE"}, %ICal{})
     end
@@ -298,8 +342,31 @@ defmodule ICal.DeserializeTest do
       # olson
       assert event.dtend.time_zone == "America/Chicago"
 
-      # unrecognized tz
-      assert event.dtstamp.time_zone == "Etc/UTC"
+      # unrecognized tz without a calendar default timezone
+      assert event.dtstamp == ~N[2222-12-24 08:30:00]
+    end
+
+    test "unrecognized TZID falls back to the calendar default timezone when set" do
+      ics = """
+      BEGIN:VCALENDAR
+      X-WR-TIMEZONE:Europe/Zurich
+      BEGIN:VEVENT
+      DTSTAMP;TZID=Garbage:22221224T083000
+      END:VEVENT
+      END:VCALENDAR
+      """
+
+      %ICal{events: [event]} = ICal.from_ics(ics)
+
+      assert %DateTime{
+               year: 2222,
+               month: 12,
+               day: 24,
+               hour: 8,
+               minute: 30,
+               second: 0,
+               time_zone: "Europe/Zurich"
+             } = event.dtstamp
     end
 
     test "with CR+LF line endings" do
