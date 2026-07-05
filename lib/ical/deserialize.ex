@@ -481,16 +481,6 @@ defmodule ICal.Deserialize do
          {second, ""} <- Integer.parse(t_s),
          {:ok, date} <- Date.new(year, month, day),
          {:ok, time} <- Time.new(hour, minute, second) do
-      # RFC 5545 §3.3.5 defines how DST edge cases should be handled:
-      #
-      # Ambiguous (fall-back, clocks go back — time occurs twice): "the
-      # DATE-TIME value refers to the first occurrence of the referenced
-      # time." The first occurrence is the daylight (pre-transition) instant.
-      #
-      # Gap (spring-forward, clocks go forward — time never exists): "the
-      # DATE-TIME value is interpreted using the UTC offset before the gap."
-      # e.g. 2:30 AM in a spring-forward gap → apply pre-gap offset (EST) to
-      # get UTC, then express in the post-gap offset (EDT) → 3:30 AM EDT.
       ICal.as_valid_datetime(date, time, timezone)
     else
       _ -> nil
