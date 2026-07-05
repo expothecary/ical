@@ -469,7 +469,7 @@ defmodule ICal.Deserialize do
   end
 
   def to_date_in_timezone(date_string, timezone) do
-    # datetime in the form "{YYYY}{0M}{0D}T{h24}{m}{s}Z{Zname}"
+    # datetime in the form "{YYYY}{0M}{0D}T{h24}{m}{s}[Z]"
     with <<y::binary-size(4), m::binary-size(2), d::binary-size(2), ?T, t_h::binary-size(2),
            t_m::binary-size(2), t_s::binary-size(2), rest::binary>>
          when rest == "" or rest == "Z" <- date_string,
