@@ -110,7 +110,7 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
 * good developer experience
   * parsed results should be easy to use, even if iCalednar is a complex format
   * typed structs and clear APIs
-  * good doucmentation
+  * good documentation
 * resource friendly: be performant in parsing and serializing
 * reliable: be well-tested, beyond just code coverage
 
