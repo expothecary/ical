@@ -347,15 +347,7 @@ defmodule ICal.DeserializeTest do
     end
 
     test "unrecognized TZID falls back to the calendar default timezone when set" do
-      ics = """
-      BEGIN:VCALENDAR
-      X-WR-TIMEZONE:Europe/Zurich
-      BEGIN:VEVENT
-      DTSTAMP;TZID=Garbage:22221224T083000
-      END:VEVENT
-      END:VCALENDAR
-      """
-
+      ics = Helper.test_data("timezone_event_default_tz")
       %ICal{events: [event]} = ICal.from_ics(ics)
 
       assert %DateTime{
