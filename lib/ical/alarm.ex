@@ -75,12 +75,12 @@ defmodule ICal.Alarm do
 
   defp triggers_on(nil, alarm), do: {nil, alarm}
 
-  defp triggers_on(from_date, %__MODULE__{trigger: trigger}) do
+  defp triggers_on(%date_module{} = from_date, %__MODULE__{trigger: trigger}) do
     {hour, minute, second} = trigger.time
     sign = if trigger.positive, do: 1, else: -1
 
     from_date
-    |> DateTime.shift(
+    |> date_module.shift(
       hour: sign * hour,
       minute: sign * minute,
       second: sign * second,
@@ -92,8 +92,12 @@ defmodule ICal.Alarm do
     end)
   end
 
-  defp in_future?(date) do
+  defp in_future?(%DateTime{} = date) do
     DateTime.compare(date, DateTime.utc_now()) != :lt
+  end
+
+  defp in_future?(%NaiveDateTime{} = date) do
+    NaiveDateTime.compare(date, NaiveDateTime.utc_now()) != :lt
   end
 
   defp calculate_alarms(component) do
