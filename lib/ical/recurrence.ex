@@ -5,7 +5,6 @@ defmodule ICal.Recurrence do
   Support for recurring events, todos, and journals.
   """
 
-  require Logger
   alias ICal.Recurrence.{Generate, State}
 
   defstruct [
