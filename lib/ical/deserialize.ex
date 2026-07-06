@@ -427,9 +427,6 @@ defmodule ICal.Deserialize do
       ICal.Deserialize.Timezone.windows_to_olson(timezone) != nil ->
         ICal.Deserialize.Timezone.windows_to_olson(timezone)
 
-      is_nil(default) ->
-        nil
-
       true ->
         default
     end
