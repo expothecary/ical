@@ -376,7 +376,7 @@ defmodule ICal.DeserializeTest do
     test "with URL" do
       ics = Helper.test_data("event_with_url")
       %ICal{events: [event]} = ICal.from_ics(ics)
-      assert event.url == "http://google.com"
+      assert event.url == "http://example.com/tr3GE5"
     end
 
     test "Event with RECURRENCE-ID in UTC" do
