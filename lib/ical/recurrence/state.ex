@@ -15,7 +15,7 @@ defmodule ICal.Recurrence.State do
     error: :none
   ]
 
-  @type recurrence_date :: Date.t() | DateTime.t()
+  @type recurrence_date :: ICal.rfc5455_date()
   @type error_reason :: :none | :search_exhaustion | :no_defined_limit
   @type modifier_scope ::
           :by_month

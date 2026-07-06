@@ -441,7 +441,7 @@ defmodule ICal.Deserialize do
   It returns `nil` for ill-formed dates or datetime strings.
   """
   @spec to_date(String.t() | nil, map, ICal.t()) ::
-          Date.t() | DateTime.t() | NaiveDateTime.t() | nil
+          ICal.maybe_rfc5455_date
   def to_date(nil, _params, _calendar), do: nil
 
   def to_date(date_string, %{"VALUE" => "DATE"}, _calendar) do

@@ -136,10 +136,10 @@ defmodule ICal.Recurrence do
 
   @type recurrable_component :: %{
           required(:rrule) => t() | nil,
-          required(:dtstart) => Date.t() | DateTime.t() | nil,
-          optional(:exdates) => [Date.t() | DateTime.t()],
-          optional(:dtend) => Date.t() | DateTime.t() | nil,
-          optional(:rdates) => [Date.t() | DateTime.t() | ICal.period()]
+          required(:dtstart) => ICal.maybe_rfc5455_date(),
+          optional(:exdates) => [ICal.rfc5455_date()],
+          optional(:dtend) => ICal.maybe_rfc5455_date(),
+          optional(:rdates) => [ICal.rfc5455_date() | ICal.period()]
         }
 
   @spec stream(t() | recurrable_component, options :: [stream_option()]) :: Enumerable.t()

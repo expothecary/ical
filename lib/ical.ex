@@ -17,6 +17,10 @@ defmodule ICal do
             custom_properties: %{},
             __other_components: []
 
+  @type rfc5455_datetime :: DateTime.t() | NaiveDateTime.t()
+  @type maybe_rfc5455_datetime :: nil | rfc5455_datetime
+  @type rfc5455_date :: Date.t() | rfc5455_datetime
+  @type maybe_rfc5455_date :: nil | rfc5455_date
   @type custom_value :: %{params: map, value: String.t()}
   @type custom_properties :: %{String.t() => custom_value()}
   @type geo :: {float, float}
