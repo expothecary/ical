@@ -42,7 +42,7 @@ defmodule ICal.Deserialize do
   def gather_unrecognized_component(data, end_tag, acc) do
     if String.starts_with?(data, end_tag) do
       length = byte_size(end_tag)
-      <<_::binary-size(length), rest::binary>> = data
+      <<_::binary-size(^length), rest::binary>> = data
       {rest, acc ++ [end_tag]}
     else
       {data, key} = rest_of_key(data, "")
