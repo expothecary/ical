@@ -17,10 +17,15 @@ defmodule ICal do
             custom_properties: %{},
             __other_components: []
 
+  @typedoc "ICalendar datetimes, which may have a timezone or be floating"
   @type rfc5455_datetime :: DateTime.t() | NaiveDateTime.t()
-  @type maybe_rfc5455_datetime :: nil | rfc5455_datetime
+  @typedoc "Optional ICalendar datetimes"
+  @type optional_rfc5455_datetime :: rfc5455_datetime | nil
+  @typedoc "ICalendar dates, which may be simple dates or have time with a timezone or floating"
   @type rfc5455_date :: Date.t() | rfc5455_datetime
-  @type maybe_rfc5455_date :: nil | rfc5455_date
+  @typedoc "Optional ICalendar dates"
+  @type optional_rfc5455_date :: rfc5455_date | nil
+
   @type custom_value :: %{params: map, value: String.t()}
   @type custom_properties :: %{String.t() => custom_value()}
   @type geo :: {float, float}

@@ -136,9 +136,9 @@ defmodule ICal.Recurrence do
 
   @type recurrable_component :: %{
           required(:rrule) => t() | nil,
-          required(:dtstart) => ICal.maybe_rfc5455_date(),
+          required(:dtstart) => ICal.optional_rfc5455_date(),
           optional(:exdates) => [ICal.rfc5455_date()],
-          optional(:dtend) => ICal.maybe_rfc5455_date(),
+          optional(:dtend) => ICal.optional_rfc5455_date(),
           optional(:rdates) => [ICal.rfc5455_date() | ICal.period()]
         }
 

@@ -39,12 +39,12 @@ defmodule ICal.Event do
 
   @type t :: %__MODULE__{
           uid: String.t() | nil,
-          dtstamp: ICal.maybe_rfc5455_datetime,
-          created: ICal.maybe_rfc5455_datetime,
-          dtstart: ICal.maybe_rfc5455_date,
-          dtend: ICal.maybe_rfc5455_date,
-          modified: ICal.maybe_rfc5455_date,
-          recurrence_id: ICal.maybe_rfc5455_date,
+          dtstamp: ICal.optional_rfc5455_datetime,
+          created: ICal.optional_rfc5455_datetime,
+          dtstart: ICal.optional_rfc5455_date,
+          dtend: ICal.optional_rfc5455_date,
+          modified: ICal.optional_rfc5455_date,
+          recurrence_id: ICal.optional_rfc5455_date,
           exdates: [Date.t() | ICal.rfc5455_datetime],
           rdates: [Date.t() | ICal.rfc5455_datetime | ICal.period()],
           rrule: ICal.Recurrence.t() | nil,

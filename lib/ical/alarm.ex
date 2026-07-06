@@ -5,8 +5,8 @@ defmodule ICal.Alarm do
 
   @type component_with_alarms :: %{
           required(:alarms) => [t()],
-          required(:dtstart) => ICal.maybe_rfc5455_date(),
-          optional(:dtend) => ICal.maybe_rfc5455_date(),
+          required(:dtstart) => ICal.optional_rfc5455_date(),
+          optional(:dtend) => ICal.optional_rfc5455_date(),
           optional(:rrule) => ICal.Recurrence.t() | nil
         }
 
