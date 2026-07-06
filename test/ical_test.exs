@@ -87,15 +87,7 @@ defmodule ICalTest do
   end
 
   test "ICal with custom tz applies default timezone to floating dates" do
-    ics = """
-    BEGIN:VCALENDAR
-    X-WR-TIMEZONE:Europe/Zurich
-    BEGIN:VEVENT
-    UID:1
-    DTSTART:20151224T080000
-    END:VEVENT
-    END:VCALENDAR
-    """
+    ics = Helper.test_data("custom_calendar_tz_floating_date")
 
     %ICal{events: [%ICal.Event{dtstart: parsed_date}]} = ICal.from_ics(ics)
 
@@ -111,26 +103,7 @@ defmodule ICalTest do
   end
 
   test "ICal.to_ics/1 of a calendar with an event, as in README" do
-    expected = """
-    BEGIN:VCALENDAR
-    CALSCALE:GREGORIAN
-    VERSION:2.0
-    BEGIN:VEVENT
-    DESCRIPTION:Let's go see Star Wars.
-    DTEND:20151224T084500Z
-    DTSTAMP:20151223T190000Z
-    DTSTART:20151224T083000Z
-    SUMMARY:Film with Amy and Adam
-    END:VEVENT
-    BEGIN:VEVENT
-    DESCRIPTION:A big long meeting with lots of details.
-    DTEND:20151224T223000Z
-    DTSTAMP:20151224T150000Z
-    DTSTART:20151224T190000Z
-    SUMMARY:Morning meeting
-    END:VEVENT
-    END:VCALENDAR
-    """
+    expected = Helper.test_data("readme_example")
 
     events = [
       %ICal.Event{
@@ -154,21 +127,8 @@ defmodule ICalTest do
     |> assert_fully_contains(expected)
   end
 
-  test "Icalender.to_ics/1 with location and sanitization" do
-    expected = """
-    BEGIN:VCALENDAR
-    CALSCALE:GREGORIAN
-    VERSION:2.0
-    BEGIN:VEVENT
-    DESCRIPTION:Let's go see Star Wars\\, and have fun.
-    DTEND:20151224T084500Z
-    DTSTAMP:20151224T080000Z
-    DTSTART:20151224T083000Z
-    LOCATION:123 Fun Street\\, Toronto ON\\, Canada
-    SUMMARY:Film with Amy and Adam
-    END:VEVENT
-    END:VCALENDAR
-    """
+  test "ICal.to_ics/1 with location and sanitization" do
+    expected = Helper.test_data("event_with_location")
 
     events = [
       %ICal.Event{
@@ -186,22 +146,8 @@ defmodule ICalTest do
     |> assert_fully_contains(expected)
   end
 
-  test "Icalender.to_ics/1 with url" do
-    expected = """
-    BEGIN:VCALENDAR
-    CALSCALE:GREGORIAN
-    VERSION:2.0
-    BEGIN:VEVENT
-    DESCRIPTION:Let's go see Star Wars\\, and have fun.
-    DTEND:20151224T084500Z
-    DTSTAMP:20151224T080000Z
-    DTSTART:20151224T083000Z
-    LOCATION:123 Fun Street\\, Toronto ON\\, Canada
-    SUMMARY:Film with Amy and Adam
-    URL:http://example.com/tr3GE5
-    END:VEVENT
-    END:VCALENDAR
-    """
+  test "ICal.to_ics/1 with url" do
+    expected = Helper.test_data("event_with_url")
 
     events = [
       %ICal.Event{
