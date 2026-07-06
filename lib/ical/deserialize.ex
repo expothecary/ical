@@ -458,28 +458,18 @@ defmodule ICal.Deserialize do
   end
 
   def to_date(date_string, %{"TZID" => timezone}, %ICal{default_timezone: default_timezone}) do
-    timezone = to_timezone(timezone, default_timezone)
-
-    if timezone == nil do
-      to_local_date(date_string)
-    else
-      to_date_in_timezone(date_string, timezone)
-    end
-  end
-
-  def to_date(<<_::binary-size(15), "Z">> = date_string, _params, _calendar) do
-    to_date_in_timezone(date_string, "Etc/UTC")
-  end
-
-  def to_date(date_string, _params, %ICal{default_timezone: nil}) do
-    to_local_date(date_string)
+    to_date_in_timezone(date_string, timezone, default_timezone)
   end
 
   def to_date(date_string, _params, %ICal{default_timezone: default_timezone}) do
-    to_date_in_timezone(date_string, default_timezone)
+    to_date_in_timezone(date_string, nil, default_timezone)
   end
 
   def to_date_in_timezone(date_string, timezone) do
+    to_date_in_timezone(date_string, timezone, nil)
+  end
+
+  defp to_date_in_timezone(date_string, target_tz, fallback_tz) do
     # datetime in the form "{YYYY}{0M}{0D}T{h24}{m}{s}[Z]"
     with <<y::binary-size(4), m::binary-size(2), d::binary-size(2), ?T, t_h::binary-size(2),
            t_m::binary-size(2), t_s::binary-size(2), rest::binary>>
@@ -489,32 +479,57 @@ defmodule ICal.Deserialize do
          {day, ""} <- Integer.parse(d),
          {hour, ""} <- Integer.parse(t_h),
          {minute, ""} <- Integer.parse(t_m),
-         {second, ""} <- Integer.parse(t_s),
-         {:ok, date} <- Date.new(year, month, day),
-         {:ok, time} <- Time.new(hour, minute, second) do
-      ICal.as_valid_datetime(date, time, timezone)
+         {second, ""} <- Integer.parse(t_s) do
+      to_date_in_timezone(year, month, day, hour, minute, second, rest, target_tz, fallback_tz)
     else
       _ -> nil
+    end
+  end
+
+  # when the TS is in UTC and there is no overriding TZ in the params, do UTC
+  defp to_date_in_timezone(year, month, day, hour, minute, second, "Z", nil, _) do
+    to_date_in_timezone(year, month, day, hour, minute, second, nil, "Etc/UTC", nil)
+  end
+
+  # when there is an undefined timezone, return a floating datetime
+  defp to_date_in_timezone(year, month, day, hour, minute, second, _suffix, nil, nil) do
+    case NaiveDateTime.new(year, month, day, hour, minute, second) do
+      {:ok, datetime} -> datetime
+      _ -> nil
+    end
+  end
+
+  defp to_date_in_timezone(
+         year,
+         month,
+         day,
+         hour,
+         minute,
+         second,
+         _suffix,
+         target_tz,
+         fallback_tz
+       ) do
+    case to_timezone(target_tz, fallback_tz) do
+      nil ->
+        # the target timezone is unrecognized, and no valid fallback was provided
+        to_date_in_timezone(year, month, day, hour, minute, second, nil, nil, nil)
+
+      timezone ->
+        with {:ok, date} <- Date.new(year, month, day),
+             {:ok, time} <- Time.new(hour, minute, second) do
+          ICal.as_valid_datetime(date, time, timezone)
+        else
+          _ -> nil
+        end
     end
   end
 
   @doc "Parses a local date string as a NaiveDatetime, returning `nil` on failure"
   @spec to_local_date(String.t()) :: NaiveDateTime.t() | nil
   def to_local_date(date_string) do
-    # datetime in the form "{YYYY}{0M}{0D}T{h24}{m}{s}"
-    with <<y::binary-size(4), m::binary-size(2), d::binary-size(2), ?T, t_h::binary-size(2),
-           t_m::binary-size(2), t_s::binary-size(2)>> <- date_string,
-         {year, ""} <- Integer.parse(y),
-         {month, ""} <- Integer.parse(m),
-         {day, ""} <- Integer.parse(d),
-         {hour, ""} <- Integer.parse(t_h),
-         {minute, ""} <- Integer.parse(t_m),
-         {second, ""} <- Integer.parse(t_s),
-         {:ok, datetime} <- NaiveDateTime.new(year, month, day, hour, minute, second) do
-      datetime
-    else
-      _ -> nil
-    end
+    # Ensure there is no trailing 'Z' by only passing in the first 15 characters.
+    to_date_in_timezone(String.slice(date_string, 0, 15), nil, nil)
   end
 
   def to_integer(value, default \\ nil)
