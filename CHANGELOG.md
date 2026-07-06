@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.0.0
+
+A major version bump due to adding support for floating dates, which causes some functions to
+now return NaiveDateTimes (aka "floating date/times")
+
+- Improvements
+  - Support floating date/times, the ICalendar equivalent of NaiveDateTime
+  - Added types in ICal module for dates and datetimes; more consistent, less verbose, easier to read
+- Fixes
+  - Unrecognized components could be incorrectly parsed due to a missing variable pin in gather_unrecognized_component
+- Janitorial
+  - Removed some unused imports/requires
+  - Small improvements to test suites
+
 ## v2.0.2
 
 - Fixes
