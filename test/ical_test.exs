@@ -127,6 +127,31 @@ defmodule ICalTest do
     |> assert_fully_contains(expected)
   end
 
+  test "ICal.to_ics/1 of a calendar with an event with floating dates" do
+    expected = Helper.test_data("floating_date_example")
+
+    events = [
+      %ICal.Event{
+        summary: "Film with Amy and Adam",
+        dtstart: ~N[2015-12-24 08:30:00Z],
+        dtstamp: ~N[2015-12-23 19:00:00Z],
+        dtend: ~N[2015-12-24 08:45:00Z],
+        description: "Let's go see Star Wars."
+      },
+      %ICal.Event{
+        summary: "Morning meeting",
+        dtstart: ~N[2015-12-24 19:00:00Z],
+        dtstamp: ~N[2015-12-24 15:00:00Z],
+        dtend: ~N[2015-12-24 22:30:00Z],
+        description: "A big long meeting with lots of details."
+      }
+    ]
+
+    %ICal{events: events}
+    |> ICal.to_ics()
+    |> assert_fully_contains(expected)
+  end
+
   test "ICal.to_ics/1 with location and sanitization" do
     expected = Helper.test_data("event_with_location")
 
