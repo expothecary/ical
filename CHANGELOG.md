@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## v3.0.0
 
 A major version bump due to adding support for floating dates, which causes some functions to
-now return NaiveDateTimes (aka "floating date/times")
+now return `NaiveDateTime`s (aka "floating date/times") in addition to `Date`s and `DateTime`s.
 
 - Improvements
   - Support floating date/times, the ICalendar equivalent of NaiveDateTime
@@ -17,6 +17,10 @@ now return NaiveDateTimes (aka "floating date/times")
 - Janitorial
   - Removed some unused imports/requires
   - Small improvements to test suites
+
+Contributors to this release include:
+
+- [Girish Gopaul](https://github.com/giriss)
 
 ## v2.0.2
 
