@@ -101,6 +101,10 @@ defmodule ICal.Serialize do
     [key, ";VALUE=DATE:", value(date), ?\n]
   end
 
+  def date(key, %NaiveDateTime{} = date) do
+    [key, ?:, value(date), ?\n]
+  end
+
   def date(key, %DateTime{time_zone: "Etc/UTC"} = date) do
     [key, ?:, value(date), ?\n]
   end
