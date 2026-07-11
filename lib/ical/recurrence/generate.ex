@@ -280,8 +280,14 @@ defmodule ICal.Recurrence.Generate do
       Calendar.ISO.valid_time?(datetime.hour, datetime.minute, datetime.second, {0, 0})
   end
 
+  defp date_valid?(%NaiveDateTime{} = datetime) do
+    Calendar.ISO.valid_date?(datetime.year, datetime.month, datetime.day) and
+      Calendar.ISO.valid_time?(datetime.hour, datetime.minute, datetime.second, {0, 0})
+  end
+
   defp compare_recurrences(%DateTime{} = l, r), do: DateTime.compare(l, r) == :lt
   defp compare_recurrences(%Date{} = l, r), do: Date.compare(l, r) == :lt
+  defp compare_recurrences(%NaiveDateTime{} = l, r), do: NaiveDateTime.compare(l, r) == :lt
 
   defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
     Enum.reduce(acc, [], fn recurrence, acc ->
@@ -824,6 +830,11 @@ defmodule ICal.Recurrence.Generate do
 
   defp shift_date(%Date{} = date, interval), do: Date.shift(date, interval)
 
+  defp shift_date(%NaiveDateTime{} = date, interval) do
+    shifted = NaiveDateTime.shift(date, interval)
+    %{shifted | hour: date.hour, minute: date.minute, second: date.second}
+  end
+
   def week_number_bookends(date, week) do
     # shift the week
     if week > 0 do
@@ -876,15 +887,23 @@ defmodule ICal.Recurrence.Generate do
 
   defp equal?(%Date{} = d, %DateTime{} = dt), do: equal?(d, DateTime.to_date(dt))
   defp equal?(%DateTime{} = dt, %Date{} = d), do: equal?(DateTime.to_date(dt), d)
+  defp equal?(%Date{} = d, %NaiveDateTime{} = dt), do: equal?(d, NaiveDateTime.to_date(dt))
+  defp equal?(%NaiveDateTime{} = dt, %Date{} = d), do: equal?(NaiveDateTime.to_date(dt), d)
   defp equal?(l, r), do: l == r
 
   defp before?(%Date{} = d, %DateTime{} = dt), do: before?(d, DateTime.to_date(dt))
   defp before?(%DateTime{} = dt, %Date{} = d), do: before?(DateTime.to_date(dt), d)
+  defp before?(%Date{} = d, %NaiveDateTime{} = dt), do: before?(d, NaiveDateTime.to_date(dt))
+  defp before?(%NaiveDateTime{} = dt, %Date{} = d), do: before?(NaiveDateTime.to_date(dt), d)
   defp before?(%Date{} = l, r), do: Date.before?(l, r)
   defp before?(%DateTime{} = l, r), do: DateTime.before?(l, r)
+  defp before?(%NaiveDateTime{} = l, r), do: NaiveDateTime.before?(l, r)
 
   defp after?(%Date{} = d, %DateTime{} = dt), do: after?(d, DateTime.to_date(dt))
   defp after?(%DateTime{} = dt, %Date{} = d), do: after?(DateTime.to_date(dt), d)
+  defp after?(%Date{} = d, %NaiveDateTime{} = dt), do: after?(d, NaiveDateTime.to_date(dt))
+  defp after?(%NaiveDateTime{} = dt, %Date{} = d), do: after?(NaiveDateTime.to_date(dt), d)
   defp after?(%Date{} = l, r), do: Date.after?(l, r)
   defp after?(%DateTime{} = l, r), do: DateTime.after?(l, r)
+  defp after?(%NaiveDateTime{} = l, r), do: NaiveDateTime.after?(l, r)
 end
