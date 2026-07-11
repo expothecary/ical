@@ -6,7 +6,7 @@ defmodule ICal.RecurrenceTest do
 
   doctest ICal.Recurrence
 
-  describe "Recurrent init" do
+  describe "Recurrence init" do
     test "initializing with matching until and startdate as datetimes leaves until untouched" do
       dtstart = ~U[2026-04-15 13:00:00Z]
       until = ~U[2026-04-17 13:00:00Z]
@@ -1491,6 +1491,53 @@ defmodule ICal.RecurrenceTest do
                DateTime.new!(~D[1997-09-02], ~T[09:00:50], "America/New_York"),
                DateTime.new!(~D[1997-09-02], ~T[09:01:15], "America/New_York")
              ] == recurrences
+    end
+  end
+
+  describe "Rcurrence generation with UNTIL types" do
+    test "with Date" do
+      dtstart = ~D[2018-04-01]
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20180415")
+      recurrences = ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list()
+
+      assert Enum.count(recurrences) == 15
+      assert %Date{} = Enum.at(recurrences, 0)
+    end
+
+    test "with NaiveDateTime" do
+      dtstart = ~N[2018-04-01 13:00:00]
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20180415T200000")
+      recurrences = ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list()
+
+      assert Enum.count(recurrences) == 15
+      assert %NaiveDateTime{} = Enum.at(recurrences, 0)
+    end
+
+    test "with DateTime, but NaiveDateTime UTNIL" do
+      dtstart = ~U[2018-04-01 13:00:00Z]
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20180415T200000")
+      recurrences = ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list()
+
+      assert Enum.count(recurrences) == 15
+      assert %DateTime{} = Enum.at(recurrences, 0)
+    end
+
+    test "with DateTime, but Date UTNIL" do
+      dtstart = ~U[2018-04-01 13:00:00Z]
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20180415")
+      recurrences = ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list()
+
+      assert Enum.count(recurrences) == 14
+      assert %DateTime{} = Enum.at(recurrences, 0)
+    end
+
+    test "with Date, but DateTime UTNIL" do
+      dtstart = ~D[2018-04-01]
+      rule = ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20180415T200000Z")
+      recurrences = ICal.Recurrence.stream(rule, start_date: dtstart) |> Enum.to_list()
+
+      assert Enum.count(recurrences) == 15
+      assert %Date{} = Enum.at(recurrences, 0)
     end
   end
 end
