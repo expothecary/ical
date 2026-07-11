@@ -21,6 +21,7 @@ defmodule ICal.Recurrence.Generate do
       |> Enum.sort(&compare_recurrences/2)
 
     start_date = resolve_option(options, :start_date, DateTime.utc_now())
+    rule = match_until_with_start_date(rule, start_date)
 
     %State{
       earliest_date: start_date,
@@ -47,6 +48,40 @@ defmodule ICal.Recurrence.Generate do
   @spec one_set(State.t()) :: {[ICal.Recurrence.recurrence_date()], State.t()}
   def one_set(%State{} = state) do
     generate_set(state)
+  end
+
+  defp match_until_with_start_date(%{until: nil} = rule, _start_date) do
+    rule
+  end
+
+  defp match_until_with_start_date(%{until: until} = rule, %date_type{}) do
+    %{rule | until: match_datetypes(until, date_type)}
+  end
+
+  defp match_datetypes(%x{} = until, x), do: until
+
+  defp match_datetypes(%Date{} = until, DateTime) do
+    DateTime.new!(until, Time.new!(0, 0, 0, 0), "Etc/UTC")
+  end
+
+  defp match_datetypes(%NaiveDateTime{} = until, DateTime) do
+    DateTime.from_naive!(until, "Etc/UTC")
+  end
+
+  defp match_datetypes(%Date{} = until, NaiveDateTime) do
+    NaiveDateTime.new!(until, Time.new!(0, 0, 0, 0))
+  end
+
+  defp match_datetypes(%DateTime{} = until, NaiveDateTime) do
+    DateTime.to_naive(until)
+  end
+
+  defp match_datetypes(%DateTime{} = until, Date) do
+    DateTime.to_date(until)
+  end
+
+  defp match_datetypes(%NaiveDateTime{} = until, Date) do
+    NaiveDateTime.to_date(until)
   end
 
   defp resolve_option(options, key, default) do

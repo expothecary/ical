@@ -6,6 +6,52 @@ defmodule ICal.RecurrenceTest do
 
   doctest ICal.Recurrence
 
+  describe "Recurrent init" do
+    test "initializing with matching until and startdate as datetimes leaves until untouched" do
+      dtstart = ~U[2026-04-15 13:00:00Z]
+      until = ~U[2026-04-17 13:00:00Z]
+      rule = %ICal.Recurrence{frequency: :yearly, until: until}
+
+      state = ICal.Recurrence.Generate.init(rule, start_date: dtstart)
+
+      assert state.rule.until == until
+    end
+
+    test "initializing with no until works" do
+      dtstart = ~U[2026-04-15 13:00:00Z]
+      rule = %ICal.Recurrence{frequency: :yearly, count: 5}
+      state = ICal.Recurrence.Generate.init(rule, start_date: dtstart)
+      assert state.rule.until == nil
+    end
+
+    test "initializing with mismatched until" do
+      start_dates = [
+        ~U[2026-04-15 13:00:00Z],
+        ~N[2026-04-15 13:00:00],
+        ~D[2026-04-15]
+      ]
+
+      rules =
+        [~U[2026-04-17 13:00:00Z], ~N[2026-04-17 13:00:00], ~D[2026-04-17]]
+        |> Enum.map(fn until -> %ICal.Recurrence{frequency: :yearly, until: until} end)
+
+      Enum.each(
+        start_dates,
+        fn %expected{} = start_date ->
+          Enum.each(
+            rules,
+            fn rule ->
+              %ICal.Recurrence.State{rule: %{until: %is{}}} =
+                ICal.Recurrence.Generate.init(rule, start_date: start_date)
+
+              assert is == expected
+            end
+          )
+        end
+      )
+    end
+  end
+
   describe "Recurrence stream" do
     test "correctly handles event with no recurrences" do
       assert [] ==
