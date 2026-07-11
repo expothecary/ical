@@ -65,6 +65,24 @@ defmodule ICal.RecurrenceParsingTest do
       assert String.contains?(serialized, ";BYDAY=THFRSASU1MO2WE-1TU-1SU")
       assert String.ends_with?(serialized, "\n")
     end
+
+    test "Serialized Date UNTIL" do
+      rule = %ICal.Recurrence{until: ~D[2018-04-15], interval: 1, frequency: :daily}
+      serialized = ICal.Serialize.Recurrence.property(rule) |> to_string()
+      assert String.starts_with?(serialized, "RRULE:FREQ=DAILY")
+      assert String.contains?(serialized, ";INTERVAL=1")
+      assert String.contains?(serialized, ";UNTIL=20180415")
+      assert String.ends_with?(serialized, "\n")
+    end
+
+    test "Serialized NaiveDateTime UNTIL" do
+      rule = %ICal.Recurrence{until: ~N[2018-04-15T12:34:56], interval: 1, frequency: :daily}
+      serialized = ICal.Serialize.Recurrence.property(rule) |> to_string()
+      assert String.starts_with?(serialized, "RRULE:FREQ=DAILY")
+      assert String.contains?(serialized, ";INTERVAL=1")
+      assert String.contains?(serialized, ";UNTIL=20180415T123456")
+      assert String.ends_with?(serialized, "\n")
+    end
   end
 
   describe "RRULE: deserialization" do
