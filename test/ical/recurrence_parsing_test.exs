@@ -165,6 +165,11 @@ defmodule ICal.RecurrenceParsingTest do
       assert nil === ICal.Deserialize.Recurrence.from_params(rrule)
     end
 
+    test "parses date UNTIL field" do
+      assert %ICal.Recurrence{until: %Date{}} =
+               ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;UNTIL=20180415")
+    end
+
     test "suppports single-line and line-folded rules" do
       expected = %ICal.Recurrence{
         until: ~U[2018-04-15 20:59:59Z],
