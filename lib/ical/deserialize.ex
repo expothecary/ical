@@ -433,18 +433,10 @@ defmodule ICal.Deserialize do
   end
 
   @doc """
-  This function is designed to parse iCal datetime strings into date/times.
-
-  It respects TZID and VALUE parameters for properties, which can control the type and
-  location of the resulting date/time.
-
-  It returns `nil` for ill-formed dates or datetime strings.
+  Parses a simple ICal date string to a `Date.t()`.
   """
-  @spec to_date(String.t() | nil, map, ICal.t()) ::
-          ICal.optional_rfc5455_date
-  def to_date(nil, _params, _calendar), do: nil
-
-  def to_date(date_string, %{"VALUE" => "DATE"}, _calendar) do
+  @spec to_date(String.t() | nil) :: Date.t()
+  def to_date(date_string) do
     # of the form {YYYY}{MM}{DD}
     with <<y::binary-size(4), m::binary-size(2), d::binary-size(2)>> <- date_string,
          {year, ""} <- Integer.parse(y),
@@ -455,6 +447,22 @@ defmodule ICal.Deserialize do
     else
       _ -> nil
     end
+  end
+
+  @doc """
+  Parses iCal datetime strings into date/times.
+
+  It respects TZID and VALUE parameters for properties, which can control the type and
+  location of the resulting date/time.
+
+  It returns `nil` for ill-formed dates or datetime strings.
+  """
+  @spec to_date(String.t() | nil, map, ICal.t()) ::
+          ICal.optional_rfc5455_date()
+  def to_date(nil, _params, _calendar), do: nil
+
+  def to_date(date_string, %{"VALUE" => "DATE"}, _calendar) do
+    to_date(date_string)
   end
 
   def to_date(date_string, %{"TZID" => timezone}, %ICal{default_timezone: default_timezone}) do
