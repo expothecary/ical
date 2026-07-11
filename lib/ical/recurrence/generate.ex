@@ -885,15 +885,15 @@ defmodule ICal.Recurrence.Generate do
     not after?(earliest, middle) and not after?(middle, latest)
   end
 
+  defp equal?(%module{} = l, %module{} = r), do: l == r
   defp equal?(%Date{} = d, %module{} = dt), do: equal?(d, module.to_date(dt))
   defp equal?(%module{} = dt, %Date{} = d), do: equal?(module.to_date(dt), d)
-  defp equal?(l, r), do: l == r
 
+  defp before?(%module{} = l, %module{} = r), do: module.before?(l, r)
   defp before?(%Date{} = d, %module{} = dt), do: before?(d, module.to_date(dt))
   defp before?(%module{} = dt, %Date{} = d), do: before?(module.to_date(dt), d)
-  defp before?(%module{} = l, r), do: module.before?(l, r)
 
+  defp after?(%module{} = l, %module{} = r), do: module.after?(l, r)
   defp after?(%Date{} = d, %module{} = dt), do: after?(d, module.to_date(dt))
   defp after?(%module{} = dt, %Date{} = d), do: after?(module.to_date(dt), d)
-  defp after?(%module{} = l, r), do: module.after?(l, r)
 end
