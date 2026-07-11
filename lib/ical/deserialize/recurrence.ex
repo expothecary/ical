@@ -3,7 +3,7 @@ defmodule ICal.Deserialize.Recurrence do
 
   alias ICal.Deserialize
 
-  @date_stering_length 8
+  @ics_date_string_length 8
 
   @spec from_params(map) :: ICal.Recurrence.t() | nil
 
@@ -27,7 +27,7 @@ defmodule ICal.Deserialize.Recurrence do
 
   defp add_to_recurrence({"UNTIL", value}, recurrence) do
     date =
-      if String.length(value) == @date_stering_length do
+      if String.length(value) == @ics_date_string_length do
         Deserialize.to_date(value)
       else
         Deserialize.to_date_in_timezone(value, "Etc/UTC")
