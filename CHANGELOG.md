@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.1.0
+
+Small but important improvements in RFC compliance with regards to floating dates and
+date-only recurrences.
+
+- Improvements
+  - Support for "floating dates" (NaiveDateTime) in RRULEs
+  - Match RRULE date/time types to the starting date when generating recurrences
+  - More tests for recurrence parsing/serialization added
+- Fixes
+  - Dates are now supported in RRULE UNTIL field (previously only DateTimes were)
+
+
 ## v3.0.0
 
 A major version bump due to adding support for floating dates, which causes some functions to
