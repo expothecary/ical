@@ -735,9 +735,15 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp weekday(%Date{} = date) do
-    index_date = Date.day_of_week(date)
-    days = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
-    Enum.at(days, index_date - 1)
+    case Date.day_of_week(date) do
+      1 -> :monday
+      2 -> :tuesday
+      3 -> :wednesday
+      4 -> :thursday
+      5 -> :friday
+      6 -> :saturday
+      7 -> :sunday
+    end
   end
 
   defp weekday(%DateTime{} = dt), do: weekday(DateTime.to_date(dt))
