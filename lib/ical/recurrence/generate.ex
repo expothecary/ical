@@ -266,9 +266,9 @@ defmodule ICal.Recurrence.Generate do
   defp apply_all_modifiers(recurrences, %{modifiers: modifiers, rule: rule}) do
     Enum.reduce(modifiers, recurrences, fn modifier, acc ->
       apply_modifier(modifier, rule, acc)
-      |> Enum.filter(&date_valid?/1)
       |> Enum.sort(&compare_recurrences/2)
     end)
+    |> Enum.filter(&date_valid?/1)
   end
 
   defp date_valid?(%Date{} = date) do
