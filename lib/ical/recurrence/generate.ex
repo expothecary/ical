@@ -650,6 +650,10 @@ defmodule ICal.Recurrence.Generate do
     }
   end
 
+  defp include_other(recurrences, %{other_recurrences: []} = state) do
+    {recurrences, state}
+  end
+
   defp include_other(recurrences, %{limit: :reached} = state) do
     {recurrences, remaining_other} = merge_other(recurrences, state.other_recurrences)
     include_all_other(recurrences, %{state | other_recurrences: remaining_other})
@@ -660,20 +664,12 @@ defmodule ICal.Recurrence.Generate do
     {recurrences, %{state | other_recurrences: remaining_other}}
   end
 
-  defp include_other(recurrences, state) do
-    {recurrences, state}
-  end
-
   @spec merge_other(
           recurrences :: [ICal.Recurrence.recurrence_date()],
           other :: [ICal.Recurrence.recurrence_date()]
         ) ::
           {merged_recurrences :: [ICal.Recurrence.recurrence_date()],
            remaining_other :: [ICal.Recurrence.recurrence_date()]}
-  defp merge_other(recurrences, []) do
-    {recurrences, []}
-  end
-
   defp merge_other(recurrences, other_recurrences) do
     Enum.reduce(recurrences, {[], other_recurrences}, fn
       recurrence, {acc, []} ->
