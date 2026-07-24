@@ -704,22 +704,10 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp add_rule_limits(state, %{until: until}, end_date) do
-    # when until is a date time, set the until into the same timezone as the start date
-    # it can not just be shifted, as the literal values should remain as they are
-    until =
-      case until do
-        %DateTime{} ->
-          DateTime.new!(
-            DateTime.to_date(until),
-            DateTime.to_time(until),
-            state.earliest_date.time_zone
-          )
-
-        _ ->
-          until
-      end
-
-    if end_date != nil and (until == nil or after?(until, end_date)) do
+    if end_date != nil and
+         (until == nil or after?(until, end_date)) do
+      # the requested end date is before UNTIL, so
+      # use the end date as the limit instead of UNTIL
       %{state | limit: end_date, end_date: end_date}
     else
       %{state | limit: until, end_date: end_date}

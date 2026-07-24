@@ -7,6 +7,62 @@ defmodule ICal.RecurrenceTest do
   doctest ICal.Recurrence
 
   describe "Recurrence init" do
+    test "issue 51" do
+      tz = "Australia/Melbourne"
+      count = 4
+
+      {:ok, dtstart_naive} = NaiveDateTime.from_iso8601("2026-01-01T10:00:00")
+      dtstart = DateTime.from_naive!(dtstart_naive, tz)
+
+      dtend_date = ~D[2026-01-22]
+
+      until =
+        ICal.as_valid_datetime(dtend_date, NaiveDateTime.to_time(dtstart), tz)
+        |> DateTime.shift_zone!("Etc/UTC")
+        |> Calendar.strftime("%Y%m%dT%H%M%SZ")
+
+      rrule = ICal.Recurrence.from_ics("RRULE:FREQ=WEEKLY;UNTIL=#{until}")
+
+      recurrences =
+        %ICal.Event{
+          dtstart: dtstart,
+          dtend: DateTime.add(dtstart, 1, :hour),
+          rrule: rrule
+        }
+        |> ICal.Recurrence.stream(end_date: dtend_date)
+        |> Enum.to_list()
+
+      assert Enum.count(recurrences) == count
+    end
+
+    test "issue 51b" do
+      tz = "America/New_York"
+      count = 2
+
+      {:ok, dtstart_naive} = NaiveDateTime.from_iso8601("2015-09-08T20:30:00")
+      dtstart = DateTime.from_naive!(dtstart_naive, tz)
+
+      dtend_date = ~D[2026-01-22]
+
+      rrule =
+        ICal.Recurrence.from_ics("RRULE;TZID=America/New_York:FREQ=DAILY;UNTIL=20150910T003000")
+
+      recurrences =
+        %ICal.Event{
+          dtstart: dtstart,
+          dtend: DateTime.add(dtstart, 1, :hour),
+          rrule: rrule
+        }
+        |> ICal.Recurrence.stream(end_date: dtend_date)
+        |> Enum.to_list()
+
+      assert Enum.count(recurrences) == count
+    end
+
+    # 20150910T003000Z
+    #     DTSTART;TZID=America/New_York:20150908T203000
+    # RRULE;TZID=America/New_York:FREQ=DAILY;UNTIL=20150909T203000
+
     test "initializing with matching until and startdate as datetimes leaves until untouched" do
       dtstart = ~U[2026-04-15 13:00:00Z]
       until = ~U[2026-04-17 13:00:00Z]
@@ -1369,7 +1425,7 @@ defmodule ICal.RecurrenceTest do
       dtstart = DateTime.new!(~D[1997-09-02], ~T[09:00:00], "America/New_York")
 
       rule =
-        ICal.Recurrence.from_ics("RRULE:FREQ=HOURLY;INTERVAL=3;UNTIL=19970902T170000Z")
+        ICal.Recurrence.from_ics("RRULE:FREQ=HOURLY;INTERVAL=3;UNTIL=19970902T200000Z")
 
       {:ok, recurrences} =
         Helper.time(
