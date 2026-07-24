@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.1.1
+
+- Fixes
+  - UNTIL dates in RRULEs are no long timezone-shifted. In most cases this makes no difference,
+    but in some edge cases it does. The RFC itself gets this wrong in one of its examples,
+    but the consensus among implementations appears to be this.
+- Janitorial
+  - Update dependences
+
 ## v3.1.0
 
 Small but important improvements in RFC compliance with regards to floating dates and
