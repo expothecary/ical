@@ -53,6 +53,7 @@ defmodule ICal.Recurrence do
   @doc """
   Takes a string starting with "RRULE:" and returns a recurrence struct.
   """
+  @spec from_ics(rrule_string :: String.t()) :: t()
   def from_ics(<<"RRULE", data::binary>>) do
     data = ICal.Deserialize.skip_params(data)
     {_data, values} = ICal.Deserialize.param_list(data)
@@ -65,6 +66,7 @@ defmodule ICal.Recurrence do
   Call this before using the recurrence if creating recurrences manually. Recurrences
   parsed from ics data are automatically normalized.
   """
+  @spec normalize(t()) :: t()
   def normalize(%__MODULE__{} = recurrence) do
     %{
       recurrence
@@ -86,6 +88,7 @@ defmodule ICal.Recurrence do
   Applies a generated date or datetime recurrence to an `ICal` component such as
   an event, todo, or journal entry.
   """
+  @spec apply(ICal.rfc5455_date(), map) :: map
   def apply(%x{} = recurrence, component)
       when x == Date or x == DateTime or x == NaiveDateTime do
     %{
@@ -99,6 +102,7 @@ defmodule ICal.Recurrence do
   Returns true if the recurrence terminates eventually, false if it has no
   defined end and instead continues indefinitely.
   """
+  @spec terminates?(t()) :: boolean
   def terminates?(%__MODULE__{count: count, until: until}) do
     is_integer(count) or until != nil
   end
