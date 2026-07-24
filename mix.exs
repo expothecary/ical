@@ -48,7 +48,8 @@ defmodule ICal.Mixfile do
       {:ex_doc, ">= 0.0.0", only: [:dev, :test], runtime: false},
 
       # benchmarking...
-      {:benchee, "~> 1.0", only: [:dev, :test]}
+      {:benchee, "~> 1.0", only: [:dev, :test]},
+      {:benchee_json, "~> 1.0", only: [:dev, :test]}
     ]
   end
 
