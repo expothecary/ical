@@ -119,7 +119,12 @@ defmodule ICal.Recurrence.Generate do
     {:time, [second: interval]}
   end
 
-  defp rule_modifiers(%ICal.Recurrence{frequency: :yearly} = rule) do
+  defp rule_modifiers(recurrence) do
+    frequency_modifiers(recurrence)
+    |> Enum.filter(fn modifier -> modifier_necessary?(modifier, recurrence) end)
+  end
+
+  defp frequency_modifiers(%ICal.Recurrence{frequency: :yearly} = rule) do
     week_number_application =
       if has_some(rule.by_month), do: :limit, else: :expand
 
@@ -148,7 +153,7 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp rule_modifiers(%ICal.Recurrence{frequency: :monthly} = rule) do
+  defp frequency_modifiers(%ICal.Recurrence{frequency: :monthly} = rule) do
     by_day_application = if has_some(rule.by_month_day), do: :limit, else: :expand_month
 
     [
@@ -162,7 +167,7 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp rule_modifiers(%ICal.Recurrence{frequency: :weekly}) do
+  defp frequency_modifiers(%ICal.Recurrence{frequency: :weekly}) do
     [
       {:by_month, :limit},
       {:by_day, :expand_week},
@@ -173,7 +178,7 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp rule_modifiers(%ICal.Recurrence{frequency: :daily}) do
+  defp frequency_modifiers(%ICal.Recurrence{frequency: :daily}) do
     [
       {:by_month, :limit},
       {:by_month_day, :limit},
@@ -185,7 +190,7 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp rule_modifiers(%ICal.Recurrence{frequency: :hourly}) do
+  defp frequency_modifiers(%ICal.Recurrence{frequency: :hourly}) do
     [
       {:by_month, :limit},
       {:by_year_day, :limit},
@@ -197,7 +202,7 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp rule_modifiers(%ICal.Recurrence{frequency: :minutely}) do
+  defp frequency_modifiers(%ICal.Recurrence{frequency: :minutely}) do
     [
       {:by_month, :limit},
       {:by_year_day, :limit},
@@ -210,7 +215,7 @@ defmodule ICal.Recurrence.Generate do
     ]
   end
 
-  defp rule_modifiers(%ICal.Recurrence{frequency: :secondly}) do
+  defp frequency_modifiers(%ICal.Recurrence{frequency: :secondly}) do
     [
       {:by_month, :limit},
       {:by_year_day, :limit},
@@ -289,7 +294,7 @@ defmodule ICal.Recurrence.Generate do
   defp compare_recurrences(%Date{} = l, r), do: Date.compare(l, r) == :lt
   defp compare_recurrences(%NaiveDateTime{} = l, r), do: NaiveDateTime.compare(l, r) == :lt
 
-  defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) when has_some(months) do
+  defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(months, acc, fn month, acc ->
         [%{recurrence | month: month} | acc]
@@ -297,14 +302,13 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_month, :limit}, %{by_month: months}, acc) when has_some(months) do
+  defp apply_modifier({:by_month, :limit}, %{by_month: months}, acc) do
     Enum.filter(acc, fn recurrence ->
       Enum.member?(months, recurrence.month)
     end)
   end
 
-  defp apply_modifier({:by_week_number, :expand}, %{by_week_number: weeks}, acc)
-       when has_some(weeks) do
+  defp apply_modifier({:by_week_number, :expand}, %{by_week_number: weeks}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(weeks, acc, fn week, acc ->
         {first, last} = week_number_bookends(recurrence, week)
@@ -314,8 +318,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_week_number, :limit}, %{by_week_number: weeks}, acc)
-       when has_some(weeks) do
+  defp apply_modifier({:by_week_number, :limit}, %{by_week_number: weeks}, acc) do
     Enum.filter(acc, fn recurrence ->
       Enum.find(weeks, fn week ->
         {week_start, week_end} = week_number_bookends(recurrence, week)
@@ -324,8 +327,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_year_day, :expand}, %{by_year_day: year_days}, acc)
-       when has_some(year_days) do
+  defp apply_modifier({:by_year_day, :expand}, %{by_year_day: year_days}, acc) do
     Enum.uniq_by(acc, fn recurrence -> recurrence.year end)
     |> Enum.reduce([], fn recurrence, acc ->
       first_of_jan = %{recurrence | month: 1, day: 1}
@@ -336,15 +338,13 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_year_day, :limit}, %{by_year_day: year_days}, acc)
-       when has_some(year_days) do
+  defp apply_modifier({:by_year_day, :limit}, %{by_year_day: year_days}, acc) do
     Enum.filter(acc, fn recurrence ->
       Enum.member?(year_days, Date.day_of_year(recurrence))
     end)
   end
 
-  defp apply_modifier({:by_month_day, :expand}, %{by_month_day: month_days}, acc)
-       when has_some(month_days) do
+  defp apply_modifier({:by_month_day, :expand}, %{by_month_day: month_days}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(month_days, acc, fn month_day, acc ->
         first = %{recurrence | day: 1}
@@ -366,15 +366,13 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_month_day, :limit}, %{by_month_day: month_days}, acc)
-       when has_some(month_days) do
+  defp apply_modifier({:by_month_day, :limit}, %{by_month_day: month_days}, acc) do
     Enum.filter(acc, fn recurrence ->
       Enum.member?(month_days, recurrence.day)
     end)
   end
 
-  defp apply_modifier({:by_day, :expand_year}, %{by_day: weekdays}, acc)
-       when has_some(weekdays) do
+  defp apply_modifier({:by_day, :expand_year}, %{by_day: weekdays}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(weekdays, acc, fn
         {offset, weekday}, acc when offset >= 0 ->
@@ -431,8 +429,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_day, :expand_month}, %{by_day: weekdays}, acc)
-       when has_some(weekdays) do
+  defp apply_modifier({:by_day, :expand_month}, %{by_day: weekdays}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       order = weekday_order()
 
@@ -492,8 +489,7 @@ defmodule ICal.Recurrence.Generate do
          {:by_day, :expand_week},
          %{by_day: weekdays, week_start_day: week_start_day},
          acc
-       )
-       when has_some(weekdays) do
+       ) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       order = weekday_order()
       first_week_day = beginning_of_week(recurrence, week_start_day)
@@ -511,14 +507,14 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_day, :limit}, %{by_day: weekdays}, acc) when has_some(weekdays) do
+  defp apply_modifier({:by_day, :limit}, %{by_day: weekdays}, acc) do
     Enum.filter(acc, fn recurrence ->
       target = weekday(recurrence)
       Enum.find(weekdays, fn {_, allowed_day} -> allowed_day == target end) != nil
     end)
   end
 
-  defp apply_modifier({:by_hour, :expand}, %{by_hour: hours}, acc) when has_some(hours) do
+  defp apply_modifier({:by_hour, :expand}, %{by_hour: hours}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(
         hours,
@@ -536,7 +532,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_hour, :limit}, %{by_hour: hours}, acc) when has_some(hours) do
+  defp apply_modifier({:by_hour, :limit}, %{by_hour: hours}, acc) do
     Enum.filter(acc, fn recurrence ->
       case recurrence do
         %DateTime{hour: hour} -> Enum.member?(hours, hour)
@@ -545,7 +541,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_minute, :expand}, %{by_minute: minutes}, acc) when has_some(minutes) do
+  defp apply_modifier({:by_minute, :expand}, %{by_minute: minutes}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(
         minutes,
@@ -563,7 +559,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_minute, :limit}, %{by_minute: minutes}, acc) when has_some(minutes) do
+  defp apply_modifier({:by_minute, :limit}, %{by_minute: minutes}, acc) do
     Enum.filter(acc, fn recurrence ->
       case recurrence do
         %DateTime{minute: minute} -> Enum.member?(minutes, minute)
@@ -572,7 +568,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_second, :expand}, %{by_second: seconds}, acc) when has_some(seconds) do
+  defp apply_modifier({:by_second, :expand}, %{by_second: seconds}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
       Enum.reduce(
         seconds,
@@ -590,7 +586,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_second, :limit}, %{by_second: seconds}, acc) when has_some(seconds) do
+  defp apply_modifier({:by_second, :limit}, %{by_second: seconds}, acc) do
     Enum.filter(acc, fn recurrence ->
       case recurrence do
         %DateTime{second: second} -> Enum.member?(seconds, second)
@@ -599,8 +595,7 @@ defmodule ICal.Recurrence.Generate do
     end)
   end
 
-  defp apply_modifier({:by_set_position, :limit}, %{by_set_position: positions}, recurrences)
-       when has_some(positions) do
+  defp apply_modifier({:by_set_position, :limit}, %{by_set_position: positions}, recurrences) do
     Enum.reduce(positions, [], fn index, acc ->
       index = if index > 0, do: index - 1, else: index
 
@@ -612,6 +607,21 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp apply_modifier(_, _rule, acc), do: acc
+
+  defp modifier_necessary?({:by_month, _}, %{by_month: months}), do: has_some(months)
+  defp modifier_necessary?({:by_week_number, _}, %{by_week_number: weeks}), do: has_some(weeks)
+  defp modifier_necessary?({:by_year_day, _}, %{by_year_day: year_days}), do: has_some(year_days)
+
+  defp modifier_necessary?({:by_month_day, _}, %{by_month_day: month_days}),
+    do: has_some(month_days)
+
+  defp modifier_necessary?({:by_day, _}, %{by_day: weekdays}), do: has_some(weekdays)
+  defp modifier_necessary?({:by_hour, _}, %{by_hour: hours}), do: has_some(hours)
+  defp modifier_necessary?({:by_minute, _}, %{by_minute: minutes}), do: has_some(minutes)
+  defp modifier_necessary?({:by_second, _}, %{by_second: seconds}), do: has_some(seconds)
+
+  defp modifier_necessary?({:by_set_position, _}, %{by_set_position: positions}),
+    do: has_some(positions)
 
   defp exclude(recurrences, %{earliest_date: earliest, exclude_dates: exclude_dates}) do
     in_set =
