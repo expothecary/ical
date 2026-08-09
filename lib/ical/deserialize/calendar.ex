@@ -30,6 +30,17 @@ defmodule ICal.Deserialize.Calendar do
     end
   end
 
+  def next(<<"BEGIN:VAVAILABILITY", data::binary>>, calendar) do
+    case ICal.Deserialize.Availability.one(data, calendar) do
+      {data, nil} ->
+        next(data, calendar)
+
+      {data, availability} ->
+        calendar = %{calendar | availabilities: calendar.availabilities ++ [availability]}
+        next(data, calendar)
+    end
+  end
+
   def next(<<"BEGIN:VJOURNAL", data::binary>>, calendar) do
     case ICal.Deserialize.Journal.one(data, calendar) do
       {data, nil} ->
