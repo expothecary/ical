@@ -11,12 +11,14 @@ A library for reading and writing iCalendar data.
   * Events (with alarms)
   * Todos (with alarms)
   * Journals
+  * Availability (VAVAILABILITY, with AVAILABLE subcomponents)
   * Timezones
   * Alarms
 * Recurrence calculations
 * Alarm calculations
 * Compatibility
   * RFC 5545 compliant
+  * RFC 7953 (Calendar Availability) compliant
   * Support for common non-standard properties, including:
       * `X-WR-TIMEZONE`
       * `X-WR-CALNAME`/`NAME`

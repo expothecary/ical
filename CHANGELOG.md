@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- Features
+  - Availability (`VAVAILABILITY`) and its `AVAILABLE` subcomponents are now
+    deserialized and serialized, implementing
+    [RFC 7953](https://www.rfc-editor.org/rfc/rfc7953.html). Components are
+    collected on `ICal.availabilities` as `%ICal.Availability{}` structs, each
+    holding `%ICal.Availability.Available{}` subcomponents in `available`.
+  - The `BUSYTYPE` property is parsed to `:busy`, `:busy_unavailable` or
+    `:busy_tentative`, defaulting to `:busy_unavailable` as RFC 7953 requires.
+    IANA and vendor tokens are retained verbatim.
+
 ## v3.1.1
 
 - Fixes
@@ -24,7 +36,6 @@ date-only recurrences.
   - More tests for recurrence parsing/serialization added
 - Fixes
   - Dates are now supported in RRULE UNTIL field (previously only DateTimes were)
-
 
 ## v3.0.0
 
