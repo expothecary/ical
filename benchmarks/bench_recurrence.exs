@@ -73,7 +73,8 @@ Benchee.run(
   time: 4,
   memory_time: 1,
   formatters: [
-    {Benchee.Formatters.JSON, file: "benchmarks/results/recurrance_#{DateTime.to_iso8601(DateTime.utc_now())}.json"},
+    {Benchee.Formatters.JSON,
+     file: "benchmarks/results/recurrences/#{DateTime.to_iso8601(DateTime.utc_now())}.json"},
     Benchee.Formatters.Console
   ]
 )

@@ -22,4 +22,6 @@
   "sourceror": {:hex, :sourceror, "1.12.2", "85bfd48159f020c0cbfc72f289f11456fdc05dc43719b6f2589fb969faefa113", [:mix], [], "hexpm", "da37d3da09c5b890528802c7056a8f585a061973820d7656b6e3649c14f0e9cb"},
   "statistex": {:hex, :statistex, "1.1.1", "73612aa7f79e53c30569be065fd121e380f1cf57bc4c2da5b41be9246da18df9", [:mix], [], "hexpm", "310c4b49b34adf683de3103639006bed233ab54c08a4add65a531448e653857c"},
   "tz": {:hex, :tz, "0.28.2", "6c47f3d1a8ee5c33a1d8f0ba49e5a851b0a30c408a587d907aff6e71228b3b32", [:mix], [{:castore, "~> 0.1 or ~> 1.0", [hex: :castore, repo: "hexpm", optional: true]}, {:mint, "~> 1.6", [hex: :mint, repo: "hexpm", optional: true]}], "hexpm", "a6bf7355a33f0a7511602ab4566432ac0901d8abff81e94e455bca19708a0c87"},
+  "verl": {:hex, :verl, "1.1.1", "98f3ec48b943aa4ae8e29742de86a7cd752513687911fe07d2e00ecdf3107e45", [:rebar3], [], "hexpm", "0925e51cd92a0a8be271765b02430b2e2cff8ac30ef24d123bd0d58511e8fb18"},
+  "xfile": {:hex, :xfile, "0.4.0", "d7e092d70b9e4d6f16ca5bcdbcb129f0a31ea4dc0085c064395bd625d8009488", [:mix], [], "hexpm", "8b4fac75bdd3b97cf06e94de1826ca97a514e271bc2992234e2d252126bf24ab"},
 }
