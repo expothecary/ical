@@ -7,14 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Unreleased
 
 - Features
-  - Availability (`VAVAILABILITY`) and its `AVAILABLE` subcomponents are now
-    deserialized and serialized, implementing
-    [RFC 7953](https://www.rfc-editor.org/rfc/rfc7953.html). Components are
-    collected on `ICal.availabilities` as `%ICal.Availability{}` structs, each
-    holding `%ICal.Availability.Available{}` subcomponents in `available`.
-  - The `BUSYTYPE` property is parsed to `:busy`, `:busy_unavailable` or
-    `:busy_tentative`, defaulting to `:busy_unavailable` as RFC 7953 requires.
-    IANA and vendor tokens are retained verbatim.
+  - [Availability](https://www.rfc-editor.org/rfc/rfc7953.html) (`VAVAILABILITY`) and its `AVAILABLE`
+    subcomponents are now deserialized and serialized to/from the `availabilities` field in `ICal` structs.
+- Improvements
+  - Optimizations to recurrence generation
 
 ## v3.1.1
 

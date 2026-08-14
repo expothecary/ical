@@ -11,7 +11,7 @@ A library for reading and writing iCalendar data.
   * Events (with alarms)
   * Todos (with alarms)
   * Journals
-  * Availability (VAVAILABILITY, with AVAILABLE subcomponents)
+  * [Availability](https://www.rfc-editor.org/rfc/rfc7953.html)
   * Timezones
   * Alarms
 * Recurrence calculations
