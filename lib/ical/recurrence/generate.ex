@@ -46,8 +46,20 @@ defmodule ICal.Recurrence.Generate do
   end
 
   @spec one_set(State.t()) :: {[ICal.Recurrence.recurrence_date()], State.t()}
+  def one_set(%State{fruitless_searches: fruitless_searches, rule: rule} = state)
+      when fruitless_searches > @max_fruitless_search_depth do
+    Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
+    {[], %{state | limit: :reached, error: :search_exhaustion}}
+  end
+
   def one_set(%State{} = state) do
-    generate_set(state)
+    recurrences =
+      [state.start_date]
+      |> apply_all_modifiers(state)
+      |> exclude(state)
+
+    new_state = %{state | start_date: shift_interval(state.start_date, state.interval)}
+    update_limit(recurrences, new_state)
   end
 
   defp match_until_with_start_date(%{until: nil} = rule, _start_date) do
@@ -243,29 +255,13 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp generate_all(%State{} = state, acc) do
-    {recurrences, new_state} = generate_set(state)
+    {recurrences, new_state} = one_set(state)
 
     case new_state do
       %{limit: :reached, error: :none} -> {:ok, acc ++ recurrences}
       %{limit: :reached, error: error} -> {:error, error, acc ++ recurrences}
       new_state -> generate_all(new_state, acc ++ recurrences)
     end
-  end
-
-  defp generate_set(%{fruitless_searches: fruitless_searches, rule: rule} = state)
-       when fruitless_searches > @max_fruitless_search_depth do
-    Logger.warning("Could not find all recurrences of #{inspect(rule)} due to search exhaustion")
-    {[], %{state | limit: :reached, error: :search_exhaustion}}
-  end
-
-  defp generate_set(%State{} = state) do
-    recurrences =
-      [state.start_date]
-      |> apply_all_modifiers(state)
-      |> exclude(state)
-
-    new_state = %{state | start_date: shift_interval(state.start_date, state.interval)}
-    update_limit(recurrences, new_state)
   end
 
   defp apply_all_modifiers(recurrences, %{modifiers: modifiers, rule: rule}) do
