@@ -1,9 +1,17 @@
 defmodule BenchmarkReport do
-  def pretty_print(benchmark, opts \\ []) do
-    benchmark
-    |> summarize(opts)
-    |> compare()
-    |> print_table()
+  @default_basepath "benchmarks/results/"
+
+  def pretty_print(opts \\ []) do
+    opts
+    |> basepath()
+    |> Xfile.ls!(show_dirs?: true, recursive: false)
+    |> Enum.each(fn path ->
+      path
+      |> Path.basename()
+      |> summarize(opts)
+      |> compare()
+      |> print_table()
+    end)
   end
 
   defp print_table(results) do
@@ -23,7 +31,7 @@ defmodule BenchmarkReport do
 
     print_table("vs baseline", name_width, columns, :baseline, results)
     IO.write("\n\n")
-    print_table("running", name_width, columns, :previous, results)
+    print_table("vs previous", name_width, columns, :previous, results)
   end
 
   defp print_table(table_name, name_width, columns, test_set, results) do
@@ -32,7 +40,7 @@ defmodule BenchmarkReport do
     header =
       Enum.reduce(
         columns,
-        "#{String.pad_leading(table_name, name_width)} ",
+        "#{String.pad_trailing(table_name, name_width)} ",
         fn {_width, name}, acc ->
           acc <> "| #{name} "
         end
@@ -80,10 +88,16 @@ defmodule BenchmarkReport do
     |> List.keysort(0)
   end
 
+  defp basepath(opts) do
+    Keyword.get(opts, :basepath, @default_basepath)
+  end
+
   def summarize(benchmark, opts \\ []) do
+    Bunt.write([:yellow, String.upcase(benchmark), "\n\n"])
+
     benchmarks_path =
       opts
-      |> Keyword.get(:basepath, "benchmarks/results/")
+      |> basepath()
       |> Path.join(benchmark)
 
     baselines_path = Path.join(benchmarks_path, "baselines")
@@ -160,4 +174,4 @@ defmodule BenchmarkReport do
   end
 end
 
-BenchmarkReport.pretty_print("recurrences")
+BenchmarkReport.pretty_print()
