@@ -430,35 +430,35 @@ defmodule ICal.Recurrence.Generate do
   end
 
   defp apply_modifier({:by_day, :expand_month}, %{by_day: weekdays}, acc) do
-    Enum.reduce(acc, [], fn recurrence, acc ->
-      order = weekday_order()
+    order = weekday_order()
 
-      first_week_day = order[weekday(%{recurrence | day: 1})]
+    normalized_weekdays =
+      Enum.map(weekdays, fn {offset, weekday} -> {offset, order[weekday]} end)
+
+    Enum.reduce(acc, [], fn recurrence, acc ->
+      first_day = %{recurrence | day: 1}
+      first_week_day = order[weekday(first_day)]
 
       Enum.reduce(
-        weekdays,
+        normalized_weekdays,
         acc,
         fn
-          {0, weekday}, acc ->
-            weekday_order = order[weekday]
-
+          {0, this_weekday}, acc ->
             # calculate when the first of this day occurs in the month
             # if the weekday order is before the first weekday
             # of the month, then it appears one week later minus the difference
             # if the weekday order is after, then it's just the diff + 1 days in
             first =
-              case first_week_day - weekday_order do
+              case first_week_day - this_weekday do
                 diff when diff <= 0 -> abs(diff) + 1
                 diff -> 8 - diff
               end
 
-            acc ++ generate_all_weekdays_in_month([%{recurrence | day: first}])
+            generate_all_weekdays_in_month([%{recurrence | day: first} | acc])
 
-          {offset, weekday}, acc when offset > 0 ->
-            first_day = %{recurrence | day: 1}
-            month_starts = order[weekday(first_day)]
+          {offset, this_weekday}, acc when offset > 0 ->
             days_in_month = days_in_month(recurrence)
-            shift_days = Integer.mod(order[weekday] - month_starts, 7) + 7 * (offset - 1)
+            shift_days = Integer.mod(this_weekday - first_week_day, 7) + 7 * (offset - 1)
 
             if shift_days >= days_in_month do
               acc
@@ -466,14 +466,14 @@ defmodule ICal.Recurrence.Generate do
               [shift_date(first_day, day: shift_days) | acc]
             end
 
-          {offset, weekday}, acc ->
+          {offset, this_weekday}, acc ->
             last_day = %{recurrence | day: days_in_month(recurrence)}
             month_ends = order[weekday(last_day)]
 
             # shift by the difference between the month end weekday and the target weekday,
             # plus one week per additional offset
             shift_days =
-              Integer.mod(month_ends - order[weekday], 7) + 7 * (abs(offset) - 1)
+              Integer.mod(month_ends - this_weekday, 7) + 7 * (abs(offset) - 1)
 
             if shift_days >= last_day.day do
               acc
