@@ -12,6 +12,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Improvements
   - Optimizations to recurrence generation
 
+Contributors to this release include:
+
+- [Kip Cole](https://github.com/kipcole9)
+
 ## v3.1.1
 
 - Fixes
