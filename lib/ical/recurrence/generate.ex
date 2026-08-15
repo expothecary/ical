@@ -54,7 +54,7 @@ defmodule ICal.Recurrence.Generate do
 
   def one_set(%State{} = state) do
     recurrences =
-      [state.start_date]
+      state.start_date
       |> apply_all_modifiers(state)
       |> exclude(state)
 
@@ -264,14 +264,6 @@ defmodule ICal.Recurrence.Generate do
     end
   end
 
-  defp apply_all_modifiers(recurrences, %{modifiers: modifiers, rule: rule}) do
-    Enum.reduce(modifiers, recurrences, fn modifier, acc ->
-      apply_modifier(modifier, rule, acc)
-      |> Enum.filter(&date_valid?/1)
-      |> Enum.sort(&compare_recurrences/2)
-    end)
-  end
-
   defp date_valid?(%Date{} = date) do
     Calendar.ISO.valid_date?(date.year, date.month, date.day)
   end
@@ -289,6 +281,14 @@ defmodule ICal.Recurrence.Generate do
   defp compare_recurrences(%DateTime{} = l, r), do: DateTime.compare(l, r) == :lt
   defp compare_recurrences(%Date{} = l, r), do: Date.compare(l, r) == :lt
   defp compare_recurrences(%NaiveDateTime{} = l, r), do: NaiveDateTime.compare(l, r) == :lt
+
+  defp apply_all_modifiers(first_recurence, %{modifiers: modifiers, rule: rule}) do
+    Enum.reduce(modifiers, [first_recurence], fn modifier, acc ->
+      apply_modifier(modifier, rule, acc)
+      |> Enum.filter(&date_valid?/1)
+      |> Enum.sort(&compare_recurrences/2)
+    end)
+  end
 
   defp apply_modifier({:by_month, :expand}, %{by_month: months}, acc) do
     Enum.reduce(acc, [], fn recurrence, acc ->
