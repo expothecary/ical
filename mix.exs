@@ -22,7 +22,7 @@ defmodule ICal.Mixfile do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :tools, :runtime_tools],
       mod: {ICal.Application, []}
     ]
   end
@@ -32,7 +32,7 @@ defmodule ICal.Mixfile do
 
   defp deps do
     [
-      {:tz, "~> 0.28", optional: true},
+      {:time_zone_info, "~> 0.7", optional: true},
       {:mint, "~>1.7", optional: true},
 
       # saxy is used to generate the windows tz -> olson names code

@@ -81,7 +81,7 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
   def deps do
     [
       {:ical, "~> 2.0"},
-      {:tz, "~> 0.28"}
+      {:time_zone_info, "~> 0.7"}
     ]
   end
   ```
@@ -89,8 +89,9 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
   Then configure the timezone database in e.g. `config/config.exs`:
 
   ```elixir
-  config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+  config :elixir, :time_zone_database, TimeZoneInfo.TimeZoneDatabase
   ```
+
   For auto-updating the timezone database at runtime, check the documentation for the timezone
   library you are using.
 
@@ -98,8 +99,8 @@ Inline attachments can be decoded via `ICal.Attachment.decoded_data/1`.
 
   | Package | Module |
   |---|---|
-  | [`tz`](https://hex.pm/packages/tz) | `Tz.TimeZoneDatabase` |
   | [`time_zone_info`](https://hex.pm/packages/time_zone_info) | `TimeZoneInfo.TimeZoneDatabase` |
+  | [`tz`](https://hex.pm/packages/tz) | `Tz.TimeZoneDatabase` |
 
   See [tzdb_test](https://github.com/mathieuprog/tzdb_test) for more
   information on the available timezone database libraries.
