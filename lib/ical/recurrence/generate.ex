@@ -624,15 +624,16 @@ defmodule ICal.Recurrence.Generate do
         recurrences
       end
 
-    index =
-      Enum.find_index(in_set, fn recurrence ->
-        not before?(recurrence, earliest)
-      end)
+    drop_all_that_are_too_early(in_set, earliest)
+  end
 
-    case index do
-      nil -> []
-      0 -> in_set
-      index -> Enum.slice(in_set, index..-1//1)
+  defp drop_all_that_are_too_early([], _earliest), do: []
+
+  defp drop_all_that_are_too_early([head | tail] = recurrences, earliest) do
+    if before?(head, earliest) do
+      drop_all_that_are_too_early(tail, earliest)
+    else
+      recurrences
     end
   end
 
