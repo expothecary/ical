@@ -9,7 +9,7 @@ inputs = %{
     description: "Equivalent to the published rrule-rust benchmark case.",
     expectedCount: 30,
     dtstart: parse_dtstart.("DTSTART;TZID=America/Chicago:20230221T235900"),
-    rrule: ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;COUNT=30;INTERVAL=1") |> IO.inspect()
+    rrule: ICal.Recurrence.from_ics("RRULE:FREQ=DAILY;COUNT=30;INTERVAL=1")
   },
   daily_weekdays_520: %{
     label: "Daily weekdays across many cycles",
