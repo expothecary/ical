@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.2.1
+
+The 3.2.x series is now significantly faster than 3.1.x for recurrence generation,
+particularly for simple recurrence patterns that are the most common (e.g. "daily",
+"every other week", etc.).
+
+- Improvements
+  - Optimizations to recurrence generation.
+  - Switch default timezone library to time_zone_info as it is more performant
+- Janitorial
+  - Updated dependencies
+  - Added a perf-generating benchmark module
+
 ## v3.2.0
 
 - Features
