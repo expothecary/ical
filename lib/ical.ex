@@ -74,7 +74,7 @@ defmodule ICal do
   @doc """
   Converts the data in the file at `file_path` to an `ICal{}` struct.
   """
-  @spec from_file(file_path :: String.t()) :: t()
+  @spec from_file(file_path :: String.t()) :: t() | {:error, reason :: String.t()}
   defdelegate from_file(file_path), to: ICal.Deserialize.Calendar
 
   @doc """
