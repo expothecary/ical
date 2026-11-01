@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v3.2.2
+
+- Improvements
+  - `ICal.from_bimary` which takes a string an returns an `:ok`/`:error` tuple based on
+    whether or not the data passed in is an actual calendar or has some error.
+- Janitorial
+  - Small documentation improvements, updated depencies
+
 ## v3.2.1
 
 The 3.2.x series is now significantly faster than 3.1.x for recurrence generation,

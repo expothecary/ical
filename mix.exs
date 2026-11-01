@@ -2,7 +2,7 @@ defmodule ICal.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/expothecary/ical"
-  @version "3.2.1"
+  @version "3.2.2"
 
   def project do
     [
