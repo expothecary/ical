@@ -9,6 +9,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Improvements
   - `ICal.from_bimary` which takes a string an returns an `:ok`/`:error` tuple based on
     whether or not the data passed in is an actual calendar or has some error.
+
+    Thanks to [Kip Cole](https://github.com/kipcole9) for the implementation.
 - Janitorial
   - Small documentation improvements, updated depencies
 
