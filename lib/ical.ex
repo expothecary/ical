@@ -66,7 +66,10 @@ defmodule ICal do
   defdelegate to_ics(calendar), to: ICal.Serialize.Calendar
 
   @doc """
-  Converts a string containing iCalendar data to an `ICal{}` struct.
+  Converts a string containing iCalendar data to an `%ICal{}` struct.
+
+  This function is quite liberal in its parsing: it will return an `%Ical{}` in all cases,
+  even when data with no calendar data is passed in.
   """
   @spec from_ics(ics_data :: String.t()) :: t()
   defdelegate from_ics(data), to: ICal.Deserialize.Calendar
