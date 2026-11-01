@@ -11,10 +11,22 @@ defmodule ICal.Deserialize.Calendar do
   end
 
   def from_ics(data) when is_binary(data) do
-    next(data, %ICal{})
+    {_ending, calendar} = next(data, %ICal{})
+    calendar
   end
 
-  def next(<<>>, calendar), do: calendar
+  # an unclosed component reads through to the end of the data, so data that
+  # ends before END:VCALENDAR is truncated wherever it was cut
+  def from_binary(<<"BEGIN:VCALENDAR", data::binary>>) do
+    case next(data, %ICal{}) do
+      {:complete, calendar} -> {:ok, calendar}
+      {:incomplete, _calendar} -> {:error, :incomplete_calendar}
+    end
+  end
+
+  def from_binary(data) when is_binary(data), do: {:error, :not_a_calendar}
+
+  def next(<<>>, calendar), do: {:incomplete, calendar}
   def next(<<?\n, data::binary>>, calendar), do: next(data, calendar)
 
   def next(<<"BEGIN:VEVENT", data::binary>>, calendar) do
@@ -141,7 +153,7 @@ defmodule ICal.Deserialize.Calendar do
   end
 
   def next(<<"END:VCALENDAR", _data::binary>>, calendar) do
-    calendar
+    {:complete, calendar}
   end
 
   def next(data, calendar) do

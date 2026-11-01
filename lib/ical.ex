@@ -72,6 +72,14 @@ defmodule ICal do
   defdelegate from_ics(data), to: ICal.Deserialize.Calendar
 
   @doc """
+  Converts a binary containing iCalendar data to an `ICal{}` struct, returning an
+  error when the binary is not a complete calendar.
+  """
+  @spec from_binary(data :: binary()) ::
+          {:ok, t()} | {:error, reason :: :not_a_calendar | :incomplete_calendar}
+  defdelegate from_binary(data), to: ICal.Deserialize.Calendar
+
+  @doc """
   Converts the data in the file at `file_path` to an `ICal{}` struct.
   """
   @spec from_file(file_path :: String.t()) :: t() | {:error, reason :: atom() | String.t()}
