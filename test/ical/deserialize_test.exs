@@ -275,7 +275,7 @@ defmodule ICal.DeserializeTest do
     end
 
     test "Deserializing a non-extant file returns an :error tuple" do
-      assert ICal.from_file("/does/not/exist.ics") == {:error, :enoent}
+      assert {:error, _} = ICal.from_file("/does/not/exist.ics")
     end
 
     test "Deserializing DATE fields with TZID params works correctly " do

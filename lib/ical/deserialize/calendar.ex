@@ -4,11 +4,10 @@ defmodule ICal.Deserialize.Calendar do
   alias ICal.Deserialize
 
   def from_file(path) do
-    with {:ok, data} <- File.read(path),
-         %ICal{} = calendar <- from_ics(data) do
-      calendar
-    else
-      error -> error
+    case File.read(path) do
+      {:ok, data} -> from_ics(data)
+      {:error, reason} when is_atom(reason) -> {:error, to_string(:file.format_error(reason))}
+      {:error, reason} -> {:error, reason}
     end
   end
 
