@@ -506,4 +506,23 @@ defmodule ICal.DeserializeTest do
       assert "America/Denver" == ICal.Deserialize.to_timezone("Mountain Standard Time")
     end
   end
+
+  describe "ICal.from_binary/1" do
+    test "A complete calendar" do
+      ics = Helper.test_data("readme_example")
+      assert {:ok, ICal.from_ics(ics)} == ICal.from_binary(ics)
+    end
+
+    test "Data that is not a calendar" do
+      assert {:error, :not_a_calendar} == ICal.from_binary("")
+      assert {:error, :not_a_calendar} == ICal.from_binary("hello, world")
+    end
+
+    test "A truncated calendar" do
+      assert {:error, :incomplete_calendar} == ICal.from_binary("BEGIN:VCALENDAR\n")
+
+      assert {:error, :incomplete_calendar} ==
+               ICal.from_binary("BEGIN:VCALENDAR\nBEGIN:VEVENT\nUID:1\nEND:VCALENDAR\n")
+    end
+  end
 end
